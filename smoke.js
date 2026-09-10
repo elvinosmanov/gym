@@ -397,6 +397,53 @@ console.log('\n[14] Əzələ xəritəsi və həftəlik həcm');
      !svg.includes('href="#t-front-abs"'));
 }
 
+// ---------------------------------------------------------------- 15. swapping across the library
+console.log('\n[15] Kitabxanadan hərəkət dəyişmə');
+{
+  const w = boot();
+  w.confirm = () => true; w.alert = () => {};
+  w.state.profile = { ...w.state.profile, name:'E', age:30, h:178 };
+  w.setWeight(78, {quiet:true});
+  w.startSession('A'); w.__mountChecks();
+
+  // Anything in the library must be reachable, not just the slot's alternatives.
+  const reachable = Object.keys(w.EXMAP).length;
+  ok('kitabxanada 50-dən çox hərəkət var', reachable >= 50, String(reachable));
+
+  // Swap the bench slot to a curl — a movement from a different pattern entirely.
+  const before = w.state.active.ex['bp'].length;
+  w.chooseEx('bp', 'dbcu');
+  ok('seçim yadda saxlanıldı', w.state.active.swap.bp === 'dbcu', JSON.stringify(w.state.active.swap));
+  ok('effEx yeni hərəkəti qaytarır', w.effEx('bp').key === 'dbcu', w.effEx('bp').key);
+
+  // The chosen exercise brings its OWN protocol, it does not inherit the bench's.
+  ok('yeni hərəkət öz dövr sayını gətirir',
+     w.state.active.ex['bp'].length === w.EXMAP['dbcu'].sets,
+     `${before} → ${w.state.active.ex['bp'].length}, gözlənilən ${w.EXMAP['dbcu'].sets}`);
+  ok('yeni hərəkət öz təkrar aralığını gətirir',
+     w.effEx('bp').rMax === w.EXMAP['dbcu'].rMax);
+  ok('yük tipi də hərəkətin özününküdür', w.loadOf('dbcu') === 'db', w.loadOf('dbcu'));
+
+  // Going back to the main movement clears the swap.
+  w.chooseEx('bp', 'bp');
+  ok('əsas hərəkətə qayıtmaq seçimi silir', !w.state.active.swap.bp, JSON.stringify(w.state.active.swap));
+  ok('dövr sayı əsas hərəkətinkinə qayıdır',
+     w.state.active.ex['bp'].length === w.EXMAP['bp'].sets, String(w.state.active.ex['bp'].length));
+}
+{
+  // A swap must never discard sets already logged.
+  const w = boot();
+  w.confirm = () => true; w.alert = () => {};
+  w.startSession('A'); w.__mountChecks();
+  const arr = w.state.active.ex['bp'];
+  arr.forEach((s,i)=>{ s.kg='60'; s.reps='8'; w.toggleDone('bp', i); });
+  const loggedBefore = w.state.active.ex['bp'].filter(s=>s.done).length;
+  w.chooseEx('bp', 'dbcu');                       // dbcu has fewer sets than bench
+  const loggedAfter = w.state.active.ex['bp'].filter(s=>s.done).length;
+  ok('qeyd edilmiş dövrlər dəyişmədən qalır', loggedAfter === loggedBefore,
+     `${loggedBefore} → ${loggedAfter}`);
+}
+
 setTimeout(() => {
   console.log(`\n${pass} keçdi, ${fail} uğursuz`);
   process.exit(fail ? 1 : 0);

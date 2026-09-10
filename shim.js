@@ -106,6 +106,9 @@ function boot(path) {
     LOADTYPE:{get:()=>LOADTYPE, configurable:true},
     LOADS:{get:()=>LOADS, configurable:true},
     DEFAULT_GYM:{get:()=>DEFAULT_GYM, configurable:true},
+    /* Qeyd: burada yalnız const/let bağlantıları açılır. Funksiya elanları
+       (effEx, suggestKg, ...) onsuz da globalThis-dədir — onları burada
+       təkrar elan etmək getter-in öz-özünü çağırmasına gətirir. */
     gymOf:{get:()=>gymOf, configurable:true},
     gymNow:{get:()=>gymNow, configurable:true},
     gymClockStr:{get:()=>gymClockStr, configurable:true},

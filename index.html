@@ -260,6 +260,13 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 .timer .tbtns{display:flex;gap:12px;width:100%;max-width:320px}
 .timer .tbtns .btn{flex:1}
 
+/* ---------- hərəkət axtarışı ---------- */
+.swapsearch{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--ink);
+  border-radius:12px;padding:11px 13px;font-size:15px;margin-bottom:10px}
+.swapsearch::placeholder{color:var(--dim)}
+.swapsec{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);
+  margin:12px 2px 5px}
+
 /* ---------- əzələ xəritəsi ---------- */
 .bodypair{display:flex;gap:8px;justify-content:center;margin:10px 0 4px}
 .bodymap{width:100%;max-width:150px;height:auto}
@@ -999,25 +1006,88 @@ function effEx(slotKey){
   const ak = state.active && state.active.swap && state.active.swap[slotKey];
   return (ak && EXMAP[ak]) ? EXMAP[ak] : EXMAP[slotKey];
 }
+/* ---- hərəkət seçimi ----
+   Əvvəl yalnız həmin slot üçün əvvəlcədən seçilmiş 1-3 alternativ var idi,
+   yəni kitabxananın qalanına çatmaq mümkün deyildi. İndi axtarış bütün
+   hərəkətləri əhatə edir: ad, əzələ və avadanlıq üzrə. */
+let swapSlot = null, swapQ = "";
+
 function openSwap(slotKey){
-  const opts = [EXMAP[slotKey], ...(ALTS[slotKey]||[]).map(a=>EXMAP[a.key])];
-  const cur = effEx(slotKey).key;
+  swapSlot = slotKey; swapQ = "";
   openSheet("Hərəkəti seçin", EXMAP[slotKey].tag, `
-    <div class="swaplist">${opts.map((o,oi)=>{
-      const p = lastPerf(o.key);
-      return `<button class="swopt ${o.key===cur?"on":""}" onclick="chooseEx('${slotKey}','${o.key}')">
-        ${o.img?`<img class="ex-thumb" src="${o.img}" alt="${esc(o.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ex-thumb ph',textContent:'🏋️'}))">`:`<div class="ex-thumb ph">🏋️</div>`}
-        <span class="swtxt"><b>${o.name}</b><small>${oi===0?"Əsas hərəkət":"Alternativ"} · ${p?`Son: ${perfStr(p)}`:"ilk dəfə"}</small></span>
-        <span class="swck">${o.key===cur?"✓":""}</span>
-      </button>`;
-    }).join("")}</div>
-    <button class="btn block ghost" style="margin-top:6px" onclick="closeSheet()">Bağla</button>`);
+    <input id="swapq" class="swapsearch" type="search" autocomplete="off"
+      placeholder="Ad, əzələ və ya avadanlıq axtar…"
+      oninput="swapFilter(this.value)" aria-label="Hərəkət axtar">
+    <div id="swaplist"></div>
+    <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`);
+  renderSwapList();
+}
+
+function swapFilter(v){ swapQ = v; renderSwapList(); }
+
+function swapRow(o, cur, note){
+  const p = lastPerf(o.key);
+  return `<button class="swopt ${o.key===cur?"on":""}" onclick="chooseEx('${swapSlot}','${o.key}')">
+    ${o.img?`<img class="ex-thumb" src="${o.img}" alt="${esc(o.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ex-thumb ph',textContent:'🏋️'}))">`:`<div class="ex-thumb ph">🏋️</div>`}
+    <span class="swtxt"><b>${o.name}</b><small>${note} · ${p?`Son: ${perfStr(p)}`:"ilk dəfə"}</small></span>
+    <span class="swck">${o.key===cur?"✓":""}</span>
+  </button>`;
+}
+
+function renderSwapList(){
+  const el = $("#swaplist");
+  if(!el || !swapSlot) return;
+  const cur = effEx(swapSlot).key;
+  const rec = [EXMAP[swapSlot], ...(ALTS[swapSlot]||[]).map(a=>EXMAP[a.key])].filter(Boolean);
+  const recKeys = new Set(rec.map(o=>o.key));
+  const q = swapQ.trim().toLowerCase();
+
+  const hay = o => (o.name + " " + (o.tag||"") + " " +
+      muscleNames([...musclesOf(o.key).p, ...musclesOf(o.key).s]) + " " +
+      unitLabel(loadOf(o.key))).toLowerCase();
+
+  if(!q){
+    el.innerHTML = `<div class="swaplist">
+        ${rec.map((o,i)=>swapRow(o, cur, i===0?"Əsas hərəkət":"Alternativ")).join("")}
+      </div>
+      <p class="small" style="margin-top:8px">Başqa bir şey axtarırsınız? Yuxarıdakı xanaya
+        əzələ (“biseps”), avadanlıq (“hantel”) və ya ad yazın — bütün
+        ${Object.keys(EXMAP).length} hərəkət arasında axtarılacaq.</p>`;
+    return;
+  }
+
+  const hits = rec.filter(o=>hay(o).includes(q));
+  const rest = Object.values(EXMAP).filter(o => !recKeys.has(o.key) && hay(o).includes(q));
+
+  if(!hits.length && !rest.length){
+    el.innerHTML = `<div class="empty">“${esc(swapQ)}” üçün nəticə yoxdur.</div>`;
+    return;
+  }
+  el.innerHTML =
+    (hits.length ? `<div class="swapsec">Bu slot üçün</div><div class="swaplist">
+        ${hits.map(o=>swapRow(o, cur, o.key===swapSlot?"Əsas hərəkət":"Alternativ")).join("")}</div>` : "") +
+    (rest.length ? `<div class="swapsec">Kitabxanadan (${rest.length})</div><div class="swaplist">
+        ${rest.map(o=>swapRow(o, cur, muscleNames(musclesOf(o.key).p))).join("")}</div>` : "");
 }
 function chooseEx(slotKey, key){
   if(key===slotKey){ if(state.active.swap) delete state.active.swap[slotKey]; }
   else { state.active.swap = state.active.swap || {}; state.active.swap[slotKey] = key; }
+
+  const arr = state.active.ex[slotKey];
   const sug = suggestKg(key);
-  state.active.ex[slotKey].forEach(s=>{ if(!s.done){ s.kg = sug ?? ""; s.reps = ""; } });
+  arr.forEach(s=>{ if(!s.done){ s.kg = sug ?? ""; s.reps = ""; } });
+
+  /* Kitabxanadan tamam başqa hərəkət seçiləndə dövr sayı da onunkudur —
+     amma artıq qeyd edilmiş dövrlərə toxunmuruq. */
+  const want = EXMAP[key].sets;
+  const done = arr.filter(s=>s.done).length;
+  if(want > arr.length){
+    while(state.active.ex[slotKey].length < want)
+      state.active.ex[slotKey].push({kg:sug ?? "", reps:"", done:false});
+  } else if(want < arr.length && want >= done){
+    state.active.ex[slotKey] = arr.slice(0, want);
+  }
+
   closeSheet(); save(); renderTrain();
   toast(`Seçildi: ${EXMAP[key].name}`);
 }
