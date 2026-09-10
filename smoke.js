@@ -317,6 +317,60 @@ console.log('\n[13] Zal saatı');
   ok('yanvar da düzgün', w.fmtD('2026-01-03') === '3 yan', w.fmtD('2026-01-03'));
 }
 
+// ---------------------------------------------------------------- 14. muscle map
+console.log('\n[14] Əzələ xəritəsi və həftəlik həcm');
+{
+  const w = boot();
+  const keys = Object.keys(w.EXMAP);
+  const missing = keys.filter(k => !w.MMAP[k]);
+  ok('hər hərəkətin əzələ xəritəsi var', missing.length === 0, missing.join(','));
+
+  // Every muscle referenced must exist in the registry, or it silently vanishes.
+  const bad = [];
+  keys.forEach(k => {
+    const m = w.musclesOf(k);
+    [...m.p, ...m.s].forEach(x => { if (!w.MUSCLES[x]) bad.push(`${k}:${x}`); });
+  });
+  ok('istinad edilən bütün əzələlər reyestrdədir', bad.length === 0, bad.join(','));
+  ok('hər hərəkətin ən azı bir əsas əzələsi var',
+     keys.every(k => w.musclesOf(k).p.length > 0));
+
+  // Every muscle with a volume landmark must be drawable on at least one view.
+  const drawn = new Set([...Object.keys(w.BODY.front), ...Object.keys(w.BODY.back)]);
+  const undrawn = Object.keys(w.MUSCLES).filter(k => !drawn.has(k));
+  ok('hər əzələ bədən üzərində çəkilir', undrawn.length === 0, undrawn.join(','));
+
+  ok('adlar Azərbaycanca qaytarılır', w.muscleNames(['quad','glute']) === 'Dördbaşlı · Sağrı',
+     w.muscleNames(['quad','glute']));
+}
+{
+  // Volume counts primary as a full set and secondary as half.
+  const w = boot();
+  w.confirm = () => true; w.alert = () => {};
+  w.state.profile = { ...w.state.profile, name:'E', age:30, h:178 };
+  w.setWeight(78, {quiet:true});
+  w.startSession('A'); w.__mountChecks();
+  w.state.active.ex['bp'].forEach((s,i)=>{ s.kg='60'; s.reps='8'; w.toggleDone('bp', i); });
+  w.finishSession();
+
+  const vol = w.setsPerMuscle(7);
+  const sets = w.state.sessions[w.state.sessions.length-1].ex.find(e=>e.key==='bp').sets.length;
+  ok('əsas əzələ tam dövr sayılır', vol.chest === sets, `chest=${vol.chest} sets=${sets}`);
+  ok('köməkçi əzələ yarım dövr sayılır', vol.triceps === sets/2, `triceps=${vol.triceps}`);
+
+  const shade = w.heatShade(vol);
+  ok('işlənməyən əzələ "yox" rəngindədir', shade.calf === 'var(--heat-0)', shade.calf);
+  ok('az işlənən əzələ fərqlənir', shade.chest !== shade.calf);
+  ok('zəif əzələlər siyahılanır', w.weakestMuscles(vol, 3).length === 3);
+
+  // The SVG must mirror bilateral muscles and leave centred ones alone.
+  const svg = w.bodyView('front', shade, 't');
+  ok('cüt əzələlər güzgülənir', svg.includes('translate(240,0) scale(-1,1)'));
+  ok('mərkəzi əzələ güzgülənmir',
+     (svg.match(/id="t-front-abs"/g)||[]).length === 1 &&
+     !svg.includes('href="#t-front-abs"'));
+}
+
 setTimeout(() => {
   console.log(`\n${pass} keçdi, ${fail} uğursuz`);
   process.exit(fail ? 1 : 0);

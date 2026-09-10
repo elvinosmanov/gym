@@ -23,6 +23,10 @@
   --chalk:#f0ede3; --chalk-ink:#15181d;
   --a:#e0484e; --b:#4a7dff; --c:#f3b73f;      /* competition plate colors: red / blue / yellow */
   --green:#3ecf8e; --red:#e0484e;
+  /* əzələ xəritəsi */
+  --muscle-body:#1b212a; --muscle-edge:#39424f; --muscle-off:#333c49;
+  --muscle-pri:#e0484e; --muscle-sec:#8c4257;
+  --heat-0:#2b3341; --heat-1:#4a4657; --heat-2:#a87b2e; --heat-3:#3ecf8e; --heat-4:#4a7dff;
   --disp:'Oswald',system-ui,sans-serif;
   --body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
@@ -255,6 +259,31 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 @keyframes blink{50%{opacity:.25}}
 .timer .tbtns{display:flex;gap:12px;width:100%;max-width:320px}
 .timer .tbtns .btn{flex:1}
+
+/* ---------- əzələ xəritəsi ---------- */
+.bodypair{display:flex;gap:8px;justify-content:center;margin:10px 0 4px}
+.bodymap{width:100%;max-width:150px;height:auto}
+.bodypair.heat .bodymap{max-width:158px}
+.musclekey{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;font-size:12px;color:var(--mut);margin-top:4px}
+.musclekey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.musclekey .k-pri{background:var(--muscle-pri)} .musclekey .k-sec{background:var(--muscle-sec)}
+.heatkey{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:11px;color:var(--dim);margin:6px 0 2px}
+.heatkey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.heatkey .h0{background:var(--heat-0)} .heatkey .h1{background:var(--heat-1)}
+.heatkey .h2{background:var(--heat-2)} .heatkey .h3{background:var(--heat-3)}
+.heatkey .h4{background:var(--heat-4)}
+.weakbox{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px}
+.weakbox b{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.weakbox.ok b{color:var(--green)}
+.weakbox p{font-size:13px;color:var(--mut);margin-top:3px}
+.barrows{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.barrow{display:grid;grid-template-columns:78px 1fr 32px;align-items:center;gap:8px;font-size:12px}
+.barrow .bl{color:var(--mut)}
+.barrow .bt{position:relative;height:8px;border-radius:99px;background:var(--card2);overflow:visible}
+.barrow .bt i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+.barrow .bt u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--mut);opacity:.75}
+.barrow .bv{text-align:right;color:var(--ink)}
+details.rules.flat{background:transparent;border:0;margin:10px 0 0}
 
 /* ---------- zal saatı ---------- */
 .clocknow{font-size:12px;color:var(--mut)}
@@ -780,6 +809,163 @@ const unitHint  = type => (LOADS[type]||{}).hint || "";
 /* sütun başlığına sığan qısa forma */
 const unitShort = type => ({ bar:"kq ümumi", ez:"kq ümumi", smith:"kq disk", plate:"kq/tərəf",
   db:"kq/hantel", db1:"kq", stack:"kq blok", bw:"+kq", assist:"kq kömək", band:"səviyyə" }[type] || "kq");
+
+/* ================= əzələ xəritəsi =================
+   Cüt əzələlər yalnız sol yarıda çəkilir və <use> ilə güzgülənir, ona görə
+   bir path-a verilən rəng hər iki tərəfə düşür. */
+const MUSCLES = {
+  chest:{n:"Döş"}, front_delt:{n:"Ön delta"}, side_delt:{n:"Yan delta"}, rear_delt:{n:"Arxa delta"},
+  triceps:{n:"Triseps"}, biceps:{n:"Biseps"}, forearm:{n:"Said"},
+  lat:{n:"Enli kürək"}, upper_back:{n:"Orta kürək"}, trap:{n:"Trapesiya"}, lower_back:{n:"Bel"},
+  abs:{n:"Qarın"}, oblique:{n:"Yan qarın"},
+  glute:{n:"Sağrı"}, quad:{n:"Dördbaşlı"}, hamstring:{n:"Arxa bud"}, adductor:{n:"İç bud"}, calf:{n:"Baldır"}
+};
+/* həftəlik "işləyən dövr" aralığı (aşağı hədd = artım üçün minimum) */
+const WEEKLY_SETS = {
+  chest:[10,20], front_delt:[6,14], side_delt:[10,20], rear_delt:[10,20],
+  triceps:[8,18], biceps:[8,18], forearm:[4,12],
+  lat:[10,20], upper_back:[10,20], trap:[6,16], lower_back:[4,12],
+  abs:[8,18], oblique:[6,14],
+  glute:[8,18], quad:[10,20], hamstring:[8,18], adductor:[4,12], calf:[8,18]
+};
+/* hərəkət → əsas (p) və köməkçi (s) əzələlər */
+const MMAP = {
+  sq:{p:["quad","glute"],s:["lower_back","adductor","hamstring"]},
+  bp:{p:["chest"],s:["triceps","front_delt"]},
+  lp:{p:["lat"],s:["biceps","upper_back"]},
+  rdl:{p:["hamstring","glute"],s:["lower_back","trap"]},
+  lat:{p:["side_delt"],s:["trap"]},
+  tri:{p:["triceps"],s:[]},
+  lpz:{p:["quad","glute"],s:["hamstring","adductor"]},
+  row:{p:["upper_back","lat"],s:["biceps","rear_delt"]},
+  ohp:{p:["front_delt","side_delt"],s:["triceps","trap","abs"]},
+  llc:{p:["hamstring"],s:["calf"]},
+  cur:{p:["biceps"],s:["forearm"]},
+  calf:{p:["calf"],s:[]},
+  bss:{p:["quad","glute"],s:["hamstring","adductor"]},
+  idp:{p:["chest","front_delt"],s:["triceps"]},
+  csmr:{p:["upper_back","rear_delt"],s:["lat","biceps"]},
+  be:{p:["lower_back","glute"],s:["hamstring"]},
+  fp:{p:["rear_delt"],s:["trap","upper_back"]},
+  abs:{p:["abs"],s:["oblique"]},
+  hsq:{p:["quad"],s:["glute"]}, gsq:{p:["quad","glute"],s:["abs"]},
+  dbp:{p:["chest"],s:["triceps","front_delt"]}, mchp:{p:["chest"],s:["triceps","front_delt"]},
+  apu:{p:["lat"],s:["biceps","upper_back"]}, ht:{p:["glute"],s:["hamstring"]},
+  cpt:{p:["glute","hamstring"],s:["lower_back"]}, clr:{p:["side_delt"],s:[]},
+  ohte:{p:["triceps"],s:[]}, skc:{p:["triceps"],s:[]},
+  smsq:{p:["quad","glute"],s:["hamstring"]}, oadr:{p:["lat","upper_back"],s:["biceps","rear_delt"]},
+  sdp:{p:["front_delt","side_delt"],s:["triceps"]}, mshp:{p:["front_delt","side_delt"],s:["triceps"]},
+  slc:{p:["hamstring"],s:["calf"]}, dbcu:{p:["biceps"],s:["forearm"]},
+  cbcu:{p:["biceps"],s:["forearm"]}, ham:{p:["biceps","forearm"],s:[]},
+  scr:{p:["calf"],s:[]}, lpcr:{p:["calf"],s:[]},
+  wlg:{p:["quad","glute"],s:["hamstring","adductor"]}, stpu:{p:["quad","glute"],s:["hamstring"]},
+  incm:{p:["chest","front_delt"],s:["triceps"]}, fly:{p:["chest"],s:["front_delt"]},
+  pdk:{p:["chest"],s:["front_delt"]}, dbfl:{p:["chest"],s:["front_delt"]},
+  mhr:{p:["lat","upper_back"],s:["biceps","rear_delt"]}, ght:{p:["hamstring","glute"],s:["lower_back"]},
+  rpd:{p:["rear_delt"],s:["upper_back","trap"]}, bpa:{p:["rear_delt"],s:["trap"]},
+  hkr:{p:["abs"],s:["oblique","forearm"]}, dsu:{p:["abs"],s:["oblique"]}
+};
+const musclesOf = key => MMAP[key] || {p:[],s:[]};
+const muscleNames = keys => (keys||[]).map(k => (MUSCLES[k]||{}).n || k).join(" · ");
+
+/* viewBox eni 240, güzgü oxu x=120 — yalnız sol tərəf çəkilir */
+const BODY_OUTLINE =
+  "M120 10c14 0 25 12 25 27 0 10-4 19-11 24 8 3 17 6 25 10 11 5 18 13 21 24 3 12 5 26 6 39 " +
+  "1 12 2 24 2 33 0 7-5 11-11 10-6-1-9-6-10-12-1-9-3-19-5-27-1 12-1 24 1 35 2 14 5 27 6 39 " +
+  "1 14 1 28 0 41-1 15-3 30-5 44-2 13-4 25-5 35-1 8-6 12-13 12-7 0-12-5-12-13 0-14 0-30-1-45 " +
+  "-1-12-2-24-3-33-1 9-2 21-3 33-1 15-1 31-1 45 0 8-5 13-12 13-7 0-12-4-13-12-1-10-3-22-5-35 " +
+  "-2-14-4-29-5-44-1-13-1-27 0-41 1-12 4-25 6-39 2-11 2-23 1-35-2 8-4 18-5 27-1 6-4 11-10 12 " +
+  "-6 1-11-3-11-10 0-9 1-21 2-33 1-13 3-27 6-39 3-11 10-19 21-24 8-4 17-7 25-10-7-5-11-14-11-24 " +
+  "0-15 11-27 25-27z";
+const BODY = {
+  front:{
+    trap:{d:"M112 62c-11 3-22 9-31 17 2-9 7-15 15-19 5-3 11-4 16-5z"},
+    front_delt:{d:"M81 79c-9 6-14 16-15 27-1 7 3 12 9 12 7 0 13-8 15-18 2-9 0-17-9-21z"},
+    side_delt:{d:"M74 84c-8 8-11 19-11 30 0 6 4 9 9 8 5-2 8-8 9-16 1-9 0-17-7-22z"},
+    chest:{d:"M98 84c8-3 15-4 20-3v44c-7 4-17 4-24-1-8-6-11-16-9-25 1-7 6-12 13-15z"},
+    biceps:{d:"M69 118c-4 12-5 26-2 39 6 2 12-3 14-13 3-13 1-22-3-28-3-1-6-1-9 2z"},
+    forearm:{d:"M65 159c-6 15-10 33-10 47 0 6 7 8 11 3 6-9 11-30 12-46-4-4-9-5-13-4z"},
+    abs:{d:"M104 128h32v66c0 9-7 15-16 15s-16-6-16-15z",center:true},
+    oblique:{d:"M97 130c-5 15-5 38-1 56 2 8 5 13 8 15V130z"},
+    quad:{d:"M99 212c-8 18-12 47-10 76 1 14 7 23 14 23 8 0 14-11 14-27v-72z"},
+    adductor:{d:"M114 212v56c-7-4-11-15-11-28 0-11 4-22 11-28z"},
+    calf:{d:"M97 318c-7 16-9 39-6 58 1 9 8 12 12 6 5-9 7-33 5-52z"}
+  },
+  back:{
+    trap:{d:"M120 62c-13 4-27 13-38 24 13 6 24 14 28 25l10 26V62z"},
+    rear_delt:{d:"M78 88c-9 7-15 18-15 30 0 6 5 10 10 8 7-3 12-13 13-24 1-6 0-11-8-14z"},
+    triceps:{d:"M66 118c-6 14-8 30-4 44 6 2 12-4 14-15 3-14 1-24-3-30-3-1-5-1-7 1z"},
+    forearm:{d:"M62 163c-6 15-9 32-9 45 0 6 7 8 11 3 6-9 11-29 12-45-4-4-10-5-14-3z"},
+    lat:{d:"M96 108c-9 14-14 38-12 62 2 15 10 26 23 30l9-48c-2-19-9-35-20-44z"},
+    upper_back:{d:"M104 96c-6 5-10 13-11 22 6 3 13 3 19 0V96z"},
+    lower_back:{d:"M106 166h28v44c0 9-6 14-14 14s-14-5-14-14z",center:true},
+    glute:{d:"M101 218c-11 5-17 20-15 37 2 15 13 24 26 21 8-2 11-13 11-26v-30z"},
+    hamstring:{d:"M93 276c-6 20-7 47-3 68 3 11 11 13 16 5 5-13 7-44 5-67z"},
+    calf:{d:"M94 348c-7 16-10 40-6 58 3 10 11 10 15 1 5-14 6-39 3-54z"}
+  }
+};
+
+function bodyView(view, shade, uid){
+  const spec = BODY[view];
+  const parts = [];
+  for(const key of Object.keys(spec)){
+    const g = spec[key];
+    const fill = (shade||{})[key] || "var(--muscle-off)";
+    const id = `${uid}-${view}-${key}`;
+    /* incə kontur — rənglər yaxın olanda da əzələ sərhədi görünsün */
+    parts.push(`<path id="${id}" d="${g.d}" fill="${fill}" stroke="var(--muscle-edge)" stroke-width="0.8"/>`);
+    if(!g.center) parts.push(`<use href="#${id}" transform="translate(240,0) scale(-1,1)"/>`);
+  }
+  return `<svg viewBox="0 0 240 440" class="bodymap" role="img" aria-label="${view==="front"?"ön":"arxa"} görünüş">
+    <path d="${BODY_OUTLINE}" fill="var(--muscle-body)" stroke="var(--muscle-edge)" stroke-width="1.5"/>
+    ${parts.join("")}
+  </svg>`;
+}
+
+/* bir hərəkət üçün: əsas güclü, köməkçi solğun */
+function exerciseBody(key, uid){
+  const m = musclesOf(key), shade = {};
+  (m.s||[]).forEach(k => shade[k] = "var(--muscle-sec)");
+  (m.p||[]).forEach(k => shade[k] = "var(--muscle-pri)");
+  return `<div class="bodypair">${bodyView("front",shade,uid)}${bodyView("back",shade,uid)}</div>`;
+}
+
+/* həftəlik dövr sayı → istilik rəngi */
+function heatShade(vol){
+  const shade = {};
+  for(const k of Object.keys(MUSCLES)){
+    const n = vol[k] || 0, [lo,hi] = WEEKLY_SETS[k] || [8,16];
+    shade[k] = n<=0 ? "var(--heat-0)" : n < lo*0.5 ? "var(--heat-1)"
+             : n < lo ? "var(--heat-2)" : n <= hi ? "var(--heat-3)" : "var(--heat-4)";
+  }
+  return shade;
+}
+
+/* son 7 gündə əzələ başına dövr — köməkçi əzələ yarım sayılır */
+function setsPerMuscle(days){
+  const cut = new Date(); cut.setHours(0,0,0,0); cut.setDate(cut.getDate()-((days||7)-1));
+  const out = {};
+  for(const s of state.sessions){
+    const [y,m,d] = s.d.split("-").map(Number);
+    if(new Date(y,m-1,d) < cut) continue;
+    for(const e of s.ex||[]){
+      const mm = musclesOf(e.key);
+      const n = (e.sets||[]).filter(x=>Number(x.reps)>0).length;
+      for(const k of mm.p) out[k] = (out[k]||0) + n;
+      for(const k of mm.s) out[k] = (out[k]||0) + n*0.5;
+    }
+  }
+  for(const k of Object.keys(out)) out[k] = Math.round(out[k]*10)/10;
+  return out;
+}
+
+function weakestMuscles(vol, n){
+  return Object.keys(MUSCLES)
+    .map(k => ({ key:k, name:MUSCLES[k].n, sets:vol[k]||0, deficit:(WEEKLY_SETS[k]||[8])[0]-(vol[k]||0) }))
+    .filter(x => x.deficit > 0)
+    .sort((a,b) => b.deficit - a.deficit)
+    .slice(0, n||3);
+}
 
 /* aktiv məşqdə slot üçün seçilmiş effektiv hərəkət (əsas və ya alternativ) */
 function effEx(slotKey){
@@ -1687,6 +1873,13 @@ function openTech(day,i){
     ${ex.mist.length?`<hr class="split">
     <div class="small" style="letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-bottom:2px">Ümumi səhvlər</div>
     <div class="cuelist">${ex.mist.map(c=>`<div class="cue bad"><div class="ic">✕</div><p>${c}</p></div>`).join("")}</div>`:""}
+    <hr class="split">
+    <div class="small" style="letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-bottom:2px">Nəyi işlədir</div>
+    ${exerciseBody(ex.key, "tech")}
+    <div class="musclekey">
+      <span><i class="k-pri"></i>${muscleNames(musclesOf(ex.key).p)}</span>
+      ${musclesOf(ex.key).s.length?`<span><i class="k-sec"></i>${muscleNames(musclesOf(ex.key).s)}</span>`:""}
+    </div>
     ${alts.length?`<hr class="split">
     <div class="small">Avadanlıq məşğuldursa, alternativlər: <b style="color:var(--ink)">${alts.map(a=>a.name).join(" · ")}</b> — məşq zamanı kartdakı “⇄ Dəyiş” düyməsi ilə keçin.</div>`:""}
     <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`);
@@ -2058,8 +2251,45 @@ function renderProg(){
     <div class="sect">Güc · təxmini 1TM</div>
     <div class="card">${liftBlock}</div>
 
+    <div class="sect">Bu həftənin həcmi</div>
+    <div class="card">${volumeHTML()}</div>
+
     <div class="sect">Tarixçə</div>
     <div class="card">${hist}</div>`;
+}
+
+/* Hansı əzələni az işlədirsən — rəqəmlə deyil, bədən üzərində. */
+function volumeHTML(){
+  const vol = setsPerMuscle(7);
+  const total = Object.values(vol).reduce((a,b)=>a+b,0);
+  if(!total) return `<div class="empty">Son 7 gündə məşq yoxdur — bir məşq edin, xəritə özü dolacaq.</div>`;
+  const shade = heatShade(vol);
+  const weak = weakestMuscles(vol, 4);
+  const rows = Object.keys(MUSCLES)
+    .map(k => ({ k, name:MUSCLES[k].n, v:vol[k]||0, lo:(WEEKLY_SETS[k]||[8])[0] }))
+    .sort((a,b) => b.v - a.v);
+  const max = Math.max(1, ...rows.map(r => Math.max(r.v, r.lo)));
+
+  return `
+    <div class="bodypair heat">${bodyView("front",shade,"heat")}${bodyView("back",shade,"heat")}</div>
+    <div class="heatkey">
+      <span><i class="h0"></i>yox</span><span><i class="h1"></i>çox az</span>
+      <span><i class="h2"></i>az</span><span><i class="h3"></i>yaxşı</span><span><i class="h4"></i>çox</span>
+    </div>
+    ${weak.length
+      ? `<div class="weakbox"><b>Bu həftə az işlənib</b><p>${weak.map(x=>`${x.name} (${x.sets}/${(WEEKLY_SETS[x.key]||[8])[0]})`).join(" · ")}</p></div>`
+      : `<div class="weakbox ok"><b>Bu həftə bütün əzələlər örtülüb.</b></div>`}
+    <details class="rules flat"><summary>Əzələ başına dövr</summary><div class="inner">
+      <div class="barrows">${rows.map(r=>`
+        <div class="barrow">
+          <span class="bl">${r.name}</span>
+          <span class="bt"><i style="width:${(r.v/max*100).toFixed(1)}%;background:${r.v>=r.lo?"var(--green)":r.v>0?"var(--c)":"var(--line)"}"></i>
+            <u style="left:${(r.lo/max*100).toFixed(1)}%"></u></span>
+          <span class="bv num">${r.v}</span>
+        </div>`).join("")}</div>
+      <p class="small" style="margin-top:10px">İşarə — artım üçün həftəlik minimum.
+        Köməkçi əzələ yarım dövr sayılır. Son 7 gün.</p>
+    </div></details>`;
 }
 function pickLift(k){ selLift=k; renderProg(); }
 function delWeight(i){ if(!confirm("Bu çəki qeydini silmək istəyirsiniz?")) return; state.weights.splice(i,1); if(state.weights.length) state.profile.w = state.weights[state.weights.length-1].kg; save({cloud:true}); renderProg(); }
