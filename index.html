@@ -256,6 +256,14 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 .timer .tbtns{display:flex;gap:12px;width:100%;max-width:320px}
 .timer .tbtns .btn{flex:1}
 
+/* ---------- zal saatı ---------- */
+.clocknow{font-size:12px;color:var(--mut)}
+.gymbadge{font-style:normal;font-size:8.5px;letter-spacing:.14em;background:var(--c);color:#15181d;
+  border-radius:4px;padding:1px 4px;vertical-align:1px;font-weight:700}
+.timer .tback{font-size:12.5px;color:var(--mut);letter-spacing:.04em;margin:-2px 0 2px}
+.mini{background:var(--card2);border:1px solid var(--line);color:var(--mut);border-radius:8px;
+  padding:3px 9px;font-size:11.5px}
+
 /* ---------- yük tipi / disk hesabı ---------- */
 .unitbar{display:flex;flex-direction:column;gap:1px;background:var(--card2);border:1px solid var(--line);
   border-radius:10px;padding:7px 10px;margin:10px 0 2px}
@@ -351,6 +359,7 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
     </svg>
     <div class="digits num" id="timerDigits">0:00</div>
   </div>
+  <div class="tback num" id="timerBack"></div>
   <div class="tbtns">
     <button class="btn ghost" onclick="timerAdd()">+30 san</button>
     <button class="btn" onclick="timerSkip()">İstirahəti keç</button>
@@ -559,7 +568,11 @@ let storageOK = true, saveT = null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const todayISO = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
-const fmtD = iso => { const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d).toLocaleDateString("az",{day:"numeric",month:"short"}); };
+/* Chromium-un "az" lokalı qısa ayı "M09" kimi verir — oxunmur, ona görə
+   ay adlarını özümüz yazırıq. */
+const AY_QISA = ["yan","fev","mar","apr","may","iyn","iyl","avq","sen","okt","noy","dek"];
+const GUN_ADI = ["bazar","bazar ertəsi","çərşənbə axşamı","çərşənbə","cümə axşamı","cümə","şənbə"];
+const fmtD = iso => { const [y,m,d]=iso.split("-").map(Number); return `${d} ${AY_QISA[m-1]}`; };
 const EXMAP = {}; Object.keys(PROGRAM).forEach(D => PROGRAM[D].ex.forEach(e => {
   EXMAP[e.key] = {...e, day:D};
   (ALTS[e.key]||[]).forEach(a => EXMAP[a.key] = {...e, ...a, cues:a.cues||[], mist:a.mist||[], img:a.img||null, day:D});
@@ -608,6 +621,46 @@ const DEFAULT_GYM = {
 };
 const gymOf = () => ({...DEFAULT_GYM, ...(state.gym||{})});
 const round2 = n => Math.round(n*100)/100;
+
+/* ---- zal saatı ----
+   Divardakı saat adətən telefondan bir neçə dəqiqə fərqlidir və dövrlər
+   arasında baxdığınız məhz odur. Fərqi bir dəfə yazın — app-dakı bütün
+   vaxtlar həmin saata uyğun göstərilir. */
+const clockOffset = () => Number((state.gym||{}).clockOffsetMin) || 0;
+const gymNow = () => new Date(Date.now() + clockOffset()*60000);
+const fmtClock = dt => dt.toLocaleTimeString("az",{hour:"2-digit",minute:"2-digit"});
+const gymClockStr = ms => fmtClock(new Date((ms===undefined?Date.now():ms) + clockOffset()*60000));
+const realClockStr = () => fmtClock(new Date());
+const clockSkewed = () => Math.abs(clockOffset()) >= 1;
+/* istirahət bitəndə divar saatında neçə olacaq */
+const backAt = secs => gymClockStr(Date.now() + secs*1000);
+
+function syncGymClock(hhmm){
+  const m = /^(\d{1,2})[:.\s]?(\d{2})$/.exec(String(hhmm||"").trim());
+  if(!m){ toast("Saatı HH:MM kimi yazın, məsələn 18:47"); return; }
+  const h = Number(m[1]), mi = Number(m[2]);
+  if(h > 23 || mi > 59){ toast("Bu düzgün vaxt deyil."); return; }
+  const now = new Date(), target = new Date(now);
+  target.setHours(h, mi, 0, 0);
+  let diff = Math.round((target - now)/60000);
+  if(diff >  720) diff -= 1440;          /* gecəyarısından keçmə */
+  if(diff < -720) diff += 1440;
+  state.gym = {...gymOf(), clockOffsetMin:diff};
+  save(); renderDateChip(); renderToday();
+  if(tEnd) tickRender();                 /* açıq taymerin "davam" vaxtı da sürüşür */
+  toast(diff ? `Zal saatı quruldu: ${Math.abs(diff)} dəq ${diff>0?"irəli":"geri"}.` : "Saat onsuz da uyğundur.");
+}
+function clearGymClock(){
+  state.gym = {...gymOf(), clockOffsetMin:0};
+  save(); renderDateChip(); renderToday();
+  if(tEnd) tickRender();
+  toast("Zal saatı telefon vaxtına qaytarıldı.");
+}
+function offsetText(){
+  const o = clockOffset();
+  if(!o) return "telefonunuzla eynidir";
+  return `telefondan ${Math.abs(o)} dəq ${o>0?"irəli":"geri"}`;
+}
 
 /* Ştanqın düzəldə bildiyi bütün ümumi çəkilər (disklər cüt-cütdür). */
 function reachableBarTotals(barKg, plates, max){
@@ -1378,6 +1431,20 @@ function gymCardHTML(){
     </div>
     <div class="small" style="margin-top:8px">Hantellər indi ${g.dbStep} kq addımlarla təklif olunacaq —
       bunu rəfinizin real addımına uyğun seçin.</div>
+
+    <hr class="split">
+    <div class="field"><label>Zal saatı</label>
+      <div class="small" style="margin-bottom:7px">Divardakı saat dövrlər arasında baxdığınızdır.
+        Onun göstərdiyini yazın — app-dakı bütün vaxtlar ona uyğunlaşacaq.</div>
+      <div style="display:flex;gap:8px">
+        <input id="clocksync" type="text" inputmode="numeric" placeholder="18:47" style="flex:1"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();syncGymClock(this.value)}">
+        <button class="btn sm" onclick="syncGymClock($('#clocksync').value)">Uyğunlaşdır</button>
+      </div>
+      <div class="small" style="margin-top:7px">Zal <b class="num">${gymClockStr()}</b> ·
+        telefon <b class="num">${realClockStr()}</b> — ${offsetText()}.
+        ${clockSkewed()?` <button class="mini" onclick="clearGymClock()">Sıfırla</button>`:""}</div>
+    </div>
   </div>`;
 }
 
@@ -1776,6 +1843,9 @@ function tickRender(){
   $("#timerDigits").textContent = m+":"+String(s).padStart(2,"0");
   const frac = tTotal>0 ? Math.min(1,Math.max(0,left/tTotal)) : 0;
   $("#timerRing").setAttribute("stroke-dashoffset", (RING_C*(1-frac)).toFixed(1));
+  /* divar saatı ilə: "18:45-də davam" — dövrlər arasında baxdığınız saat */
+  const b = $("#timerBack");
+  if(b) b.textContent = left > 0 ? `${backAt(left)}-də davam` : "başla";
 }
 
 function timerAdd(){
@@ -1996,11 +2066,16 @@ function delWeight(i){ if(!confirm("Bu çəki qeydini silmək istəyirsiniz?")) 
 function delSession(i){ if(!confirm("Bu məşqi tarixçədən silmək istəyirsiniz?")) return; state.sessions.splice(i,1); save({cloud:true}); renderProg(); }
 
 /* ================= boot ================= */
-(function(){
-  const d=new Date();
-  $("#dateChip").innerHTML = `<b>${d.toLocaleDateString("az",{weekday:"long"})}</b><br>${d.toLocaleDateString("az",{day:"numeric",month:"short",year:"numeric"})}`;
-})();
-loadState().then(()=>{ renderSaveNote(); renderNetNote(); renderToday(); restoreTimer(); });
+function renderDateChip(){
+  const d = gymNow();
+  $("#dateChip").innerHTML =
+    `<b>${GUN_ADI[d.getDay()]}</b><br>${d.getDate()} ${AY_QISA[d.getMonth()]} ${d.getFullYear()}` +
+    `<br><span class="clocknow num">${gymClockStr()}${clockSkewed()?` <i class="gymbadge">ZAL</i>`:""}</span>`;
+}
+renderDateChip();
+/* offset yükləndikdən sonra yenidən — və dəqiqə dəyişdikcə */
+loadState().then(()=>{ renderSaveNote(); renderNetNote(); renderDateChip(); renderToday(); restoreTimer(); });
+setInterval(renderDateChip, 30000);
 
 /* Service worker — zalın zirzəmisində siqnal olmayanda app yenə açılsın.
    Nisbi yol: alt qovluqda (məs. /gym/) yerləşdirmə üçün vacibdir. */

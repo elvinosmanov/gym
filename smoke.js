@@ -280,6 +280,43 @@ console.log('\n[12] Disk hesabı — "2.5 kq hər tərəfə, yoxsa ümumi?"');
   ok('əsl addım istifadəçiyə göstərilir', w.realStep('bp') === 10, String(w.realStep('bp')));
 }
 
+// ---------------------------------------------------------------- 13. gym wall clock
+console.log('\n[13] Zal saatı');
+{
+  const w = boot();
+  w.state.gym = { ...w.gymOf(), clockOffsetMin: 0 };
+  ok('fərq yoxdursa telefon vaxtı', w.clockSkewed() === false);
+
+  // "the wall says 18:47" — whatever the phone says, the offset is derived.
+  const now = new Date();
+  const wall = new Date(now.getTime() + 7 * 60000);
+  w.syncGymClock(`${String(wall.getHours()).padStart(2,'0')}:${String(wall.getMinutes()).padStart(2,'0')}`);
+  const off = w.state.gym.clockOffsetMin;
+  ok('divar saatından fərq hesablandı', Math.abs(off - 7) <= 1, String(off));
+  ok('fərq varsa bildirilir', w.clockSkewed() === true);
+  ok('mətn istiqaməti düzgün yazır', /irəli/.test(w.offsetText()), w.offsetText());
+
+  // Every displayed time must be shifted, including the end of a rest period.
+  const gymMin = w.gymNow().getMinutes(), realMin = new Date().getMinutes();
+  ok('göstərilən vaxt sürüşdürülür', ((gymMin - realMin + 60) % 60) === Math.abs(off) % 60,
+     `gym=${gymMin} real=${realMin} off=${off}`);
+
+  w.clearGymClock();
+  ok('sıfırlama telefon vaxtına qaytarır', w.clockSkewed() === false);
+
+  // Midnight wrap: 00:05 on the wall when the phone says 23:58 is +7, not -1433.
+  const w2 = boot();
+  const late = new Date(); late.setHours(23, 58, 0, 0);
+  ok('gecəyarısı keçidi ±12 saat içində qalır',
+     Math.abs(w2.gymNow().getTime() - Date.now()) < 12*3600*1000);
+}
+{
+  // Azerbaijani short months, not Chromium's "M09".
+  const w = boot();
+  ok('tarix "10 sen" kimi yazılır', w.fmtD('2026-09-10') === '10 sen', w.fmtD('2026-09-10'));
+  ok('yanvar da düzgün', w.fmtD('2026-01-03') === '3 yan', w.fmtD('2026-01-03'));
+}
+
 setTimeout(() => {
   console.log(`\n${pass} keçdi, ${fail} uğursuz`);
   process.exit(fail ? 1 : 0);
