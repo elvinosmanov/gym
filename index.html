@@ -261,11 +261,22 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 .overlay.on{display:block}
 .sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:500px;z-index:61;
   background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;
-  padding:18px 18px calc(22px + env(safe-area-inset-bottom));display:none;max-height:82vh;overflow-y:auto}
-.sheet.on{display:block}
-.sheet .grab{width:40px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}
+  display:none;max-height:86vh;overflow:hidden;
+  transition:transform .18s ease}
+.sheet.on{display:flex;flex-direction:column}
+/* The header never scrolls away, so the close button is always reachable —
+   a long technique sheet used to hide it below the fold. */
+.sheet-head{flex:0 0 auto;position:relative;padding:12px 52px 10px 18px;background:var(--card);
+  border-bottom:1px solid var(--line)}
+.sheet .grab{width:40px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 12px}
+.sheet-x{position:absolute;top:14px;right:12px;width:34px;height:34px;border-radius:50%;
+  background:var(--card2);color:var(--ink);border:1px solid var(--line);font-size:15px;line-height:1;
+  display:flex;align-items:center;justify-content:center}
+.sheet-x:active{transform:scale(.94)}
+.sheet-body{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 18px calc(22px + env(safe-area-inset-bottom))}
 .sheet h3{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.03em}
-.sheet .stag{font-size:12px;color:var(--mut);margin:2px 0 10px}
+.sheet .stag{font-size:12px;color:var(--mut);margin:2px 0 0}
 .cuelist{margin:8px 0 4px}
 .cue{display:flex;gap:10px;padding:7px 0;font-size:13.5px}
 .cue .ic{flex-shrink:0;width:19px;height:19px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:1px}
@@ -545,8 +556,7 @@ function effEx(slotKey){
 function openSwap(slotKey){
   const opts = [EXMAP[slotKey], ...(ALTS[slotKey]||[]).map(a=>EXMAP[a.key])];
   const cur = effEx(slotKey).key;
-  $("#sheet").innerHTML = `<div class="grab"></div>
-    <h3>Hərəkəti seçin</h3><div class="stag">${EXMAP[slotKey].tag}</div>
+  openSheet("Hərəkəti seçin", EXMAP[slotKey].tag, `
     <div class="swaplist">${opts.map((o,oi)=>{
       const p = lastPerf(o.key);
       return `<button class="swopt ${o.key===cur?"on":""}" onclick="chooseEx('${slotKey}','${o.key}')">
@@ -555,8 +565,7 @@ function openSwap(slotKey){
         <span class="swck">${o.key===cur?"✓":""}</span>
       </button>`;
     }).join("")}</div>
-    <button class="btn block ghost" style="margin-top:6px" onclick="closeSheet()">Bağla</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block ghost" style="margin-top:6px" onclick="closeSheet()">Bağla</button>`);
 }
 function chooseEx(slotKey, key){
   if(key===slotKey){ if(state.active.swap) delete state.active.swap[slotKey]; }
@@ -1203,9 +1212,8 @@ function openTech(day,i){
   const base = PROGRAM[day].ex[i];
   const ex = (state.active && state.active.day===day) ? effEx(base.key) : base;
   const alts = (ALTS[base.key]||[]);
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  openSheet(ex.name, ex.tag, `
     ${ex.img?`<img class="techimg" src="${ex.img}" alt="${esc(ex.name)}" loading="lazy" onerror="this.remove()">`:""}
-    <h3>${ex.name}</h3><div class="stag">${ex.tag}</div>
     <div class="protoc">
       <span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span>
       <span class="tag">istirahət ${Math.round(ex.rest/60*10)/10} dəq</span>
@@ -1217,43 +1225,180 @@ function openTech(day,i){
     <div class="cuelist">${ex.mist.map(c=>`<div class="cue bad"><div class="ic">✕</div><p>${c}</p></div>`).join("")}</div>`:""}
     ${alts.length?`<hr class="split">
     <div class="small">Avadanlıq məşğuldursa, alternativlər: <b style="color:var(--ink)">${alts.map(a=>a.name).join(" · ")}</b> — məşq zamanı kartdakı “⇄ Dəyiş” düyməsi ilə keçin.</div>`:""}
-    <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`);
 }
-function closeSheet(){ $("#overlay").classList.remove("on"); $("#sheet").classList.remove("on"); }
+/* ---- sheet plumbing ----
+   The old sheet just toggled a class. The page behind it stayed
+   scrollable, so on a phone the scroll gesture went to the page instead
+   of the sheet, the sheet's own Bağla button sat below the fold on long
+   technique sheets, and there was no Esc — which is why it felt like the
+   modal ate the page and needed a reload. */
+let sheetOpen=false, sheetScrollY=0;
 
-/* ================= rest timer ================= */
-let tInt=null, tLeft=0, tTotal=0;
-const RING_C = 565.5; // 2*pi*90, matches the SVG circle radius
-function startTimer(sec,label){
-  clearInterval(tInt); tLeft=sec; tTotal=sec;
-  const el=$("#timer"); el.classList.add("on"); el.classList.remove("done");
-  $("#timerLab").textContent = label.toUpperCase();
-  tickRender();
-  acquireWakeLock();
-  tInt = setInterval(tick,1000);
+function openSheet(title, sub, bodyHTML){
+  $("#sheet").innerHTML = `
+    <div class="sheet-head">
+      <div class="grab" aria-hidden="true"></div>
+      <h3>${title}</h3>
+      ${sub?`<div class="stag">${sub}</div>`:""}
+      <button class="sheet-x" onclick="closeSheet()" aria-label="Bağla">✕</button>
+    </div>
+    <div class="sheet-body">${bodyHTML}</div>`;
+  $("#overlay").classList.add("on");
+  $("#sheet").classList.add("on");
+  $("#sheet").style.transform = "";
+  const body = $("#sheet .sheet-body");
+  if(body) body.scrollTop = 0;
+
+  // Freeze the page behind without losing where the user was.
+  sheetScrollY = window.scrollY;
+  document.body.style.position="fixed";
+  document.body.style.top = `-${sheetScrollY}px`;
+  document.body.style.width="100%";
+  sheetOpen = true;
 }
-function tick(){
-  tLeft--; tickRender();
-  if(tLeft<=0){
-    clearInterval(tInt); tInt=null; $("#timer").classList.add("done"); beep();
-    try{navigator.vibrate && navigator.vibrate([160,90,160]);}catch(e){}
-    releaseWakeLock();
-    setTimeout(()=>{ if(tLeft<=0) $("#timer").classList.remove("on"); },1900);
+
+function closeSheet(){
+  $("#overlay").classList.remove("on");
+  $("#sheet").classList.remove("on");
+  $("#sheet").style.transform = "";
+  if(sheetOpen){
+    document.body.style.position="";
+    document.body.style.top="";
+    document.body.style.width="";
+    window.scrollTo(0, sheetScrollY);
+    sheetOpen = false;
   }
 }
+
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && sheetOpen){ e.preventDefault(); closeSheet(); }
+});
+
+/* Swipe the sheet down to dismiss, but only from the top of its scroll. */
+(function(){
+  let y0=null, dragging=false;
+  const sheet = () => $("#sheet");
+  document.addEventListener("touchstart", e => {
+    if(!sheetOpen) return;
+    const body = $("#sheet .sheet-body");
+    if(body && body.scrollTop > 0) return;
+    if(!e.target.closest("#sheet")) return;
+    y0 = e.touches[0].clientY; dragging = true;
+  }, {passive:true});
+  document.addEventListener("touchmove", e => {
+    if(!dragging || y0===null) return;
+    const dy = e.touches[0].clientY - y0;
+    if(dy > 0) sheet().style.transform = `translateX(-50%) translateY(${dy}px)`;
+  }, {passive:true});
+  document.addEventListener("touchend", e => {
+    if(!dragging) return;
+    dragging = false;
+    const dy = e.changedTouches[0].clientY - y0;
+    y0 = null;
+    sheet().style.transform = "";
+    if(dy > 90) closeSheet();
+  });
+})();
+
+/* ================= rest timer =================
+   The countdown is derived from a target TIMESTAMP, never from a
+   counter that setInterval decrements. Backgrounded tabs get their
+   timers throttled to once a minute (or frozen outright on iOS), so
+   a `tLeft--` clock loses minutes every time the phone locks. Reading
+   the wall clock instead means throttling only costs redraw smoothness,
+   and the remaining time is still right when you come back — or after
+   a reload, because the target is persisted. */
+let tInt=null, tEnd=0, tTotal=0, tLabel="", tFired=false;
+const RING_C = 565.5; // 2*pi*90, matches the SVG circle radius
+const TIMER_KEY = "forge-timer";
+
+function tRemaining(){ return Math.max(0, Math.ceil((tEnd - Date.now())/1000)); }
+function tRunning(){ return tEnd > Date.now(); }
+
+function tPersist(){
+  try{
+    if(tRunning()) localStorage.setItem(TIMER_KEY, JSON.stringify({tEnd, tTotal, tLabel}));
+    else localStorage.removeItem(TIMER_KEY);
+  }catch(e){}
+}
+
+function restoreTimer(){
+  try{
+    const raw = localStorage.getItem(TIMER_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(d && d.tEnd > Date.now()){
+      tEnd=d.tEnd; tTotal=d.tTotal||0; tLabel=d.tLabel||"";
+      $("#timerLab").textContent = tLabel;
+      $("#timer").classList.add("on");
+      tLoop();
+    } else {
+      localStorage.removeItem(TIMER_KEY);
+    }
+  }catch(e){ /* a lost timer is not worth an error */ }
+}
+
+function startTimer(sec,label){
+  if(!sec || sec<=0) return;
+  tEnd = Date.now() + sec*1000; tTotal = sec; tFired = false;
+  tLabel = String(label||"İSTİRAHƏT").toUpperCase();
+  const el=$("#timer"); el.classList.add("on"); el.classList.remove("done");
+  $("#timerLab").textContent = tLabel;
+  tPersist();
+  acquireWakeLock();
+  tLoop();
+}
+
+function tLoop(){
+  clearInterval(tInt);
+  tickRender();
+  tInt = setInterval(tick,250);
+}
+
+function tick(){
+  tickRender();
+  if(tRunning() || tFired) return;
+  tFired = true;
+  clearInterval(tInt); tInt=null;
+  $("#timer").classList.add("done");
+  tPersist();
+  // Only make noise if we are actually on screen — a beep fired ten
+  // minutes late, after the phone wakes, is worse than no beep.
+  if(document.visibilityState === "visible"){
+    beep();
+    try{navigator.vibrate && navigator.vibrate([160,90,160]);}catch(e){}
+  }
+  releaseWakeLock();
+  setTimeout(()=>{ if(!tRunning()){ $("#timer").classList.remove("on"); $("#timer").classList.remove("done"); } },1900);
+}
+
 function tickRender(){
-  const m=Math.floor(Math.max(tLeft,0)/60), s=Math.max(tLeft,0)%60;
+  const left = tRemaining();
+  const m=Math.floor(left/60), s=left%60;
   $("#timerDigits").textContent = m+":"+String(s).padStart(2,"0");
-  const frac = tTotal>0 ? Math.min(1,Math.max(0,tLeft/tTotal)) : 0;
+  const frac = tTotal>0 ? Math.min(1,Math.max(0,left/tTotal)) : 0;
   $("#timerRing").setAttribute("stroke-dashoffset", (RING_C*(1-frac)).toFixed(1));
 }
+
 function timerAdd(){
-  tLeft+=30; tTotal=Math.max(tTotal,tLeft); $("#timer").classList.remove("done");
-  if(!tInt){ $("#timer").classList.add("on"); acquireWakeLock(); tInt=setInterval(tick,1000); }
-  tickRender();
+  if(!tRunning()) tEnd = Date.now();
+  tEnd += 30000;
+  tTotal = Math.max(tTotal, Math.ceil((tEnd-Date.now())/1000));
+  tFired = false;
+  $("#timer").classList.remove("done");
+  $("#timer").classList.add("on");
+  acquireWakeLock();
+  tPersist();
+  tLoop();
 }
-function timerSkip(){ clearInterval(tInt); tInt=null; tLeft=0; tTotal=0; $("#timer").classList.remove("on"); releaseWakeLock(); }
+
+function timerSkip(){
+  clearInterval(tInt); tInt=null; tEnd=0; tTotal=0; tFired=false;
+  $("#timer").classList.remove("on"); $("#timer").classList.remove("done");
+  tPersist();
+  releaseWakeLock();
+}
 
 /* ---- keep the screen awake while resting (iOS 16.4+ Safari) ---- */
 let wakeLock = null;
@@ -1261,7 +1406,12 @@ async function acquireWakeLock(){
   try{ if("wakeLock" in navigator){ wakeLock = await navigator.wakeLock.request("screen"); } }catch(e){}
 }
 function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock=null; }
-document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && tInt) acquireWakeLock(); });
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState!=="visible") return;
+  // Coming back from a locked screen: redraw from the clock at once, and
+  // settle the timer if it ran out while we were away.
+  if(tEnd){ tickRender(); if(!tRunning()) tick(); else { acquireWakeLock(); tLoop(); } }
+});
 function beep(){
   try{
     const ctx = new (window.AudioContext||window.webkitAudioContext)();
@@ -1453,7 +1603,7 @@ function delSession(i){ if(!confirm("Bu məşqi tarixçədən silmək istəyirsi
   const d=new Date();
   $("#dateChip").innerHTML = `<b>${d.toLocaleDateString("az",{weekday:"long"})}</b><br>${d.toLocaleDateString("az",{day:"numeric",month:"short",year:"numeric"})}`;
 })();
-loadState().then(()=>{ renderSaveNote(); renderNetNote(); renderToday(); });
+loadState().then(()=>{ renderSaveNote(); renderNetNote(); renderToday(); restoreTimer(); });
 
 /* Service worker — zalın zirzəmisində siqnal olmayanda app yenə açılsın.
    Nisbi yol: alt qovluqda (məs. /gym/) yerləşdirmə üçün vacibdir. */
