@@ -43,13 +43,22 @@ Service worker yeniləyəndə `sw.js` içindəki `CACHE_VERSION` dəyərini art�
 | 9.7 | `loadState()` xətada localStorage-a keçmirdi | `return` götürüldü, fallback işləyir | `loadState` |
 | — | `~60-70 dəq` təxmini yanlış idi | Set sayı + istirahət + qızışmadan hesablanır (A ≈ 75-85 dəq) | `estMinutes` |
 
+## Bu budaqda əlavə düzəlişlər
+
+| # | Problem | Düzəliş | Toxunulan funksiyalar |
+|---|---------|---------|----------------------|
+| 10 | İstirahət taymeri `tLeft--` ilə sayırdı — telefon kilidlənəndə brauzer `setInterval`-ı boğur (iOS-da tamam dondurur), ona görə taymer dəqiqələrlə sürüşürdü; səhifə yenilənəndə isə tamam itirdi | Hədəf **vaxt möhürü** saxlanılır və qalan vaxt hər dəfə saatdan hesablanır; `localStorage`-a yazılır və açılışda bərpa olunur. Vaxtı bitmiş taymer dirilmir, siqnal yalnız ekran açıq olanda çalır | `startTimer`, `tick`, `tickRender`, `timerAdd`, `timerSkip`, `restoreTimer`, `visibilitychange` |
+| 11 | Modal səhifəni "udurdu": arxa fon sürüşməyə açıq qalırdı, uzun texnika vərəqində yeganə *Bağla* düyməsi ekrandan aşağıda qalırdı, `Esc` yox idi — çıxmaq üçün səhifəni yeniləmək lazım gəlirdi | `openSheet()`: arxa fon kilidlənir və bağlananda skrol mövqeyi qaytarılır, başlıqda həmişə görünən ✕, `Esc` və aşağı sürüşdürüb bağlama | `openSheet`, `closeSheet`, `openTech`, `openSwap`, `.sheet-head/.sheet-body` |
+| 12 | Lokal itki riski: oxuma xətası `state`-i boş `DEFAULTS`-da qoyurdu, növbəti `save()` isə real datanın üstünə yazırdı. Ehtiyat nüsxə yalnız əl ilə ixracdan ibarət idi. 350 ms gecikmə heç vaxt "flush" edilmirdi | Oxuma alınmasa yazma **dondurulur** (xam nüsxəni endirmə + "sıfırdan başla" seçimi); gündə bir dəfə fırlanan 3-lük ehtiyat halqası, hər mənbə ayrıca `try/catch` ilə oxunur və ən yeni **etibarlı** nüsxə qalib gəlir; `pagehide`/`freeze`/`visibilitychange` zamanı sinxron yazma | `loadState`, `bestStored`, `rotateBackups`, `writeNow`, `save`, `flushSave`, `renderSaveNote` |
+| 13 | `inc` rəqəminin vahidi yox idi: "2.5 kq hər tərəfə, yoxsa ümumi?" sualına cavab verilmirdi və zalın düzəldə bilmədiyi addımlar təklif olunurdu (EZ ştanqa +2.5, hantelə +1) | Hər hərəkətə **yük tipi** verildi (ştanq/EZ/Smith/disk-hər tərəfə/hantel/blok/bədən çəkisi/köməkli/rezin) + zal inventarı (disk cütləri, ştanq çəkiləri, hantel və blok addımı). Təklif həmişə zalın **real yığa bildiyi** çəkidir, necə yığılacağı yazılır | `LOADTYPE`, `LOADS`, `ladderFor`, `nextLoad`, `loadingText`, `suggestKg`, `realStep`, `gymCardHTML` |
+
 ## Data uyğunluğu
 
 Köhnə `forge-data` avtomatik miqrasiya olunur (`migrate()`): heç bir məşq, çəki və ya əlavə qeydi itmir. Hərəkət açarları (`sq`, `bp`, `lp` …) saxlanılıb, ona görə keçmiş tarixçə yeni proqramda da görünür. `llc` və `csmr` alternativlərdən əsas slota keçdi — eyni açarla, yəni onlarla əvvəl etdiyin məşqlər də sayılır. `ham` və `fly` alternativlərə keçdi, silinmədi.
 
 ## Test
 
-`smoke.js` app-ın öz kodunu icra edib 41 yoxlama aparır (proqram strukturu, bədən çəkisi dövrləri, uydurma təkrarların qarşısının alınması, foundation izolyasiyası, ikiqat proqressiya, birləşdirmə, miqrasiya, bütün tabların render olunması):
+`smoke.js` app-ın öz kodunu icra edib 61 yoxlama aparır (proqram strukturu, bədən çəkisi dövrləri, uydurma təkrarların qarşısının alınması, foundation izolyasiyası, ikiqat proqressiya, birləşdirmə, miqrasiya, bütün tabların render olunması, lokal məlumat müdafiəsi, disk hesabı):
 
 ```
 node smoke.js
