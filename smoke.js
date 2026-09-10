@@ -224,6 +224,62 @@ console.log('\n[11] Lokal məlumat itkisinə qarşı müdafiə');
      JSON.parse(w.localStorage.getItem('forge-data')).weights.length === 1);
 }
 
+// ---------------------------------------------------------------- 12. plate maths
+console.log('\n[12] Disk hesabı — "2.5 kq hər tərəfə, yoxsa ümumi?"');
+{
+  const w = boot();
+  const g = w.gymOf();
+
+  // Every exercise must declare what its kg box means.
+  const keys = Object.keys(w.EXMAP);
+  const missing = keys.filter(k => !w.LOADTYPE[k]);
+  ok('hər hərəkətin yük tipi var', missing.length === 0, missing.join(','));
+
+  // Barbell: the number is the TOTAL including the bar, and the app says how to build it.
+  ok('ştanq: 100 kq = 20 ştanq + 40/tərəf',
+     w.loadingText(100, 'bar', g) === '20 ştanq + hər tərəfə 40 (25 + 15)',
+     w.loadingText(100, 'bar', g));
+  ok('ştanq: boş ştanq düzgün adlanır', /boş 20 kq ştanq/.test(w.loadingText(20, 'bar', g)));
+  ok('hantel: iki dənə olduğu bildirilir', w.loadingText(22.5, 'db', g) === '2 × 22.5 kq hantel',
+     w.loadingText(22.5, 'db', g));
+  ok('blok: pin rəqəmi', w.loadingText(45, 'stack', g) === 'pin 45 kq-da', w.loadingText(45, 'stack', g));
+  ok('bədən çəkisi: 0 normaldır', w.loadingText(0, 'bw', g) === 'yalnız bədən çəkisi');
+
+  // A gym without 1.25s cannot make +2.5 on the bar — it must say +5, not lie.
+  const poor = { ...g, plates:[25,20,15,10,5,2.5] };
+  ok('kiçik disk yoxdursa addım böyüyür',
+     w.nextLoad(100, 'bar', poor, 2.5) === 105, String(w.nextLoad(100, 'bar', poor, 2.5)));
+  ok('kiçik disk varsa addım kiçik qalır',
+     w.nextLoad(100, 'bar', g, 2.5) === 102.5, String(w.nextLoad(100, 'bar', g, 2.5)));
+
+  // Dumbbells jump by the rack's step, never by 1 kg on a 2.5 kg rack.
+  ok('hantel rəfin addımı ilə artır',
+     w.nextLoad(20, 'db', g, 1) === 22.5, String(w.nextLoad(20, 'db', g, 1)));
+
+  // Assisted machines run backwards: progress = LESS assistance.
+  ok('köməkli maşın tərsinə gedir', w.nextLoad(30, 'assist', g, 2.5) < 30,
+     String(w.nextLoad(30, 'assist', g, 2.5)));
+
+  // Every weight the ladder offers must actually be buildable from the plates.
+  const unbuildable = w.ladderFor('bar', g).slice(1, 40)
+    .filter(t => w.platesPerSide(t, g.barKg, g.plates) === null);
+  ok('ştanq nərdivanındakı hər çəki real yığıla bilir', unbuildable.length === 0,
+     unbuildable.join(','));
+}
+{
+  // suggestKg must round onto the gym's ladder, not to an arbitrary decimal.
+  const w = boot();
+  w.confirm = () => true; w.alert = () => {};
+  w.state.gym = { ...w.gymOf(), plates:[25,20,15,10,5] };   // smallest pair 5 → 10 kg steps
+  w.state.sessions.push({d:'2026-01-01', day:'A', foundation:true, ex:[]});
+  w.startSession('A'); w.__mountChecks();
+  w.state.active.ex['bp'].forEach((s,i)=>{ s.kg='60'; s.reps='8'; w.toggleDone('bp', i); });
+  w.finishSession();
+  const s = w.suggestKg('bp');
+  ok('təklif zalın düzəldə bildiyi çəkidir', s === 70, String(s));
+  ok('əsl addım istifadəçiyə göstərilir', w.realStep('bp') === 10, String(w.realStep('bp')));
+}
+
 setTimeout(() => {
   console.log(`\n${pass} keçdi, ${fail} uğursuz`);
   process.exit(fail ? 1 : 0);

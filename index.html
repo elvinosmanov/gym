@@ -256,6 +256,22 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 .timer .tbtns{display:flex;gap:12px;width:100%;max-width:320px}
 .timer .tbtns .btn{flex:1}
 
+/* ---------- yük tipi / disk hesabı ---------- */
+.unitbar{display:flex;flex-direction:column;gap:1px;background:var(--card2);border:1px solid var(--line);
+  border-radius:10px;padding:7px 10px;margin:10px 0 2px}
+.unitbar b{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink)}
+.unitbar span{font-size:11.5px;color:var(--mut);line-height:1.35}
+.howload{display:block;margin-top:5px;font-size:12px;color:var(--mut)}
+.hint.up .howload{color:var(--mut)}
+.unit-explain{font-size:12.5px;color:var(--mut);margin:8px 0 2px;line-height:1.45}
+.unit-explain b{color:var(--ink)}
+.platepick{display:flex;flex-wrap:wrap;gap:7px}
+.platepick .chip{background:var(--card2);border:1px solid var(--line);color:var(--mut);
+  border-radius:99px;padding:7px 13px;font-size:13px;font-variant-numeric:tabular-nums}
+.platepick .chip.on{background:var(--chalk);color:var(--chalk-ink);border-color:var(--chalk);font-weight:700}
+.gymgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.gymgrid .field{margin:0}
+
 /* ---------- sheet / modal ---------- */
 .overlay{position:fixed;inset:0;background:rgba(6,8,11,.66);backdrop-filter:blur(3px);z-index:60;display:none}
 .overlay.on{display:block}
@@ -536,7 +552,7 @@ const ACT_OPTS = [
 /* ================= state & persistence ================= */
 /* profile.w yalnız ilk qurulum üçün "toxumdur" — həqiqi mənbə həmişə state.weights[]-dir.
    Qurulumdan sonra heç bir yerdə oxunmur; bax latestW() və setWeight(). */
-const DEFAULTS = { profile:{name:"Elvin",age:"",h:"",w:"",sex:"m",act:1.375,sur:350,weeklyTarget:3}, weights:[], sessions:[], active:null, supps:[], deloadAt:0 };
+const DEFAULTS = { profile:{name:"Elvin",age:"",h:"",w:"",sex:"m",act:1.375,sur:350,weeklyTarget:3}, weights:[], sessions:[], active:null, supps:[], deloadAt:0, gym:null };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -548,6 +564,170 @@ const EXMAP = {}; Object.keys(PROGRAM).forEach(D => PROGRAM[D].ex.forEach(e => {
   EXMAP[e.key] = {...e, day:D};
   (ALTS[e.key]||[]).forEach(a => EXMAP[a.key] = {...e, ...a, cues:a.cues||[], mist:a.mist||[], img:a.img||null, day:D});
 }));
+/* ================= yük tipi və disk hesabı =================
+   Əvvəl hər hərəkətin sadəcə `inc` rəqəmi vardı və bu rəqəmin nə demək
+   olduğu bilinmirdi: 2.5 kq ştanqın ÜSTÜNDƏ, yoxsa hər TƏRƏFİNDƏ? App
+   həm də zalın verə bilməyəcəyi addımlar təklif edirdi (EZ ştanqa +2.5,
+   hantelə +1). İndi hər hərəkətin yük tipi var, artım isə zalınızdakı
+   disklərin real olaraq düzəldə bildiyi ən yaxın çəkidir. */
+const LOADS = {
+  bar:    { unit:"kq (ştanqla birlikdə)", hint:"Ştanqın öz çəkisi daxil olmaqla ÜMUMİ çəki" },
+  ez:     { unit:"kq (EZ ştanqla)",        hint:"EZ ştanqın öz çəkisi daxil olmaqla ümumi çəki" },
+  smith:  { unit:"kq disk",                hint:"Yalnız disklər — Smith arabasının çəkisi sayılmır" },
+  plate:  { unit:"kq hər tərəfə",          hint:"Bir tərəfə qoyulan disklər" },
+  db:     { unit:"kq (bir hantel)",        hint:"BİR hantelin çəkisi — əlinizdə iki dənə var" },
+  db1:    { unit:"kq (tək hantel)",        hint:"Tutduğunuz tək hantelin çəkisi" },
+  stack:  { unit:"kq (blokda)",            hint:"Pini hansı rəqəmə taxırsınız" },
+  bw:     { unit:"+kq əlavə",              hint:"Bədən çəkisinin üstünə əlavə — 0 normaldır" },
+  assist: { unit:"kq kömək",               hint:"Kömək çəkisi — nə qədər az olsa, bir o qədər çətin" },
+  band:   { unit:"rezin səviyyəsi",        hint:"Rezinin səviyyəsini rəqəmlə yazın" }
+};
+const LOADTYPE = {
+  sq:"bar", bp:"bar", rdl:"bar", ohp:"bar", ht:"bar",
+  cur:"ez", skc:"ez",
+  smsq:"smith",
+  lpz:"plate", hsq:"plate", scr:"plate", lpcr:"plate",
+  lat:"db", bss:"db", idp:"db", dbp:"db", sdp:"db", dbcu:"db", ham:"db",
+  wlg:"db", stpu:"db", dbfl:"db",
+  gsq:"db1", oadr:"db1",
+  lp:"stack", tri:"stack", row:"stack", llc:"stack", calf:"stack", csmr:"stack",
+  fp:"stack", abs:"stack", mchp:"stack", cpt:"stack", clr:"stack", ohte:"stack",
+  mshp:"stack", slc:"stack", cbcu:"stack", incm:"stack", fly:"stack", pdk:"stack",
+  mhr:"stack", rpd:"stack",
+  be:"bw", ght:"bw", hkr:"bw", dsu:"bw",
+  apu:"assist",
+  bpa:"band"
+};
+const loadOf = key => LOADTYPE[key] || "stack";
+
+const DEFAULT_GYM = {
+  barKg:20, ezKg:10, smithKg:15,
+  plates:[25,20,15,10,5,2.5,1.25],   /* sahib olduğunuz disk CÜTLƏRİ */
+  dbStep:2.5, dbMax:50,
+  stackStep:5, stackMax:120
+};
+const gymOf = () => ({...DEFAULT_GYM, ...(state.gym||{})});
+const round2 = n => Math.round(n*100)/100;
+
+/* Ştanqın düzəldə bildiyi bütün ümumi çəkilər (disklər cüt-cütdür). */
+function reachableBarTotals(barKg, plates, max){
+  const set = new Set([barKg]);
+  const uniq = [...new Set(plates)].sort((a,b)=>b-a);
+  const cap = max || barKg + 300;
+  const walk = (i, total) => {
+    if(total > cap) return;
+    set.add(round2(total));
+    if(i >= uniq.length) return;
+    for(let n=0;n<=6;n++){
+      const t = total + uniq[i]*2*n;
+      if(t > cap) break;
+      walk(i+1, t);
+    }
+  };
+  walk(0, barKg);
+  return [...set].sort((a,b)=>a-b);
+}
+
+/* Bir tərəfə hansı disklər — tam düzəlmirsə null. */
+function platesPerSide(total, barKg, plates){
+  let side = (total - barKg)/2;
+  if(side < -1e-9) return null;
+  const uniq = [...new Set(plates)].sort((a,b)=>b-a);
+  const out = [];
+  for(const p of uniq){ while(side >= p-1e-9){ out.push(p); side = round2(side-p); } }
+  return Math.abs(side) < 1e-9 ? out : null;
+}
+function greedySide(target, plates){
+  let left = target;
+  const uniq = [...new Set(plates)].sort((a,b)=>b-a);
+  const out = [];
+  for(const p of uniq){ while(left >= p-1e-9){ out.push(p); left = round2(left-p); } }
+  return Math.abs(left) < 1e-9 ? out : null;
+}
+
+function multiplesOf(step, max){
+  const out = [];
+  const s = Number(step) || 2.5;
+  for(let w = s; w <= max + 1e-9; w = round2(w + s)) out.push(w);
+  return out;
+}
+
+/* Bu tipdə zalın verə bildiyi bütün çəkilər, artan sıra ilə. */
+function ladderFor(type, g){
+  switch(type){
+    case "bar":    return reachableBarTotals(g.barKg, g.plates);
+    case "ez":     return reachableBarTotals(g.ezKg, g.plates);
+    case "smith":  return reachableBarTotals(0, g.plates);
+    case "plate":  { const out=[0]; const st=Math.min(...g.plates);
+                     for(let w=st; w<=300; w=round2(w+st)) out.push(w); return out; }
+    /* Rəflər və bloklar öz addımlarının KATLARI ilə gedir: 2.5 addımlı rəf
+       2.5, 5, 7.5 … verir — 2-dən başlayıb 4.5, 7 kimi mövcud olmayan
+       hantellər təklif etmir. */
+    case "db":
+    case "db1":    return multiplesOf(g.dbStep, g.dbMax);
+    case "stack":  return multiplesOf(g.stackStep, g.stackMax);
+    case "bw":
+    case "assist": { const out=[0]; const st=Math.min(...g.plates, 1.25);
+                     for(let w=st; w<=100; w=round2(w+st)) out.push(w); return out; }
+    case "band":   return [1,2,3,4,5];
+    default:       return [];
+  }
+}
+
+/* İstənilən artımdan (inc) SONRAKI real çəki. Zal 2.5-i düzəldə bilmirsə,
+   yalan danışmaq əvəzinə düzəldə bildiyi növbəti çəkini deyir. */
+function nextLoad(cur, type, g, wantStep){
+  const ladder = ladderFor(type, g);
+  const from = (Number(cur)||0) + (Number(wantStep)||0);
+  if(!ladder.length) return round2(from);
+  if(type === "assist"){                       /* köməkli: irəli getmək = daha AZ kömək */
+    const below = ladder.filter(w => w < (Number(cur)||0) - 1e-9);
+    return below.length ? below[below.length-1] : 0;
+  }
+  const above = ladder.find(w => w >= from - 1e-9);
+  return above !== undefined ? above : round2(from);
+}
+
+function snapLoad(v, type, g){
+  const ladder = ladderFor(type, g);
+  const n = Number(v);
+  if(!isFinite(n) || !ladder.length) return n;
+  let best = ladder[0], bd = Infinity;
+  for(const w of ladder){ const d = Math.abs(w-n); if(d < bd){ bd = d; best = w; } }
+  return best;
+}
+
+/* "20 ştanq + 21.25/tərəf (20 + 1.25)" — "necə yığım?" sualının cavabı. */
+function loadingText(kg, type, g){
+  const n = Number(kg);
+  if(!isFinite(n)) return "";
+  if(type === "bar" || type === "ez" || type === "smith"){
+    const bar = type==="bar" ? g.barKg : type==="ez" ? g.ezKg : 0;
+    if(type === "smith"){
+      const side = greedySide(n/2, g.plates);
+      return n<=0 ? "boş arabа" : `hər tərəfə ${round2(n/2)} kq${side?` (${side.join(" + ")})`:""}`;
+    }
+    if(n <= bar + 1e-9) return `boş ${bar} kq ştanq`;
+    const side = platesPerSide(n, bar, g.plates);
+    return side ? `${bar} ştanq + hər tərəfə ${round2((n-bar)/2)} (${side.join(" + ")})`
+                : `${bar} ştanq + hər tərəfə ${round2((n-bar)/2)}`;
+  }
+  if(type === "plate"){ const s = greedySide(n, g.plates);
+    return s ? `hər tərəfə ${n} kq (${s.join(" + ")})` : `hər tərəfə ${n} kq`; }
+  if(type === "db")     return `2 × ${n} kq hantel`;
+  if(type === "db1")    return `bir ${n} kq hantel`;
+  if(type === "stack")  return `pin ${n} kq-da`;
+  if(type === "bw")     return n > 0 ? `bədən çəkisi + ${n} kq` : "yalnız bədən çəkisi";
+  if(type === "assist") return n > 0 ? `${n} kq kömək` : "köməksiz";
+  if(type === "band")   return `rezin səviyyəsi ${n}`;
+  return `${n} kq`;
+}
+const unitLabel = type => (LOADS[type]||{}).unit || "kq";
+const unitHint  = type => (LOADS[type]||{}).hint || "";
+/* sütun başlığına sığan qısa forma */
+const unitShort = type => ({ bar:"kq ümumi", ez:"kq ümumi", smith:"kq disk", plate:"kq/tərəf",
+  db:"kq/hantel", db1:"kq", stack:"kq blok", bw:"+kq", assist:"kq kömək", band:"səviyyə" }[type] || "kq");
+
 /* aktiv məşqdə slot üçün seçilmiş effektiv hərəkət (əsas və ya alternativ) */
 function effEx(slotKey){
   const ak = state.active && state.active.swap && state.active.swap[slotKey];
@@ -592,6 +772,8 @@ function migrate(){
   if(!state.profile.sex) state.profile.sex = "m";
   if(!state.profile.weeklyTarget) state.profile.weeklyTarget = 3;
   if(typeof state.deloadAt !== "number") state.deloadAt = 0;
+  if(!state.gym || typeof state.gym !== "object") state.gym = {...DEFAULT_GYM};
+  if(!Array.isArray(state.gym.plates) || !state.gym.plates.length) state.gym.plates = [...DEFAULT_GYM.plates];
   state.weights.sort((a,b)=>a.d<b.d?-1:1);
 }
 /* ---- local backup ring ----
@@ -973,7 +1155,16 @@ function suggestKg(key){
   /* bədən çəkisi hərəkəti hələ yüksüz gedirsə, proqressiya çəki ilə yox, təkrarla olur */
   if(ex.bw && top === 0) return 0;
   const allTop = p.sets.every(s=>s.reps>=ex.rMax);
-  return Math.round((allTop ? top+ex.inc : top)*10)/10;
+  if(!allTop) return round2(top);
+  /* İstənilən artım ex.inc-dir, amma real addımı zalın diskləri müəyyən edir. */
+  return round2(nextLoad(top, loadOf(key), gymOf(), ex.inc));
+}
+/* Bu hərəkətdə növbəti artımın əsl böyüklüyü — "+2.5" yazıb 5 vermək yox. */
+function realStep(key){
+  const p = lastPerf(key), ex = EXMAP[key];
+  if(!p) return ex.inc;
+  const top = Math.max(...p.sets.map(s=>s.kg));
+  return round2(Math.abs(nextLoad(top, loadOf(key), gymOf(), ex.inc) - top));
 }
 function hintFor(ex, p){
   if(!p){
@@ -983,12 +1174,20 @@ function hintFor(ex, p){
   }
   const sug = suggestKg(ex.key);
   const allTop = p.sets.every(s=>s.reps>=ex.rMax);
+  const type = loadOf(ex.key), g = gymOf();
+  const how = loadingText(sug, type, g);
   if(ex.bw && sug === 0){
     if(allTop) return { cls:"up", txt:`Bədən çəkisi ilə bütün dövrlərdə ${ex.rMax} təkrara çatdınız — indi döşünüzə <b>+${ex.inc} kq</b> disk əlavə edin.` };
     return { cls:"", txt:`Bədən çəkisi ilə davam — çəki xanası boş qala bilər. Hədəf: hər dövrdə ${ex.rMax} təkrar, sonra disk əlavə edirik.` };
   }
-  if(allTop) return { cls:"up", txt:`Bu gün bütün dövrlər: <b>${sug} kq</b> (+${ex.inc} kq) — keçən dəfə hamısı ${ex.rMax} təkrara çatdı. Haqq etmisiniz.` };
-  return { cls:"", txt:`Bu gün bütün dövrlər: <b>${sug} kq</b> — çəkini saxlayın, hər dövrdə ${ex.rMax} təkrara doğru çalışın. Proqres = əvvəl təkrar, sonra çəki.` };
+  if(allTop){
+    const step = realStep(ex.key);
+    const note = step > ex.inc
+      ? ` Zalınızdakı ən kiçik disklə +${ex.inc} kq düzəlmir, ona görə addım +${step} kq-dır.`
+      : "";
+    return { cls:"up", txt:`Bu gün bütün dövrlər: <b>${sug} kq</b> (+${step} kq) — keçən dəfə hamısı ${ex.rMax} təkrara çatdı. Haqq etmisiniz.${note} <span class="howload">${how}</span>` };
+  }
+  return { cls:"", txt:`Bu gün bütün dövrlər: <b>${sug} kq</b> — çəkini saxlayın, hər dövrdə ${ex.rMax} təkrara doğru çalışın. Proqres = əvvəl təkrar, sonra çəki. <span class="howload">${how}</span>` };
 }
 const r25 = v => Math.round(v/2.5)*2.5;
 /* Sürüşən 7 gün — bazar ertəsinə bağlı deyil, gün-aşırı rejimdə də doğru sayır. */
@@ -1140,8 +1339,66 @@ function renderToday(){
       <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importData(this)">
     </div>
 
+    <div class="sect">Zalınızda nə var</div>
+    ${gymCardHTML()}
+
     <div class="sect">Məşqçinin köşəsi</div>
     <div class="card coach"><div class="cq">“</div><div><p>${tip}</p><div class="who">— Protokol</div></div></div>`;
+}
+
+/* Bu kart bəzək deyil: bütün proqressiya mühərriki onu oxuyur, ona görə
+   "+2.5 kq" yalnız sizin disklər onu düzəldə bildikdə təklif olunur. */
+function gymCardHTML(){
+  const g = gymOf();
+  const smallest = Math.min(...g.plates);
+  const firstFew = reachableBarTotals(g.barKg, g.plates, g.barKg+30).slice(1,4).join(", ");
+  return `<div class="card tight">
+    <div class="small" style="margin-bottom:8px">App yalnız zalınızın düzəldə bildiyi çəkiləri təklif edir.</div>
+    <div class="field"><label>Sahib olduğunuz disk cütləri (kq)</label>
+      <div class="platepick">
+        ${[25,20,15,10,5,2.5,2,1.25,1,0.5].map(v=>
+          `<button class="chip ${g.plates.includes(v)?"on":""}" onclick="togglePlate(${v})">${v}</button>`).join("")}
+      </div>
+      <div class="small" style="margin-top:7px">Ən kiçik cüt: <b>${smallest} kq</b> →
+        ştanq <b>${round2(smallest*2)} kq</b> addımlarla artır.${firstFew?` İlk çəkilər: <b>${firstFew} kq</b>.`:""}</div>
+    </div>
+    <div class="gymgrid">
+      <div class="field"><label>Ştanq (kq)</label>
+        <input type="number" step="0.5" value="${g.barKg}" onchange="setGym('barKg',this.value)"></div>
+      <div class="field"><label>EZ ştanq (kq)</label>
+        <input type="number" step="0.5" value="${g.ezKg}" onchange="setGym('ezKg',this.value)"></div>
+      <div class="field"><label>Hantel addımı</label>
+        <select onchange="setGym('dbStep',this.value)">
+          ${[1,2,2.5,5].map(v=>`<option value="${v}" ${g.dbStep==v?"selected":""}>${v} kq</option>`).join("")}
+        </select></div>
+      <div class="field"><label>Blok addımı</label>
+        <select onchange="setGym('stackStep',this.value)">
+          ${[2.5,5,6.8,7.5,10].map(v=>`<option value="${v}" ${g.stackStep==v?"selected":""}>${v} kq</option>`).join("")}
+        </select></div>
+    </div>
+    <div class="small" style="margin-top:8px">Hantellər indi ${g.dbStep} kq addımlarla təklif olunacaq —
+      bunu rəfinizin real addımına uyğun seçin.</div>
+  </div>`;
+}
+
+function setGym(k, v){
+  const n = parseFloat(v);
+  if(!isFinite(n) || n <= 0) return;
+  state.gym = {...gymOf(), [k]:n};
+  save(); renderToday();
+}
+
+function togglePlate(v){
+  const g = gymOf();
+  const plates = g.plates.slice();
+  const i = plates.indexOf(v);
+  if(i >= 0){
+    if(plates.length <= 1){ toast("Ən azı bir disk cütü qalmalıdır."); return; }
+    plates.splice(i,1);
+  } else plates.push(v);
+  plates.sort((a,b)=>b-a);
+  state.gym = {...g, plates};
+  save(); renderToday();
 }
 function saveSetup(){
   const p = state.profile;
@@ -1226,7 +1483,8 @@ function renderTrain(){
         ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
         <div class="hint ${h.cls}">${h.txt}</div>
         ${ramp}
-        <div class="sethdr"><div>Dövr</div><div>kq</div><div>Təkrar</div><div>✓</div></div>
+        <div class="unitbar"><b>${unitLabel(loadOf(eff.key))}</b><span>${unitHint(loadOf(eff.key))}</span></div>
+        <div class="sethdr"><div>Dövr</div><div>${unitShort(loadOf(eff.key))}</div><div>Təkrar</div><div>✓</div></div>
         ${rows}
       </div>`;
     }).join("");
@@ -1351,8 +1609,13 @@ function openTech(day,i){
     <div class="protoc">
       <span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span>
       <span class="tag">istirahət ${Math.round(ex.rest/60*10)/10} dəq</span>
-      <span class="tag">proqres: +${ex.inc} kq</span>
+      <span class="tag">proqres: +${realStep(ex.key)} kq</span>
+      <span class="tag">${unitLabel(loadOf(ex.key))}</span>
     </div>
+    <p class="unit-explain">${unitHint(loadOf(ex.key))}${(()=>{
+      const s = suggestKg(ex.key);
+      return (s!=null && s>0) ? ` — ${s} kq üçün bu, <b>${loadingText(s, loadOf(ex.key), gymOf())}</b> deməkdir.` : "";
+    })()}</p>
     <div class="cuelist">${ex.cues.map(c=>`<div class="cue good"><div class="ic">✓</div><p>${c}</p></div>`).join("")}</div>
     ${ex.mist.length?`<hr class="split">
     <div class="small" style="letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-bottom:2px">Ümumi səhvlər</div>
