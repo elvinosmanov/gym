@@ -172,5 +172,59 @@ console.log('\n[10] Bütün tablar xətasız render olunur');
   ok('idxal funksiyası mövcuddur', typeof w.importData === 'function');
 }
 
-console.log(`\n${pass} keçdi, ${fail} uğursuz`);
-process.exit(fail ? 1 : 0);
+// ---------------------------------------------------------------- 11. local data safety
+console.log('\n[11] Lokal məlumat itkisinə qarşı müdafiə');
+{
+  // (a) corrupt primary must never be overwritten by empty defaults
+  const w = boot();
+  w.localStorage.setItem('forge-data', '{"sessions":[{"broken');
+  w.loadState().then(() => {
+    ok('oxunmayan məlumat dondurulur', w.state.sessions.length === 0 && w.dataFrozen === true,
+       `frozen=${w.dataFrozen}`);
+    w.flushSave();
+    ok('donmuş halda üzərinə yazılmır',
+       w.localStorage.getItem('forge-data') === '{"sessions":[{"broken');
+  });
+}
+{
+  // (b) an unreadable primary falls back to the newest valid backup
+  const w = boot();
+  const good = JSON.stringify({ ts: 5000, profile:{name:'E'}, weights:[{d:'2026-01-01',kg:80}], sessions:[], supps:[] });
+  const older = JSON.stringify({ ts: 1000, profile:{name:'E'}, weights:[], sessions:[], supps:[] });
+  w.localStorage.setItem('forge-data', 'not json at all');
+  w.localStorage.setItem('forge-bak-0', older);
+  w.localStorage.setItem('forge-bak-1', good);
+  w.loadState().then(() => {
+    ok('ən yeni etibarlı ehtiyatdan bərpa olundu', w.state.weights.length === 1,
+       `weights=${JSON.stringify(w.state.weights)}`);
+    ok('bərpa istifadəçiyə bildirilir', !!w.recoveredFrom, String(w.recoveredFrom));
+  });
+}
+{
+  // (c) the previous good value is rotated into the ring on write
+  const w = boot();
+  const first = JSON.stringify({ ts: 1, profile:{name:'E'}, weights:[], sessions:[], supps:[] });
+  w.localStorage.setItem('forge-data', first);
+  w.loadState().then(() => {
+    w.state.weights.push({ d:'2026-02-02', kg:81 });
+    w.flushSave();
+    ok('köhnə nüsxə ehtiyat halqasına keçdi', w.localStorage.getItem('forge-bak-0') === first,
+       String(w.localStorage.getItem('forge-bak-0')).slice(0,40));
+    ok('yeni məlumat əsas açara yazıldı',
+       JSON.parse(w.localStorage.getItem('forge-data')).weights.length === 1);
+  });
+}
+{
+  // (d) flushSave writes immediately — no 350 ms window to lose
+  const w = boot();
+  w.state.weights.push({ d:'2026-03-03', kg:82 });
+  w.flushSave();
+  ok('flushSave dərhal yazır (debounce gözləmir)',
+     !!w.localStorage.getItem('forge-data') &&
+     JSON.parse(w.localStorage.getItem('forge-data')).weights.length === 1);
+}
+
+setTimeout(() => {
+  console.log(`\n${pass} keçdi, ${fail} uğursuz`);
+  process.exit(fail ? 1 : 0);
+}, 50);

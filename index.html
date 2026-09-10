@@ -594,6 +594,58 @@ function migrate(){
   if(typeof state.deloadAt !== "number") state.deloadAt = 0;
   state.weights.sort((a,b)=>a.d<b.d?-1:1);
 }
+/* ---- local backup ring ----
+   Cloud sync only helps if you are signed in and online. On the device
+   itself there was a single key: one bad write, one quota error or one
+   corrupted value and everything was gone. Now the previous good value
+   is rotated into a 3-deep ring once a day, every source is parsed in
+   its own try/catch, and the newest VALID one wins. */
+const DATA_KEY = "forge-data";
+const BAK_KEYS = ["forge-bak-0","forge-bak-1","forge-bak-2"];
+const BAK_DAY  = "forge-bak-day";
+let dataFrozen = false;      // we could not read what is stored — refuse to write over it
+let rawSalvage = null;
+let recoveredFrom = null;
+
+function rawGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function rawSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+
+function parseCandidate(str, source){
+  if(!str) return null;
+  try{
+    const d = JSON.parse(str);
+    if(!d || typeof d !== "object") return null;
+    // A FORGE payload always carries at least one of these.
+    if(!Array.isArray(d.sessions) && !Array.isArray(d.weights) && !d.profile) return null;
+    return { data:d, source, ts:Number(d.ts)||0, raw:str };
+  }catch(e){ return null; }
+}
+
+function bestStored(){
+  const cands = [];
+  const primary = rawGet(DATA_KEY);
+  const p = parseCandidate(primary, "əsas");
+  if(p) cands.push(p);
+  BAK_KEYS.forEach((k,i)=>{
+    const c = parseCandidate(rawGet(k), `ehtiyat ${i+1}`);
+    if(c) cands.push(c);
+  });
+  cands.sort((a,b)=>b.ts-a.ts);
+  return { best: cands[0] || null, hadRaw: !!primary };
+}
+
+/* Rotate the last good value into the ring, at most once per day, so the
+   ring spans days rather than the last three keystrokes. */
+function rotateBackups(prev, next){
+  if(!prev || prev === next) return;
+  const today = todayISO();
+  if(rawGet(BAK_DAY) === today) return;
+  rawSet(BAK_KEYS[2], rawGet(BAK_KEYS[1]) || "");
+  rawSet(BAK_KEYS[1], rawGet(BAK_KEYS[0]) || "");
+  rawSet(BAK_KEYS[0], prev);
+  rawSet(BAK_DAY, today);
+}
+
 async function loadState(){
   try{ /* inside Claude: artifact storage */
     if(typeof window.storage !== "undefined"){
@@ -602,9 +654,23 @@ async function loadState(){
       return;
     }
   }catch(e){ /* açar hələ yoxdur və ya artefakt yaddaşı əlçatmazdır — localStorage-a keçirik */ }
+
   try{ /* self-hosted website: browser localStorage */
-    applyLoaded(localStorage.getItem("forge-data"));
-    return;
+    const { best, hadRaw } = bestStored();
+    if(best){
+      applyLoaded(best.data);
+      if(best.source !== "əsas") recoveredFrom = best.source;
+      return;
+    }
+    if(hadRaw){
+      /* There IS something stored but nothing could be parsed. Do NOT
+         start from empty defaults — the next save would overwrite it. */
+      dataFrozen = true;
+      rawSalvage = rawGet(DATA_KEY);
+      storageOK = false;
+      return;
+    }
+    return;                    /* genuine first run */
   }catch(e){}
   storageOK = false;
 }
@@ -614,19 +680,50 @@ async function loadState(){
    save({cloud:true}) yalnız mənalı hadisələrdə çağırılır:
    məşq bitdikdə, çəki qeyd edildikdə, silmə əməliyyatlarında. */
 let cloudT = null, cloudDirty = false;
+
+/* The actual write. Kept separate from save() so it can also be called
+   synchronously when the page is going away. */
+function writeNow(){
+  if(dataFrozen) return false;          /* never overwrite data we failed to read */
+  state.ts = Date.now();
+  let json;
+  try{ json = JSON.stringify(state); }
+  catch(e){ if(storageOK){ storageOK=false; renderSaveNote(); } return false; }
+
+  if(typeof window.storage !== "undefined"){
+    try{ Promise.resolve(window.storage.set("forge-data", json)).catch(()=>{}); }
+    catch(e){ if(storageOK){ storageOK=false; renderSaveNote(); } return false; }
+    return true;
+  }
+  const prev = rawGet(DATA_KEY);
+  if(!rawSet(DATA_KEY, json)){
+    if(storageOK){ storageOK=false; renderSaveNote(); }
+    return false;
+  }
+  rotateBackups(prev, json);
+  return true;
+}
+
 function save(opts){
+  if(dataFrozen) return;
   clearTimeout(saveT);
-  saveT = setTimeout(async () => {
-    state.ts = Date.now();
-    const json = JSON.stringify(state);
-    try{
-      if(typeof window.storage !== "undefined"){ await window.storage.set("forge-data", json); }
-      else localStorage.setItem("forge-data", json);
-    }catch(e){ if(storageOK){ storageOK=false; renderSaveNote(); } }
-  }, 350);
+  saveT = setTimeout(writeNow, 350);
   cloudDirty = true;
   if(opts && opts.cloud) scheduleCloud();
 }
+
+/* A 350 ms debounce is invisible until you tap Bitir and immediately lock
+   the phone — iOS freezes the tab and the timer never fires, losing the
+   whole session. Flush synchronously whenever the page may be going away. */
+function flushSave(){
+  if(dataFrozen) return;
+  clearTimeout(saveT); saveT = null;
+  try{ writeNow(); }catch(e){}
+}
+window.addEventListener("pagehide", flushSave);
+window.addEventListener("beforeunload", flushSave);
+window.addEventListener("freeze", flushSave);
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") flushSave(); });
 function scheduleCloud(){
   clearTimeout(cloudT);
   cloudT = setTimeout(()=>{ if(sbUser && cloudDirty) cloudPush(); }, 10000);
@@ -641,9 +738,46 @@ function renderNetNote(){
     `<div class="warnnote">📴 Oflayn — qeydlər telefonda saxlanılır, şəbəkə qayıdanda özü buluda göndəriləcək.</div>`;
 }
 function renderSaveNote(){
+  if(dataFrozen){
+    $("#saveNote").innerHTML =
+      `<div class="warnnote">⚠ <b>Saxlanılan məlumat oxuna bilmədi.</b>
+        Heç nə silinmədi və üzərinə yazılmayacaq. Əvvəlcə xam nüsxəni endirin.
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn sm" onclick="salvageDownload()">Xam məlumatı endir</button>
+          <button class="btn sm ghost" onclick="startFresh()">Sıfırdan başla</button>
+        </div></div>`;
+    return;
+  }
+  if(recoveredFrom){
+    $("#saveNote").innerHTML =
+      `<div class="warnnote">Məlumatınız <b>${recoveredFrom}</b> nüsxəsindən bərpa olundu.
+        <button class="btn sm ghost" style="margin-left:8px" onclick="dismissRecovered()">Bağla</button></div>`;
+    return;
+  }
   $("#saveNote").innerHTML = storageOK ? "" :
     `<div class="warnnote">⚠ Bu brauzer kontekstində yadda saxlama mövcud deyil — səhifə bağlandıqda qeydlər sıfırlanacaq.</div>`;
 }
+
+function salvageDownload(){
+  const body = rawSalvage || JSON.stringify(state, null, 2);
+  try{
+    const blob = new Blob([body], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `forge-xam-${todayISO()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }catch(e){ toast("Endirmək alınmadı."); }
+}
+
+function startFresh(){
+  if(!confirm("Oxunmayan məlumatın üzərinə yazılacaq. Xam nüsxəni endirdiniz?")) return;
+  dataFrozen = false; rawSalvage = null; storageOK = true;
+  renderSaveNote(); save();
+  toast("Sıfırdan başlanıldı.");
+}
+
+function dismissRecovered(){ recoveredFrom = null; renderSaveNote(); }
 
 /* ================= cloud sync (Supabase) =================
    localStorage gündəlik/oflayn yaddaş olaraq qalır; hər dəyişiklik

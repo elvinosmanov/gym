@@ -96,7 +96,10 @@ function boot(path) {
     MEALS:{get:()=>MEALS, configurable:true},
     MEAL_BASE:{get:()=>MEAL_BASE, configurable:true},
     RULES:{get:()=>RULES, configurable:true},
-    state:{get:()=>state, set:v=>{state=v}, configurable:true}
+    state:{get:()=>state, set:v=>{state=v}, configurable:true},
+    dataFrozen:{get:()=>dataFrozen, configurable:true},
+    recoveredFrom:{get:()=>recoveredFrom, configurable:true},
+    storageOK:{get:()=>storageOK, configurable:true}
   })`, win, { filename: 'expose.js' });
   /* renderTrain-in yaratdığı ✓ düymələrini stub kimi qeydiyyatdan keçir */
   win.__mountChecks = () => {
