@@ -1,15 +1,23 @@
 const fs = require('fs');
 const h = fs.readFileSync('index.html', 'utf8');
 const js = h.match(/<script>([\s\S]*)<\/script>/)[1];
-const prog = js.slice(js.indexOf('const PROGRAM'), js.indexOf('const ROT'));
+/* PROGRAM DAYS-dən qurulur, ona görə kəsik EXDEF-dən başlayır */
+const prog = js.slice(js.indexOf('const EXDEF'), js.indexOf('const ROT'));
 const alts = js.slice(js.indexOf('const ALTS'), js.indexOf('const ACT_OPTS'));
 const { PROGRAM, ALTS } = eval('(function(){' + prog + alts + 'return {PROGRAM, ALTS};})()');
 
+/* Bir hərəkət birdən çox gündə ola bilər (yan delta, baldır və qarın həftədə
+   iki dəfə işlənir) — problem yalnız EYNİ gündə təkrar, ya da bir alternativin
+   əsas slotla toqquşmasıdır. */
 const seen = {}, dup = [];
-Object.keys(PROGRAM).forEach(D => PROGRAM[D].ex.forEach(e => {
-  if (seen[e.key]) dup.push(e.key);
-  seen[e.key] = 'main:' + D;
-}));
+Object.keys(PROGRAM).forEach(D => {
+  const inDay = new Set();
+  PROGRAM[D].ex.forEach(e => {
+    if (inDay.has(e.key)) dup.push(`${e.key} (${D} günündə iki dəfə)`);
+    inDay.add(e.key);
+    seen[e.key] = 'main:' + D;
+  });
+});
 Object.keys(ALTS).forEach(k => ALTS[k].forEach(a => {
   if (seen[a.key]) dup.push(`${a.key} (alt of ${k}) clashes with ${seen[a.key]}`);
   seen[a.key] = 'alt:' + k;
