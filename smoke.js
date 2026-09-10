@@ -10,45 +10,19 @@ const ok = (name, cond, extra='') => {
 function boot() { return shimBoot('index.html'); }
 
 // ---------------------------------------------------------------- 1. program shape
-/* Bölgü İtələmə/Çəkmə/Ayaq/Tam bədən olduğu üçün ayrı-ayrı günlərin tam bədən
-   olması gözlənilmir. Əhəmiyyətli olan HƏFTƏLİK örtükdür: 4 günün cəmində hər
-   əzələ artım üçün lazım olan minimum dövrü alırmı? */
-console.log('\n[1] Proqram strukturu — həftəlik örtük');
+console.log('\n[1] Proqram strukturu — hər gün tam bədən?');
 {
   const w = boot();
   const P = w.PROGRAM;
-  ok('həftədə 4 gün var', Object.keys(P).length === 4, Object.keys(P).join(','));
-  ok('günlərin adları bölgünü əks etdirir',
-     ['İtələmə','Çəkmə','Ayaq','Tam bədən'].every(n => Object.values(P).some(d => d.name === n)),
-     Object.values(P).map(d=>d.name).join(','));
-
-  // Weekly sets per muscle across all four days, secondary counting half.
-  const vol = {};
-  Object.keys(P).forEach(d => P[d].ex.forEach(e => {
-    const m = w.musclesOf(e.key);
-    m.p.forEach(k => vol[k] = (vol[k]||0) + e.sets);
-    m.s.forEach(k => vol[k] = (vol[k]||0) + e.sets/2);
-  }));
-
-  // Only muscles that some programmed exercise trains DIRECTLY are held to the
-  // minimum; the rest (traps, forearms, obliques, adductors) ride along as
-  // secondaries and are not the program's job to hit on their own.
-  const direct = new Set();
-  Object.keys(P).forEach(d => P[d].ex.forEach(e => w.musclesOf(e.key).p.forEach(k => direct.add(k))));
-  const under = [...direct]
-    .filter(k => (vol[k]||0) < (w.WEEKLY_SETS[k]||[8])[0])
-    .map(k => `${k}=${vol[k]||0}/${(w.WEEKLY_SETS[k]||[8])[0]}`);
-  ok('birbaşa işlənən hər əzələ həftəlik minimuma çatır', under.length === 0, under.join(' '));
-
-  // No exercise may appear twice in the same day.
-  const dupInDay = Object.keys(P).filter(d => {
-    const keys = P[d].ex.map(e => e.key);
-    return new Set(keys).size !== keys.length;
+  const tagsOf = d => P[d].ex.map(e => e.tag).join(' ');
+  ['A','B','C'].forEach(d => {
+    const t = tagsOf(d);
+    const hasLegs = /Dördbaşlı|Arxa bud|Sağrı|Baldır/.test(t);
+    const hasPull = P[d].ex.some(e => /kürək/i.test(e.tag));
+    const hasPush = P[d].ex.some(e => /Döş|Çiyin|Triseps|delta/i.test(e.tag));
+    ok(`${d}: ayaq+çəkmə+itələmə hamısı var`, hasLegs && hasPull && hasPush,
+       `legs=${hasLegs} pull=${hasPull} push=${hasPush}`);
   });
-  ok('bir gündə eyni hərəkət təkrarlanmır', dupInDay.length === 0, dupInDay.join(','));
-
-  // Old A/B/C history must still resolve to a day.
-  ok('köhnə A/B/C açarları hələ mövcuddur', ['A','B','C'].every(k => !!P[k]));
 }
 
 // ---------------------------------------------------------------- 2. bodyweight sets survive
@@ -57,7 +31,7 @@ console.log('\n[2] Bədən çəkisi ilə (0 kq) qeyd edilən dövrlər saxlanıl
   const w = boot();
   w.confirm = () => true; w.alert = m => { w.__alert = m; };
   w.state.profile = {...w.state.profile, name:'T', age:30, h:178, w:75};
-  w.startSession('D'); w.__mountChecks();                                  // D (Tam bədən) günündə Back Extension var (bw)
+  w.startSession('C'); w.__mountChecks();                                  // C-də Back Extension var (bw)
   const st = w.state.active.ex['be'];
   st.forEach((s,i) => { s.reps = '15'; s.kg = ''; w.toggleDone('be', i); });
   w.finishSession();
@@ -89,7 +63,7 @@ console.log('\n[4] Təməl məşqi proqressiya bazasını korlayırmı?');
 {
   const w = boot();
   w.confirm = () => true; w.alert = () => {};
-  w.startSession('C'); w.__mountChecks();                                   // ilk məşq = foundation (C-də Squat)
+  w.startSession('A'); w.__mountChecks();                                   // ilk məşq = foundation
   ok('ilk məşq foundation kimi işarələndi', w.state.active.foundation === true);
   ok('foundation-da setlər yarıya endirildi', w.state.active.ex['sq'].length === 2, String(w.state.active.ex['sq'].length));
   w.state.active.ex['sq'].forEach((s,i) => { s.kg='40'; s.reps='8'; w.toggleDone('sq', i); });  // rMax=8
@@ -106,12 +80,12 @@ console.log('\n[5] İkiqat proqressiya düzgün işləyirmi?');
   const w = boot();
   w.confirm = () => true; w.alert = () => {};
   // foundation-u keçmək üçün süni bir təməl sessiyası
-  w.state.sessions.push({d:'2026-01-01', day:'C', foundation:true, ex:[]});
-  w.startSession('C'); w.__mountChecks();
+  w.state.sessions.push({d:'2026-01-01', day:'A', foundation:true, ex:[]});
+  w.startSession('A'); w.__mountChecks();
   w.state.active.ex['sq'].forEach((s,i) => { s.kg='100'; s.reps='8'; w.toggleDone('sq', i); }); // hamısı rMax
   w.finishSession();
   ok('hamısı rMax → +5 kq (sq inc=5)', w.suggestKg('sq') === 105, String(w.suggestKg('sq')));
-  w.startSession('C'); w.__mountChecks();
+  w.startSession('A'); w.__mountChecks();
   w.state.active.ex['sq'].forEach((s,i) => { s.kg='105'; s.reps= i===3 ? '6':'8'; w.toggleDone('sq', i); });
   w.finishSession();
   ok('bir dövr rMax-dan aşağı → çəki saxlanılır', w.suggestKg('sq') === 105, String(w.suggestKg('sq')));
@@ -161,7 +135,7 @@ console.log('\n[8] Qidalanma və qalan düzəlişlər');
   const female = kcal();
   ok('qadın üçün hədəf aşağıdır (-161 termi)', male > female, `${male} vs ${female}`);
   ok('yemək şablonu miqyaslanır', w.mealRatio() !== 1, String(w.mealRatio().toFixed(2)));
-  ok('həftəlik hədəf profildən gəlir (4 günlük bölgü)', w.weeklyTarget() === 4, String(w.weeklyTarget()));
+  ok('həftəlik hədəf profildən gəlir', w.weeklyTarget() === 3, String(w.weeklyTarget()));
   ok('vaxt təxmini hesablanır', /dəq/.test(w.estMinutes('A')), w.estMinutes('A'));
   ok('deload 18 məşqdən sonra çıxır', w.deloadDue() === false);
   for (let i=0;i<18;i++) w.state.sessions.push({d:'2026-03-0'+(i%9+1), day:'A', ex:[], foundation:false});
@@ -175,7 +149,7 @@ console.log('\n[9] Köhnə yaddaş miqrasiyası');
   w.applyLoaded(JSON.stringify({ profile:{name:'Elvin', w:80, age:30, h:178, act:1.375, sur:350}, weights:[], sessions:[], supps:[] }));
   ok('köhnə profile.w weights[]-ə köçdü', w.state.weights.length === 1 && w.state.weights[0].kg === 80, JSON.stringify(w.state.weights));
   ok('sex sahəsi əlavə olundu', w.state.profile.sex === 'm');
-  ok('weeklyTarget əlavə olundu (4 günlük bölgü)', w.state.profile.weeklyTarget === 4);
+  ok('weeklyTarget əlavə olundu', w.state.profile.weeklyTarget === 3);
   ok('deloadAt əlavə olundu', w.state.deloadAt === 0);
 }
 
@@ -186,7 +160,7 @@ console.log('\n[10] Bütün tablar xətasız render olunur');
   w.confirm = () => true; w.alert = () => {};
   w.state.profile = {...w.state.profile, name:'Elvin', age:30, h:178, sex:'m'};
   w.setWeight(75, {quiet:true});
-  w.startSession('C'); w.__mountChecks();
+  w.startSession('B'); w.__mountChecks();
   w.state.active.ex['lpz'].forEach((s,i)=>{ s.kg='120'; s.reps='12'; w.toggleDone('lpz', i); });
   w.finishSession();
   ['today','train','fuel','prog'].forEach(t => {

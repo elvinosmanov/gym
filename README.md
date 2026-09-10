@@ -17,7 +17,7 @@ Bütün yollar **nisbidir**, ona görə alt qovluqda (`elvinosmanov.github.io/gy
 
 `supabase.sql` yerləşdirilmir — onu Supabase Dashboard → SQL Editor-də icra et. **Bunu koddan əvvəl et:** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri silə bilər.
 
-Service worker yeniləyəndə `sw.js` içindəki `CACHE_VERSION` dəyərini artır (indi `forge-v2`, növbətidə `forge-v3`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+Service worker yeniləyəndə `sw.js` içindəki `CACHE_VERSION` dəyərini artır (`forge-v1` → `forge-v2`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 ## Nə dəyişdi
 
@@ -53,19 +53,7 @@ Service worker yeniləyəndə `sw.js` içindəki `CACHE_VERSION` dəyərini art�
 | 13 | `inc` rəqəminin vahidi yox idi: "2.5 kq hər tərəfə, yoxsa ümumi?" sualına cavab verilmirdi və zalın düzəldə bilmədiyi addımlar təklif olunurdu (EZ ştanqa +2.5, hantelə +1) | Hər hərəkətə **yük tipi** verildi (ştanq/EZ/Smith/disk-hər tərəfə/hantel/blok/bədən çəkisi/köməkli/rezin) + zal inventarı (disk cütləri, ştanq çəkiləri, hantel və blok addımı). Təklif həmişə zalın **real yığa bildiyi** çəkidir, necə yığılacağı yazılır | `LOADTYPE`, `LOADS`, `ladderFor`, `nextLoad`, `loadingText`, `suggestKg`, `realStep`, `gymCardHTML` |
 | 14 | Divardakı saat telefondan fərqli olur, amma app yalnız telefon vaxtını bilirdi; tarix isə Chromium-un "az" lokalı ucbatından "2026 M09 10" kimi görünürdü | Zal saatı: fərqi bir dəfə yazırsan, başlıq və istirahət taymeri ("07:19-də davam") həmin saata uyğunlaşır. Ay/gün adları əl ilə yazıldı | `syncGymClock`, `gymNow`, `backAt`, `renderDateChip`, `fmtD` |
 | 15 | Hansı hərəkətin nəyi işlətdiyi yalnız mətn etiketi idi; həftə ərzində hansı əzələnin az işləndiyi görünmürdü | Ön/arxa əzələ xəritəsi: texnika vərəqində əsas/köməkçi əzələlər bədən üzərində rənglənir, Proqres tabında son 7 günün istilik xəritəsi + əzələ başına dövr | `MUSCLES`, `MMAP`, `bodyView`, `exerciseBody`, `heatShade`, `setsPerMuscle`, `volumeHTML` |
-| 17 | ⇄ Dəyiş yalnız həmin slot üçün əvvəlcədən seçilmiş 1-3 alternativi göstərirdi — kitabxananın qalanına çatmaq mümkün deyildi | Axtarış bütün hərəkətləri əhatə edir: ad, əzələ (“biseps”) və avadanlıq (“hantel”) üzrə. Seçilən hərəkət öz dövr sayını, təkrar aralığını və yük tipini gətirir; artıq qeyd edilmiş dövrlərə toxunulmur | `openSwap`, `renderSwapList`, `swapFilter`, `chooseEx` |
-| 16 | Proqram 3 günlük tam bədən A/B/C idi, sən isə əslində **İtələmə / Çəkmə / Ayaq / Tam bədən** işləyirsən — app sənin həftənə uyğun gəlmirdi | Bölgü 4 günə keçdi. Gün açarları (A/B/C/D) saxlanıldı ki, köhnə tarixçə öz gününü tapsın; hərəkət açarları da dəyişmədi, ona görə bütün proqressiya tarixçəsi qalır. Yan delta, baldır və qarın tək gündə həftəlik minimuma çatmadığı üçün Tam bədən günündə təkrarlanır | `EXDEF`, `DAYS`, `PROGRAM`, `ROT`, `nextDay`, `weeklyTarget` |
-
-### Yeni gün quruluşu
-
-| Gün | Ad | Hərəkətlər | Set | Təxmini |
-|-----|-----|-----------|-----|---------|
-| A | İtələmə | Bench · Overhead Press · Incline DB Press · Lateral Raise · Triceps Pushdown | 18 | ~43 dəq |
-| B | Çəkmə | Lat Pulldown · Cable Row · Chest-Supported Row · Face Pull · EZ Curl | 18 | ~40 dəq |
-| C | Ayaq | Squat · RDL · Leg Press · Leg Curl · Calf Raise · Cable Crunch | 21 | ~54 dəq |
-| D | Tam bədən | Bulgarian Split Squat · DB Bench · One-Arm Row · Lateral Raise · Calf · Crunch · Back Extension | 21 | ~41 dəq |
-
-Günü dəyişmək üçün `DAYS` obyektindəki açar siyahısını redaktə etmək kifayətdir — hərəkət tərifləri `EXDEF`-də ayrıca durur. `smoke.js` [1] bölməsi hər dəyişiklikdən sonra həftəlik əzələ örtüyünü yoxlayır.
+| 16 | ⇄ Dəyiş yalnız həmin slot üçün əvvəlcədən seçilmiş 1-3 alternativi göstərirdi — kitabxananın qalanına çatmaq mümkün deyildi | Axtarış bütün hərəkətləri əhatə edir: ad, əzələ (“biseps”) və avadanlıq (“hantel”) üzrə. Seçilən hərəkət öz dövr sayını, təkrar aralığını və yük tipini gətirir; artıq qeyd edilmiş dövrlərə toxunulmur | `openSwap`, `renderSwapList`, `swapFilter`, `chooseEx` |
 
 ## Data uyğunluğu
 

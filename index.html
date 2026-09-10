@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>FORGE · 4 Günlük Kütlə Protokolu</title>
-<meta name="description" content="4 günlük kütlə protokolu — İtələmə/Çəkmə/Ayaq/Tam bədən, ikiqat proqressiya, məşq jurnalı, qidalanma hədəfləri.">
+<title>FORGE · 3 Günlük Kütlə Protokolu</title>
+<meta name="description" content="3 günlük tam bədən kütlə protokolu — ikiqat proqressiya, məşq jurnalı, qidalanma hədəfləri.">
 <meta name="theme-color" content="#101318">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -95,12 +95,12 @@ hr.split{border:0;border-top:1px solid var(--line);margin:12px 0}
 .plate span{position:relative;z-index:1;font-family:var(--disp);font-weight:700;font-size:19px;color:var(--ink)}
 .plate.on{filter:none;transform:scale(1)}
 .plate.lock{pointer-events:none;opacity:.45}
-.plate-a{--pc:var(--a)} .plate-b{--pc:var(--b)} .plate-c{--pc:var(--c)} .plate-d{--pc:var(--green)}
+.plate-a{--pc:var(--a)} .plate-b{--pc:var(--b)} .plate-c{--pc:var(--c)}
 .platelbl{display:flex;gap:14px;justify-content:center;margin-bottom:6px}
 .platelbl div{width:82px;text-align:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);line-height:1.35}
 .mini-plate{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:7px;
   box-shadow:inset 0 0 0 4px rgba(0,0,0,.35)}
-.mp-a{background:var(--a)}.mp-b{background:var(--b)}.mp-c{background:var(--c)}.mp-d{background:var(--green)}
+.mp-a{background:var(--a)}.mp-b{background:var(--b)}.mp-c{background:var(--c)}
 
 /* ---------- exercise cards ---------- */
 .ex{border-left:3px solid var(--dc,var(--line))}
@@ -364,7 +364,7 @@ details.rules.flat{background:transparent;border:0;margin:10px 0 0}
   <header class="top">
     <div>
       <div class="wordmark">F<i>O</i>RGE</div>
-      <div class="eyebrow">4 Günlük Kütlə Protokolu</div>
+      <div class="eyebrow">3 Günlük Kütlə Protokolu</div>
     </div>
     <div class="datechip" id="dateChip"></div>
   </header>
@@ -379,7 +379,7 @@ details.rules.flat{background:transparent;border:0;margin:10px 0 0}
     <section class="view" id="view-prog"></section>
   </main>
 
-  <div class="footnote">Məşqçi kimi qurulub: İtələmə · Çəkmə · Ayaq · Tam bədən · ikiqat proqressiya · yüngül profisit.<br>Tibbi məsləhət deyil — mümkün olanda texnikanı canlı yoxlatdırın.</div>
+  <div class="footnote">Məşqçi kimi qurulub: tam bədən A/B/C · ikiqat proqressiya · yüngül profisit.<br>Tibbi məsləhət deyil — mümkün olanda texnikanı canlı yoxlatdırın.</div>
 </div>
 
 <!-- rest timer -->
@@ -433,112 +433,85 @@ details.rules.flat{background:transparent;border:0;margin:10px 0 0}
    Hər gündə: 1 diz + 1 omba + 1 press + 1 çəkmə + izolyasiya.
    bw:true → normalda bədən çəkisi ilə edilir, proqressiya təkrarla gedir.
    ------------------------------------------------------------------ */
-/* Hərəkət tərifləri bir yerdə. Gün quruluşu aşağıdakı DAYS-dədir, ona görə
-   bir günü dəyişmək üçün yalnız açar siyahısını redaktə etmək kifayətdir. */
-const EXDEF = {
-  abs: { key:"abs", name:"Cable Crunch", tag:"Qarın əzələləri", sets:3, rMin:12, rMax:15, rest:60, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Seated_ab_crunch_with_cable_1.svg/500px-Seated_ab_crunch_with_cable_1.svg.png",
-      cues:["Kanat başınızın yanında olacaq şəkildə diz üstə oturun.","Qabırğaları çanağa doğru bükün — onurğanı əyin, budları yox.","Aşağıda bərk nəfəs verin, nəzarətlə geri qalxın."],
-      mist:["Qollarla dartınmaq.","Qarını bükmək əvəzinə budlardan əyilmək.","Tələsmək — bu hərəkətdə əsas olan sıxılmadır."] },
-  be: { key:"be", name:"Back Extension", tag:"Bel · Sağrı əzələsi · Arxa budun əzələsi", sets:3, rMin:12, rMax:15, rest:90, inc:2.5, bw:true,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Hyperextensions-2.png/500px-Hyperextensions-2.png",
-      cues:["Bədəni yastıqcığın üzərinə qoyun, ayaq biləkləri diyircəklərin altında sabitlənsin, bədən düz xətt üzrə olsun.","Başlanğıc üçün qolları döşün üzərində çarpazlayın — bədən çəkisi asan gəldikdə döşünüzə əlavə çəki (disk) qoyun.","Arxa budun əzələlərində gərilmə hiss edənə qədər nəzarətlə enin — orada dayanın.","Sağrı və arxa budun əzələlərini sıxaraq düz xəttə qalxın. Neytral vəziyyətdə dayanın, daha da geri əyilməyin."],
-      mist:["Hiperekstenziya — yuxarıda neytral vəziyyətdən çox geri əyilmək onurğaya zərər verir, bu hərəkətin məqsədinə ziddir.","Enişi nəzarətli etmək əvəzinə aşağıda sıçramaq.","Enərkən belin alt hissəsinin əyilməsi (yumrulanması).","Qalxarkən sağrı/arxa budun əzələlərini sıxmaq əvəzinə ətalətlə dartınmaq."] },
-  bp: { key:"bp", name:"Barbell Bench Press", tag:"Döş · Triseps", sets:4, rMin:6, rMax:8, rest:180, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Sgt._Roy_McDaniel_at_Annual_Bench_Press_Competition_2005_%28USMC-13659%29.jpg/500px-Sgt._Roy_McDaniel_at_Annual_Bench_Press_Competition_2005_%28USMC-13659%29.jpg",
-      cues:["Kürək sümüklərini arxaya və aşağı sıxın, yüngül qövs verin, ayaqlar yerə möhkəm basılsın.","Çiyinlərdən bir az geniş tutun; biləklər dirsəklərin düz üzərində olsun.","Ştanqı döşün alt hissəsinə endirin, dirsəklər bədəndən ~45° bucaq altında olsun.","Yuxarı və bir az arxaya itələyin ki, ştanqı çiyinlərin düz üzərində bitsin."],
-      mist:["Ştanqı döşdən sıçratmaq.","Dirsəklərin 90°-yə qədər açılması — çiyinlər üçün təhlükəlidir.","Bədənin skamyadan qalxması.","Döşə toxunmayan yarımçıq təkrarlar."] },
-  bss: { key:"bss", name:"Bulgarian Split Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi · Hər ayaq üçün", sets:3, rMin:10, rMax:12, rest:90, inc:2, img:null,
-      cues:["Arxa ayağı skamyaya qoyun; ön ayağı kifayət qədər önə atın.","Düz aşağı enin — arxa diz döşəməyə doğru yönəlsin.","Ön diz ayaq barmaqları istiqamətində olsun; ön dabandan itələyərək qalxın.","Hər iki ayaq üçün eyni hantel çəkisini işlədin — qeyd sahəsinə həmin çəkini yazın, təkrar sahəsinə isə zəif ayağın təkrarını."],
-      mist:["Ön ayağın çox yaxın olması — diz ağrısına səbəb olur.","Aşağı nöqtədə sıçramaq.","Ön ayaq əvəzinə arxa ayaqdan itələnmək."] },
-  calf: { key:"calf", name:"Standing Calf Raise", tag:"Baldır əzələsi", sets:3, rMin:12, rMax:15, rest:60, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/1/11/Standing-calf-raises-1.gif",
-      cues:["Aşağıda tam gərilmə — orada bir saniyə dayanın.","Ayaq barmaqlarının ucuna qədər qalxın və 1-2 saniyə sıxın.","Yavaş enmə. Baldır əzələsi sıçramadan yox, tam amplitüddən böyüyür."],
-      mist:["Gərilmə refleksindən istifadə edərək sıçramaq.","Sürətli, yarımçıq təkrarlar.","Çəkini hiylə ilə qaldırmaq üçün dizləri bükmək."] },
-  csmr: { key:"csmr", name:"Chest-Supported Machine Row", tag:"Orta kürək · Arxa delta", sets:3, rMin:10, rMax:12, rest:90, inc:2.5, img:null,
-      cues:["Oturacağı elə qurun ki, tutacaqlar döşün orta xəttində olsun; sinə yastığa tam söykənsin.","Bel dayaqdadır — buna görə burada gövdə ilə kömək etmək mümkün deyil, əzələ təcrid olunur.","Dirsəkləri aşağı-arxaya çəkin, kürək sümüklərini bir saniyə bir-birinə sıxın.","Nəzarətlə buraxın və öndə kürəyin tam uzanmasına icazə verin."],
-      mist:["Sinəni yastıqdan qaldıraraq bədənlə dartınmaq.","Çiyinləri qulaqlara doğru qaldırmaq.","Qolları tam açmadan qısa amplituda işləmək."] },
-  cur: { key:"cur", name:"EZ-Bar Curl", tag:"Biseps", sets:3, rMin:10, rMax:12, rest:60, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/5/5e/Ez-bar-curl-1.gif",
-      cues:["Dirsəkləri bədənə yapışdırılmış kimi saxlayın.","Nəzarətlə qaldırın və yuxarıda bərk sıxın.","2-3 saniyə ərzində tam gərilməyə qədər endirin."],
-      mist:["Təkrara başlamaq üçün bədəni yellətmək.","Dirsəklərin önə çıxması — ön delta əzələsinin işə qarışması.","Aşağıda qolları tam açmadan dayanmaq."] },
-  dbp: { key:"dbp", name:"Dumbbell Bench Press", tag:"Döş · Triseps", sets:3, rMin:10, rMax:12, rest:90, inc:2,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Personal_training_dumbbell_chest_press.jpg/500px-Personal_training_dumbbell_chest_press.jpg",
-      cues:["Hantellər sinə xəttində, biləklər düz.","Aşağı nöqtədə kürəkləri sıxılmış saxlayın.","Yuxarıda hantelləri bir-birinə toxundurmayın — gərginlik döşdə qalsın."],
-      mist:["Dirsəkləri 90° yana açmaq.","Hantelləri nəzarətsiz aşağı buraxmaq.","Yarımçıq amplituda."] },
-  fp: { key:"fp", name:"Face Pull", tag:"Arxa delta · Duruş", sets:3, rMin:12, rMax:15, rest:60, inc:1, img:null,
-      cues:["Kabeli döşün yuxarı hissəsi / üz səviyyəsinə qurun, kanat aparatından istifadə edin.","Dirsəkləri hündür və geniş saxlayaraq gözlərinizə doğru çəkin.","Hərəkəti barmaq oynaqları arxaya baxaraq bitirin (xarici fırlanma).","Bu hərəkət çiyin sağlamlığı üçün çox dəyərlidir — heç vaxt buraxmayın."],
-      mist:["Çox ağır çəki — hərəkəti eşmə (row) halına gətirir.","Dirsəklərin biləklərdən aşağı düşməsi.","Arxaya əyilib bədən çəkisi ilə dartınmaq."] },
-  idp: { key:"idp", name:"Incline Dumbbell Press", tag:"Yuxarı döş", sets:4, rMin:10, rMax:12, rest:90, inc:2,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Dumbbell-incline-bench-press-1.png/500px-Dumbbell-incline-bench-press-1.png",
-      cues:["Skamya ~30° bucaqda olsun. Hantelləri çiyin səviyyəsindən başladın.","Yuxarı və bir az bir-birinə doğru itələyin, toqquşdurmadan.","Yuxarı döşdə dərin gərilmə hiss edənə qədər yavaş-yavaş endirin."],
-      mist:["Skamyanın çox dik olması — hərəkəti çiyin presinə çevirir.","Aşağıda gərilməni tam etməmək.","Aşağı nöqtədən sıçrayışla qalxmaq."] },
-  lat: { key:"lat", name:"Dumbbell Lateral Raise", tag:"Yan delta", sets:3, rMin:12, rMax:15, rest:60, inc:1,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dumbbell-lateral-raises-1.png/500px-Dumbbell-lateral-raises-1.png",
-      cues:["Bir az önə əyilin, dirsəklərdə yüngül bükülmə saxlayın.","Dirsəkləri önə çıxararaq yanlara, çiyin hündürlüyünə qədər qaldırın.","Yuxarı nöqtədə çeçələ barmaq baş barmaqdan bir az hündür olsun.","2 saniyə ərzində endirin — mənfi faza delta əzələsini inkişaf etdirir."],
-      mist:["Çəkiləri ətalətlə yuxarı yellətmək.","Çiyinləri qaldırmaq — trapesiya əzələsinin işi öz üzərinə götürməsi.","Çox ağır çəki götürərək hərəkəti yarımçıq yellənməyə çevirmək."] },
-  llc: { key:"llc", name:"Lying Leg Curl", tag:"Arxa budun əzələsi", sets:3, rMin:10, rMax:12, rest:90, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/LyingLegCurlMachineExercise.JPG/500px-LyingLegCurlMachineExercise.JPG",
-      cues:["Diz oxu aparatın fırlanma oxu ilə üst-üstə düşsün — yastıq baldırın aşağısında, Axilles üstündə olsun.","Ombanı yastığa yapışdırın; hərəkət boyu çanaq qalxmasın.","Tam bükün, yuxarıda bir saniyə sıxın.","3-4 saniyə ərzində nəzarətlə açın — arxa bud məhz mənfi fazada böyüyür."],
-      mist:["Daha ağır çəki üçün ombanı yastıqdan qaldırmaq.","Yarımçıq amplituda — nə tam bükmək, nə tam açmaq.","Ayaq barmaqlarını bərk uzatmaq — baldır işi öz üzərinə götürür."] },
-  lp: { key:"lp", name:"Lat Pulldown", tag:"Enli kürək əzələsi", sets:4, rMin:8, rMax:10, rest:120, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/8/82/Wide-grip-lat-pull-down-1.gif",
-      cues:["Çiyinlərdən bir az geniş tutun; döşü qabağa çıxarın, bir az arxaya əyilin.","Dirsəkləri aşağı endirərək çubuğu döşün yuxarı hissəsinə çəkin.","Kürək əzələlərini bir saniyə sıxın, sonra nəzarətlə tam gərilməyə qədər buraxın.","3×8 dartılma edə bildikdə bu hərəkəti dartılma ilə əvəz edin."],
-      mist:["Çəkini qaldırmaq üçün bədəni yırğalamaq.","Çubuğu boynun arxasına çəkmək.","Yuxarıda tam gərilməyə çatmamaq."] },
-  lpz: { key:"lpz", name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", sets:4, rMin:10, rMax:12, rest:150, inc:5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/5/57/Leg_press_%28cropped%2C_flipped%29.jpg",
-      cues:["Ayaqları platformanın ortasında, çiyin enində yerləşdirin.","Dizlər ~90°-yə çatana və ya bel yastıqdan ayrılmayana qədər enin.","Bütün ayaq altını işlədərək itələyin; dizləri tam kilidləmədən dayanın."],
-      mist:["O qədər dərin enmək ki, bədən yastıqdan ayrılsın.","Ego üçün ağır çəki ilə yarımçıq təkrarlar etmək.","Dizlərin içəri düşməsi."] },
-  oadr: { key:"oadr", name:"One-Arm Dumbbell Row", tag:"Enli kürək · Orta kürək · Hər qol üçün", sets:3, rMin:10, rMax:12, rest:90, inc:2,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Dumbbell-bent-over-row-1.png/500px-Dumbbell-bent-over-row-1.png",
-      cues:["Bir diz və bir əl skamyada, bel düz və neytral.","Hanteli belə doğru çəkin, dirsək gövdəyə yaxın.","Yuxarıda kürəyi sıxın, aşağıda qolu tam açın."],
-      mist:["Gövdəni burub bel ilə çəkmək.","Dirsəyi yana açmaq — yük kürəkdən çıxır.","Yalnız qolla çəkmək."] },
-  ohp: { key:"ohp", name:"Standing Overhead Press", tag:"Çiyinlər", sets:3, rMin:8, rMax:10, rest:120, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Attractive_sporty_woman_doing_overhead_press_in_gym_with_barbell.jpg/500px-Attractive_sporty_woman_doing_overhead_press_in_gym_with_barbell.jpg",
-      cues:["Çiyinlərdən bir az geniş tutun, dirsəklər ştanqın bir az önündə olsun.","Sağrı və qarın əzələlərini sıxın ki, bədən vahid bərk sütuna çevrilsin.","Yuxarı itələyin; ştanqı alnınızı keçən kimi başınızı önə verin.","Qolları tam açaraq, bisepslər qulaqlara yaxın vəziyyətdə bitirin."],
-      mist:["Çox arxaya əyilmək — hərəkəti maili prese çevirir.","Başı geri çəkmək əvəzinə ştanqı çənənin ətrafından keçirmək.","Sağrı sıxılmadıqda yük belin alt hissəsinə düşür."] },
-  rdl: { key:"rdl", name:"Romanian Deadlift", tag:"Arxa budun əzələsi · Sağrı əzələsi", sets:3, rMin:8, rMax:10, rest:150, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Romanian-deadlift-1.png/500px-Romanian-deadlift-1.png",
-      cues:["Dizləri yüngül bükülü saxlayın; bədəni aşağı yox, düz arxaya itələyin.","Ştanqı budların üzərindən sürüşərək ensin, bel düz qalsın.","Baldırın ortası səviyyəsində arxa budun gərilməsini hiss edin, sonra bədəni önə itələyin.","Yuxarıda sağrı əzələlərini sıxın — arxaya əyilməyin."],
-      mist:["Dizləri həddən artıq bükmək (hərəkəti çömbəlməyə çevirmək).","Belin alt hissəsinin əyilməsi.","Ştanqın ayaqlardan uzaqlaşmasına icazə vermək."] },
-  row: { key:"row", name:"Seated Cable Row", tag:"Orta kürək", sets:4, rMin:8, rMax:10, rest:120, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Cable-seated-rows-1.png/500px-Cable-seated-rows-1.png",
-      cues:["Döşü dik saxlayın; kürəyi gərmək üçün bir az önə uzanın.","Qulpu göbəyinizə doğru çəkin, dirsəklər bədənə sıx olsun.","Kürək sümüklərini bir saniyə bir-birinə sıxın.","Nəzarətlə geri qayıdın — çəkinin sizi dartmasına icazə verməyin."],
-      mist:["Ətalət yaratmaq üçün irəli-geri yırğalanmaq.","Çiyinləri yuxarı qaldırmaq.","Ağır çəki ilə gərilmə zamanı kürəyin əyilməsi."] },
-  sq: { key:"sq", name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", sets:4, rMin:6, rMax:8, rest:180, inc:5,
+const PROGRAM = {
+  A: { name:"A Məşqi", sub:"Ağır · 6-10 təkrar", cls:"a", ex:[
+    { key:"sq", name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", sets:4, rMin:6, rMax:8, rest:180, inc:5,
       img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Woman_doing_squat_workout_in_gym_with_barbell.jpg/500px-Woman_doing_squat_workout_in_gym_with_barbell.jpg",
       cues:["Ştanqı trapesiya əzələlərinə sıx bassın, onu bərk sıxın, dirsəklər aşağıda olsun.","Dərin nəfəs alın, qarnınızı zərbə alacaqmış kimi bərkidin — sonra enməyə başlayın.","Dabanlarınızın arasına oturun; dizlər ayaq barmaqları istiqamətində hərəkət etsin.","Paralel səviyyəyə və ya bir az aşağısına enin, sonra döşəməni bərk itələyərək qalxın."],
       mist:["Dabanların qalxması / çəkinin barmaqlara keçməsi.","Qalxarkən dizlərin içəri düşməsi.","Çəki ağırlaşdıqca dərinliyin azaldılması.","Qarın bərkiliyinin itirilməsi — döşün önə çökməsi."] },
-  tri: { key:"tri", name:"Rope Triceps Pushdown", tag:"Triseps", sets:3, rMin:10, rMax:12, rest:60, inc:2.5,
+    { key:"bp", name:"Barbell Bench Press", tag:"Döş · Triseps", sets:4, rMin:6, rMax:8, rest:180, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Sgt._Roy_McDaniel_at_Annual_Bench_Press_Competition_2005_%28USMC-13659%29.jpg/500px-Sgt._Roy_McDaniel_at_Annual_Bench_Press_Competition_2005_%28USMC-13659%29.jpg",
+      cues:["Kürək sümüklərini arxaya və aşağı sıxın, yüngül qövs verin, ayaqlar yerə möhkəm basılsın.","Çiyinlərdən bir az geniş tutun; biləklər dirsəklərin düz üzərində olsun.","Ştanqı döşün alt hissəsinə endirin, dirsəklər bədəndən ~45° bucaq altında olsun.","Yuxarı və bir az arxaya itələyin ki, ştanqı çiyinlərin düz üzərində bitsin."],
+      mist:["Ştanqı döşdən sıçratmaq.","Dirsəklərin 90°-yə qədər açılması — çiyinlər üçün təhlükəlidir.","Bədənin skamyadan qalxması.","Döşə toxunmayan yarımçıq təkrarlar."] },
+    { key:"lp", name:"Lat Pulldown", tag:"Enli kürək əzələsi", sets:4, rMin:8, rMax:10, rest:120, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/8/82/Wide-grip-lat-pull-down-1.gif",
+      cues:["Çiyinlərdən bir az geniş tutun; döşü qabağa çıxarın, bir az arxaya əyilin.","Dirsəkləri aşağı endirərək çubuğu döşün yuxarı hissəsinə çəkin.","Kürək əzələlərini bir saniyə sıxın, sonra nəzarətlə tam gərilməyə qədər buraxın.","3×8 dartılma edə bildikdə bu hərəkəti dartılma ilə əvəz edin."],
+      mist:["Çəkini qaldırmaq üçün bədəni yırğalamaq.","Çubuğu boynun arxasına çəkmək.","Yuxarıda tam gərilməyə çatmamaq."] },
+    { key:"rdl", name:"Romanian Deadlift", tag:"Arxa budun əzələsi · Sağrı əzələsi", sets:3, rMin:8, rMax:10, rest:150, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Romanian-deadlift-1.png/500px-Romanian-deadlift-1.png",
+      cues:["Dizləri yüngül bükülü saxlayın; bədəni aşağı yox, düz arxaya itələyin.","Ştanqı budların üzərindən sürüşərək ensin, bel düz qalsın.","Baldırın ortası səviyyəsində arxa budun gərilməsini hiss edin, sonra bədəni önə itələyin.","Yuxarıda sağrı əzələlərini sıxın — arxaya əyilməyin."],
+      mist:["Dizləri həddən artıq bükmək (hərəkəti çömbəlməyə çevirmək).","Belin alt hissəsinin əyilməsi.","Ştanqın ayaqlardan uzaqlaşmasına icazə vermək."] },
+    { key:"lat", name:"Dumbbell Lateral Raise", tag:"Yan delta", sets:3, rMin:12, rMax:15, rest:60, inc:1,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dumbbell-lateral-raises-1.png/500px-Dumbbell-lateral-raises-1.png",
+      cues:["Bir az önə əyilin, dirsəklərdə yüngül bükülmə saxlayın.","Dirsəkləri önə çıxararaq yanlara, çiyin hündürlüyünə qədər qaldırın.","Yuxarı nöqtədə çeçələ barmaq baş barmaqdan bir az hündür olsun.","2 saniyə ərzində endirin — mənfi faza delta əzələsini inkişaf etdirir."],
+      mist:["Çəkiləri ətalətlə yuxarı yellətmək.","Çiyinləri qaldırmaq — trapesiya əzələsinin işi öz üzərinə götürməsi.","Çox ağır çəki götürərək hərəkəti yarımçıq yellənməyə çevirmək."] },
+    { key:"tri", name:"Rope Triceps Pushdown", tag:"Triseps", sets:3, rMin:10, rMax:12, rest:60, inc:2.5,
       img:"https://upload.wikimedia.org/wikipedia/commons/1/12/Triceps-pushdown-with-rope-1.gif",
       cues:["Bütün dövr ərzində dirsəkləri bədənə sıx saxlayın.","Aşağı itələyin və aşağı nöqtədə kanatı iki yana ayırın.","Aşağıda bir saniyə tam sıxın, sonra nəzarətlə yuxarı qayıdın."],
       mist:["Dirsəklərin önə çıxması — kürək əzələsinin işə qarışması.","Bədən çəkisini kabelin üzərinə atmaq.","Yuxarıda hərəkət amplitüdünün yarımçıq qalması."] }
+  ]},
+  B: { name:"B Məşqi", sub:"Orta · 8-15 təkrar", cls:"b", ex:[
+    { key:"lpz", name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", sets:4, rMin:10, rMax:12, rest:150, inc:5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/5/57/Leg_press_%28cropped%2C_flipped%29.jpg",
+      cues:["Ayaqları platformanın ortasında, çiyin enində yerləşdirin.","Dizlər ~90°-yə çatana və ya bel yastıqdan ayrılmayana qədər enin.","Bütün ayaq altını işlədərək itələyin; dizləri tam kilidləmədən dayanın."],
+      mist:["O qədər dərin enmək ki, bədən yastıqdan ayrılsın.","Ego üçün ağır çəki ilə yarımçıq təkrarlar etmək.","Dizlərin içəri düşməsi."] },
+    { key:"row", name:"Seated Cable Row", tag:"Orta kürək", sets:4, rMin:8, rMax:10, rest:120, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Cable-seated-rows-1.png/500px-Cable-seated-rows-1.png",
+      cues:["Döşü dik saxlayın; kürəyi gərmək üçün bir az önə uzanın.","Qulpu göbəyinizə doğru çəkin, dirsəklər bədənə sıx olsun.","Kürək sümüklərini bir saniyə bir-birinə sıxın.","Nəzarətlə geri qayıdın — çəkinin sizi dartmasına icazə verməyin."],
+      mist:["Ətalət yaratmaq üçün irəli-geri yırğalanmaq.","Çiyinləri yuxarı qaldırmaq.","Ağır çəki ilə gərilmə zamanı kürəyin əyilməsi."] },
+    { key:"ohp", name:"Standing Overhead Press", tag:"Çiyinlər", sets:3, rMin:8, rMax:10, rest:120, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Attractive_sporty_woman_doing_overhead_press_in_gym_with_barbell.jpg/500px-Attractive_sporty_woman_doing_overhead_press_in_gym_with_barbell.jpg",
+      cues:["Çiyinlərdən bir az geniş tutun, dirsəklər ştanqın bir az önündə olsun.","Sağrı və qarın əzələlərini sıxın ki, bədən vahid bərk sütuna çevrilsin.","Yuxarı itələyin; ştanqı alnınızı keçən kimi başınızı önə verin.","Qolları tam açaraq, bisepslər qulaqlara yaxın vəziyyətdə bitirin."],
+      mist:["Çox arxaya əyilmək — hərəkəti maili prese çevirir.","Başı geri çəkmək əvəzinə ştanqı çənənin ətrafından keçirmək.","Sağrı sıxılmadıqda yük belin alt hissəsinə düşür."] },
+    { key:"llc", name:"Lying Leg Curl", tag:"Arxa budun əzələsi", sets:3, rMin:10, rMax:12, rest:90, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/LyingLegCurlMachineExercise.JPG/500px-LyingLegCurlMachineExercise.JPG",
+      cues:["Diz oxu aparatın fırlanma oxu ilə üst-üstə düşsün — yastıq baldırın aşağısında, Axilles üstündə olsun.","Ombanı yastığa yapışdırın; hərəkət boyu çanaq qalxmasın.","Tam bükün, yuxarıda bir saniyə sıxın.","3-4 saniyə ərzində nəzarətlə açın — arxa bud məhz mənfi fazada böyüyür."],
+      mist:["Daha ağır çəki üçün ombanı yastıqdan qaldırmaq.","Yarımçıq amplituda — nə tam bükmək, nə tam açmaq.","Ayaq barmaqlarını bərk uzatmaq — baldır işi öz üzərinə götürür."] },
+    { key:"cur", name:"EZ-Bar Curl", tag:"Biseps", sets:3, rMin:10, rMax:12, rest:60, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/5/5e/Ez-bar-curl-1.gif",
+      cues:["Dirsəkləri bədənə yapışdırılmış kimi saxlayın.","Nəzarətlə qaldırın və yuxarıda bərk sıxın.","2-3 saniyə ərzində tam gərilməyə qədər endirin."],
+      mist:["Təkrara başlamaq üçün bədəni yellətmək.","Dirsəklərin önə çıxması — ön delta əzələsinin işə qarışması.","Aşağıda qolları tam açmadan dayanmaq."] },
+    { key:"calf", name:"Standing Calf Raise", tag:"Baldır əzələsi", sets:3, rMin:12, rMax:15, rest:60, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/1/11/Standing-calf-raises-1.gif",
+      cues:["Aşağıda tam gərilmə — orada bir saniyə dayanın.","Ayaq barmaqlarının ucuna qədər qalxın və 1-2 saniyə sıxın.","Yavaş enmə. Baldır əzələsi sıçramadan yox, tam amplitüddən böyüyür."],
+      mist:["Gərilmə refleksindən istifadə edərək sıçramaq.","Sürətli, yarımçıq təkrarlar.","Çəkini hiylə ilə qaldırmaq üçün dizləri bükmək."] }
+  ]},
+  C: { name:"C Məşqi", sub:"Həcm · 10-15 təkrar", cls:"c", ex:[
+    { key:"bss", name:"Bulgarian Split Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi · Hər ayaq üçün", sets:3, rMin:10, rMax:12, rest:90, inc:2, img:null,
+      cues:["Arxa ayağı skamyaya qoyun; ön ayağı kifayət qədər önə atın.","Düz aşağı enin — arxa diz döşəməyə doğru yönəlsin.","Ön diz ayaq barmaqları istiqamətində olsun; ön dabandan itələyərək qalxın.","Hər iki ayaq üçün eyni hantel çəkisini işlədin — qeyd sahəsinə həmin çəkini yazın, təkrar sahəsinə isə zəif ayağın təkrarını."],
+      mist:["Ön ayağın çox yaxın olması — diz ağrısına səbəb olur.","Aşağı nöqtədə sıçramaq.","Ön ayaq əvəzinə arxa ayaqdan itələnmək."] },
+    { key:"idp", name:"Incline Dumbbell Press", tag:"Yuxarı döş", sets:4, rMin:10, rMax:12, rest:90, inc:2,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Dumbbell-incline-bench-press-1.png/500px-Dumbbell-incline-bench-press-1.png",
+      cues:["Skamya ~30° bucaqda olsun. Hantelləri çiyin səviyyəsindən başladın.","Yuxarı və bir az bir-birinə doğru itələyin, toqquşdurmadan.","Yuxarı döşdə dərin gərilmə hiss edənə qədər yavaş-yavaş endirin."],
+      mist:["Skamyanın çox dik olması — hərəkəti çiyin presinə çevirir.","Aşağıda gərilməni tam etməmək.","Aşağı nöqtədən sıçrayışla qalxmaq."] },
+    { key:"csmr", name:"Chest-Supported Machine Row", tag:"Orta kürək · Arxa delta", sets:3, rMin:10, rMax:12, rest:90, inc:2.5, img:null,
+      cues:["Oturacağı elə qurun ki, tutacaqlar döşün orta xəttində olsun; sinə yastığa tam söykənsin.","Bel dayaqdadır — buna görə burada gövdə ilə kömək etmək mümkün deyil, əzələ təcrid olunur.","Dirsəkləri aşağı-arxaya çəkin, kürək sümüklərini bir saniyə bir-birinə sıxın.","Nəzarətlə buraxın və öndə kürəyin tam uzanmasına icazə verin."],
+      mist:["Sinəni yastıqdan qaldıraraq bədənlə dartınmaq.","Çiyinləri qulaqlara doğru qaldırmaq.","Qolları tam açmadan qısa amplituda işləmək."] },
+    { key:"be", name:"Back Extension", tag:"Bel · Sağrı əzələsi · Arxa budun əzələsi", sets:3, rMin:12, rMax:15, rest:90, inc:2.5, bw:true,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Hyperextensions-2.png/500px-Hyperextensions-2.png",
+      cues:["Bədəni yastıqcığın üzərinə qoyun, ayaq biləkləri diyircəklərin altında sabitlənsin, bədən düz xətt üzrə olsun.","Başlanğıc üçün qolları döşün üzərində çarpazlayın — bədən çəkisi asan gəldikdə döşünüzə əlavə çəki (disk) qoyun.","Arxa budun əzələlərində gərilmə hiss edənə qədər nəzarətlə enin — orada dayanın.","Sağrı və arxa budun əzələlərini sıxaraq düz xəttə qalxın. Neytral vəziyyətdə dayanın, daha da geri əyilməyin."],
+      mist:["Hiperekstenziya — yuxarıda neytral vəziyyətdən çox geri əyilmək onurğaya zərər verir, bu hərəkətin məqsədinə ziddir.","Enişi nəzarətli etmək əvəzinə aşağıda sıçramaq.","Enərkən belin alt hissəsinin əyilməsi (yumrulanması).","Qalxarkən sağrı/arxa budun əzələlərini sıxmaq əvəzinə ətalətlə dartınmaq."] },
+    { key:"fp", name:"Face Pull", tag:"Arxa delta · Duruş", sets:3, rMin:12, rMax:15, rest:60, inc:1, img:null,
+      cues:["Kabeli döşün yuxarı hissəsi / üz səviyyəsinə qurun, kanat aparatından istifadə edin.","Dirsəkləri hündür və geniş saxlayaraq gözlərinizə doğru çəkin.","Hərəkəti barmaq oynaqları arxaya baxaraq bitirin (xarici fırlanma).","Bu hərəkət çiyin sağlamlığı üçün çox dəyərlidir — heç vaxt buraxmayın."],
+      mist:["Çox ağır çəki — hərəkəti eşmə (row) halına gətirir.","Dirsəklərin biləklərdən aşağı düşməsi.","Arxaya əyilib bədən çəkisi ilə dartınmaq."] },
+    { key:"abs", name:"Cable Crunch", tag:"Qarın əzələləri", sets:3, rMin:12, rMax:15, rest:60, inc:2.5,
+      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Seated_ab_crunch_with_cable_1.svg/500px-Seated_ab_crunch_with_cable_1.svg.png",
+      cues:["Kanat başınızın yanında olacaq şəkildə diz üstə oturun.","Qabırğaları çanağa doğru bükün — onurğanı əyin, budları yox.","Aşağıda bərk nəfəs verin, nəzarətlə geri qalxın."],
+      mist:["Qollarla dartınmaq.","Qarını bükmək əvəzinə budlardan əyilmək.","Tələsmək — bu hərəkətdə əsas olan sıxılmadır."] }
+  ]}
 };
 
-/* Həftəlik bölgü: İtələmə / Çəkmə / Ayaq / Tam bədən.
-   Açarlar (A/B/C/D) saxlanılıb ki, köhnə məşq tarixçəsi öz gününü tapsın. */
-const DAYS = {
-  A: { name:"İtələmə", sub:"Döş · Çiyin · Triseps", cls:"a",
-       ex:[["bp",4], ["ohp",3], ["idp",3], ["lat",5], ["tri",3]] },
-  B: { name:"Çəkmə", sub:"Kürək · Arxa delta · Biseps", cls:"b",
-       ex:[["lp",4], ["row",4], ["csmr",3], ["fp",4], ["cur",3]] },
-  C: { name:"Ayaq", sub:"Dördbaşlı · Arxa bud · Sağrı · Baldır", cls:"c",
-       ex:[["sq",4], ["rdl",3], ["lpz",3], ["llc",3], ["calf",4], ["abs",4]] },
-  /* Tam bədən günü həftənin ikinci təması: yan delta, baldır və qarın
-     tək gündə həftəlik minimuma çatmır, ona görə burada təkrar olunur. */
-  D: { name:"Tam bədən", sub:"Bütün bədən · orta həcm", cls:"d",
-       ex:[["bss",3], ["dbp",3], ["oadr",3], ["lat",3], ["calf",3], ["abs",3], ["be",3]] }
-};
-
-/* PROGRAM-ın forması dəyişməyib: hər gün tam hərəkət obyektlərindən ibarət massivdir. */
-const PROGRAM = {};
-for(const dk of Object.keys(DAYS)){
-  const d = DAYS[dk];
-  PROGRAM[dk] = { name:d.name, sub:d.sub, cls:d.cls,
-    ex: d.ex.map(([key, sets]) => ({ ...EXDEF[key], sets: sets || EXDEF[key].sets })) };
-}
-
-const ROT = ["A","B","C","D"];
+const ROT = ["A","B","C"];
 
 const RULES = [
   { t:"Niyə həftədə 3 dəfə tam bədən?", d:"Hər məşqdə bir diz, bir omba, bir itələmə və bir çəkmə hərəkəti var — buna görə ayaqlar, kürək və çiyin qurşağı həftədə 2-3 dəfə yüklənir. Push/pull/legs bölgüsündə isə hər əzələ həftədə cəmi bir dəfə işləyir. A, B və C ağırlıqda fərqlənir (ağır → orta → həcm), əzələ qrupunda yox. Bazar ertəsi · Çərşənbə · Cümə ideal seçimdir, lakin ardıcıl olmayan istənilən 3 gün işləyir." },
@@ -583,7 +556,8 @@ const STAPLES = ["Düyü","Makaron","Kartof","Çörək","Qaymaq","Pendir","Qatı
 const ALTS = {
   sq:   [{key:"hsq", name:"Hack Squat", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Hack_squat_machine_1.svg/500px-Hack_squat_machine_1.svg.png", cues:["Kürəyinizi yastığa sıx basın, dabanlar platformada qalsın.","Dizlər ayaq barmaqları istiqamətində, tam dərinliyə enin."]},
          {key:"gsq", name:"Goblet Squat", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Kettle_bell_squats.jpg/500px-Kettle_bell_squats.jpg", cues:["Hanteli sinəyə sıxın, gövdəni dik saxlayın.","Dirsəklər dizlərin arasına doğru, dabanlar yerdə."]}],
-  bp:   [{key:"mchp", name:"Machine Chest Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Girl_doing_chest_press_machine_exercise.jpg/500px-Girl_doing_chest_press_machine_exercise.jpg", cues:["Oturacağı tutacaqlar sinə səviyyəsində olacaq şəkildə tənzimləyin.","Kürəkləri arxaya sıxın, qolları tam açın."]}],
+  bp:   [{key:"dbp", name:"Dumbbell Bench Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Personal_training_dumbbell_chest_press.jpg/500px-Personal_training_dumbbell_chest_press.jpg", cues:["Hantellər sinə xəttində, biləklər düz.","Aşağı nöqtədə kürəkləri sıxılmış saxlayın."]},
+         {key:"mchp", name:"Machine Chest Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Girl_doing_chest_press_machine_exercise.jpg/500px-Girl_doing_chest_press_machine_exercise.jpg", cues:["Oturacağı tutacaqlar sinə səviyyəsində olacaq şəkildə tənzimləyin.","Kürəkləri arxaya sıxın, qolları tam açın."]}],
   lp:   [{key:"apu", name:"Assisted Pull-Up", bw:true, cues:["Sinəni turnikə doğru çəkin, dirsəklər aşağı-arxaya.","Aşağıda qollar tam açılsın."]}],
   rdl:  [{key:"ht", name:"Hip Thrust", cues:["Kürək skamyada, ştanq omba büküşündə.","Yuxarıda sağrını sıxın, çənə sinəyə doğru."]},
          {key:"cpt", name:"Cable Pull-Through", cues:["Kabel ayaqların arasından, omba geriyə itələnir.","Bel düz — hərəkət ombadan gəlir, qollardan yox."]}],
@@ -591,7 +565,7 @@ const ALTS = {
   tri:  [{key:"ohte", name:"Overhead Cable Triceps Extension", cues:["Dirsəklər başın yanında sabit, yalnız said hərəkət edir.","Aşağıda tam uzanma hiss edin, yuxarıda sıxın."]},
          {key:"skc", name:"EZ-Bar Skull Crusher", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Lying_close_grip_triceps_extension_behind_the_head_with_barbell_1.svg/500px-Lying_close_grip_triceps_extension_behind_the_head_with_barbell_1.svg.png", cues:["Dirsəklər tavana baxır, ştanq alına doğru enir.","Çiyinləri tərpətmədən yalnız dirsəkdən açın."]}],
   lpz:  [{key:"smsq", name:"Smith Machine Squat", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Smith_machine_squats_1.svg/500px-Smith_machine_squats_1.svg.png", cues:["Ayaqlar bir az öndə — ştanq xətti topuqdan keçsin.","Nəzarətli enin, dabanlarla itələyin."]}],
-  row:  [{key:"tbr", name:"T-Bar Row", cues:["Ştanqı sinəyə doğru çəkin, bel neytral qalsın.","Dirsəkləri gövdəyə yaxın aparın, yuxarıda kürəyi sıxın."]}],
+  row:  [{key:"oadr", name:"One-Arm Dumbbell Row", cues:["Bir əl və diz skamyada, bel düz.","Hanteli ombaya doğru çəkin, gövdəni burmadan."]}],
   ohp:  [{key:"sdp", name:"Seated Dumbbell Shoulder Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Girl_doing_dumbbell_shoulder_press_02.jpg/500px-Girl_doing_dumbbell_shoulder_press_02.jpg", cues:["Hantellər qulaq səviyyəsindən yuxarı itələnir.","Beli əymədən — qarın gərgin, kürək dayaqda."]},
          {key:"mshp", name:"Machine Shoulder Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Shoulder-press-machine-1.png/500px-Shoulder-press-machine-1.png", cues:["Tutacaqlar çiyin səviyyəsində başlasın.","Yuxarıda dirsəkləri tam kilidləməyin."]}],
   llc:  [{key:"slc", name:"Seated Leg Curl", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Seated-leg-curl-1.png/500px-Seated-leg-curl-1.png", cues:["Yastıq baldırın aşağısında olsun, omba kəməri bərkidilsin.","Tam bükün, nəzarətlə açın."]}],
@@ -602,16 +576,16 @@ const ALTS = {
          {key:"lpcr", name:"Leg Press Calf Raise", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Gym_Leg_Press_Machine.jpg/500px-Gym_Leg_Press_Machine.jpg", cues:["Pəncələr platformanın aşağı kənarında.","Tam amplituda — aşağı uzanma, yuxarı sıxma."]}],
   bss:  [{key:"wlg", name:"Dumbbell Walking Lunge", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Dumbbell_lunges.jpg/500px-Dumbbell_lunges.jpg", cues:["Uzun addım — ön diz barmaq xəttini keçməsin.","Gövdə dik, arxa diz yerə yaxınlaşır."]},
          {key:"stpu", name:"Dumbbell Step-Up", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Step_up_single_leg_balance_with_bicep_curl_using_dumbbells_1.svg/500px-Step_up_single_leg_balance_with_bicep_curl_using_dumbbells_1.svg.png", cues:["Platformadakı ayaqla itələnin, arxa ayaqla yox.","Yuxarıda tam dikəlin, nəzarətlə enin."]}],
-  idp:  [{key:"fly", name:"Cable Chest Fly", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Cable-crossover-1.png/500px-Cable-crossover-1.png", cues:["Dirsəklər yüngül bükülü sabit qalır, qövs dəyişmir.","Öndə sinəni sıxın, geriyə nəzarətlə dərin gərilməyə açın."]},
+  idp:  [{key:"incm", name:"Incline Machine Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Smith_machine_incline_bench_press_1.svg/500px-Smith_machine_incline_bench_press_1.svg.png", cues:["Oturacağı elə qurun ki, tutacaqlar yuxarı sinə xəttində olsun.","Nəzarətli enin, partlayışla itələyin."]},
+         {key:"fly", name:"Cable Chest Fly", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Cable-crossover-1.png/500px-Cable-crossover-1.png", cues:["Dirsəklər yüngül bükülü sabit qalır, qövs dəyişmir.","Öndə sinəni sıxın, geriyə nəzarətlə dərin gərilməyə açın."]},
          {key:"pdk", name:"Pec Deck", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Pec_deck_Fly.jpg/500px-Pec_deck_Fly.jpg", cues:["Dirsəklər bir az bükülü sabit qalır.","Öndə sinəni sıxın, geriyə nəzarətlə açın."]},
          {key:"dbfl", name:"Dumbbell Fly", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/DumbbellFlye.JPG/500px-DumbbellFlye.JPG", cues:["Qollar geniş qövslə açılır, dirsəklər yumşaq.","Aşağıda sinədə uzanma hiss edin."]}],
-  csmr: [{key:"rpd", name:"Reverse Pec Deck", cues:["Oturacağı tutacaqlar çiyin səviyyəsində olacaq şəkildə qurun.","Dirsəkləri bir az bükülü saxlayıb qolları arxaya açın."]}],
+  csmr: [{key:"mhr", name:"Machine High Row", cues:["Sinə yastığa söykənir, dirsəklər aşağı-arxaya çəkilir.","Kürəkləri aşağı sıxın, boyun boş qalsın."]}],
   be:   [{key:"ght", name:"Glute-Ham Raise", bw:true, cues:["Ayaq biləkləri sabitlənir, bədən düz xətt üzrə qalır.","Enişi bacardığınız qədər yavaş nəzarətdə saxlayın — bu hərəkətin əsl işi enişdədir."]}],
-  fp:   [{key:"bpa", name:"Band Pull-Apart", bw:true, img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Back-flyes-with-resistance-bands-1.png/500px-Back-flyes-with-resistance-bands-1.png", cues:["Rezini çiyin səviyyəsində iki yana dartın.","Kürəkləri sıxın, qollar düz qalsın."]}],
+  fp:   [{key:"rpd", name:"Reverse Pec Deck", cues:["Üzü aparata oturun, qollar geniş açılır.","Arxa deltada sıxılmanı hiss edin, geriyə yellənməyin."]},
+         {key:"bpa", name:"Band Pull-Apart", bw:true, img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Back-flyes-with-resistance-bands-1.png/500px-Back-flyes-with-resistance-bands-1.png", cues:["Rezini çiyin səviyyəsində iki yana dartın.","Kürəkləri sıxın, qollar düz qalsın."]}],
   abs:  [{key:"hkr", name:"Hanging Knee Raise", bw:true, cues:["Dizləri sinəyə doğru qaldırın, yellənməyin.","Qarını sıxaraq ombanı da yuxarı burun."]},
-         {key:"dsu", name:"Decline Sit-Up", bw:true, cues:["Nəzarətlə enin — düşməyin.","Ağırlığı sinədə tutub çətinləşdirmək olar."]}],
-  dbp:  [{key:"incm", name:"Incline Machine Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Smith_machine_incline_bench_press_1.svg/500px-Smith_machine_incline_bench_press_1.svg.png", cues:["Oturacağı elə qurun ki, tutacaqlar yuxarı sinə xəttində olsun.","Nəzarətli enin, partlayışla itələyin."]}],
-  oadr: [{key:"mhr", name:"Machine High Row", cues:["Sinə yastığa dayansın, tutacaqları aşağı-geri çəkin.","Kürəkləri bir-birinə sıxın, sonra nəzarətlə buraxın."]}],
+         {key:"dsu", name:"Decline Sit-Up", bw:true, cues:["Nəzarətlə enin — düşməyin.","Ağırlığı sinədə tutub çətinləşdirmək olar."]}]
 };
 
 const ACT_OPTS = [
@@ -623,7 +597,7 @@ const ACT_OPTS = [
 /* ================= state & persistence ================= */
 /* profile.w yalnız ilk qurulum üçün "toxumdur" — həqiqi mənbə həmişə state.weights[]-dir.
    Qurulumdan sonra heç bir yerdə oxunmur; bax latestW() və setWeight(). */
-const DEFAULTS = { profile:{name:"Elvin",age:"",h:"",w:"",sex:"m",act:1.375,sur:350,weeklyTarget:4}, weights:[], sessions:[], active:null, supps:[], deloadAt:0, gym:null };
+const DEFAULTS = { profile:{name:"Elvin",age:"",h:"",w:"",sex:"m",act:1.375,sur:350,weeklyTarget:3}, weights:[], sessions:[], active:null, supps:[], deloadAt:0, gym:null };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -668,7 +642,7 @@ const LOADTYPE = {
   lp:"stack", tri:"stack", row:"stack", llc:"stack", calf:"stack", csmr:"stack",
   fp:"stack", abs:"stack", mchp:"stack", cpt:"stack", clr:"stack", ohte:"stack",
   mshp:"stack", slc:"stack", cbcu:"stack", incm:"stack", fly:"stack", pdk:"stack",
-  mhr:"stack", rpd:"stack", tbr:"plate",
+  mhr:"stack", rpd:"stack",
   be:"bw", ght:"bw", hkr:"bw", dsu:"bw",
   apu:"assist",
   bpa:"band"
@@ -894,8 +868,7 @@ const MMAP = {
   wlg:{p:["quad","glute"],s:["hamstring","adductor"]}, stpu:{p:["quad","glute"],s:["hamstring"]},
   incm:{p:["chest","front_delt"],s:["triceps"]}, fly:{p:["chest"],s:["front_delt"]},
   pdk:{p:["chest"],s:["front_delt"]}, dbfl:{p:["chest"],s:["front_delt"]},
-  mhr:{p:["lat","upper_back"],s:["biceps","rear_delt"]},
-  tbr:{p:["upper_back","lat"],s:["biceps","rear_delt"]}, ght:{p:["hamstring","glute"],s:["lower_back"]},
+  mhr:{p:["lat","upper_back"],s:["biceps","rear_delt"]}, ght:{p:["hamstring","glute"],s:["lower_back"]},
   rpd:{p:["rear_delt"],s:["upper_back","trap"]}, bpa:{p:["rear_delt"],s:["trap"]},
   hkr:{p:["abs"],s:["oblique","forearm"]}, dsu:{p:["abs"],s:["oblique"]}
 };
@@ -1106,7 +1079,7 @@ function migrate(){
   if(!state.weights.length && parseFloat(state.profile.w))
     state.weights.push({ d: todayISO(), kg: parseFloat(state.profile.w) });
   if(!state.profile.sex) state.profile.sex = "m";
-  if(!state.profile.weeklyTarget) state.profile.weeklyTarget = 4;
+  if(!state.profile.weeklyTarget) state.profile.weeklyTarget = 3;
   if(typeof state.deloadAt !== "number") state.deloadAt = 0;
   if(!state.gym || typeof state.gym !== "object") state.gym = {...DEFAULT_GYM};
   if(!Array.isArray(state.gym.plates) || !state.gym.plates.length) state.gym.plates = [...DEFAULT_GYM.plates];
@@ -1465,7 +1438,7 @@ function nextDay(){
   if(state.active) return state.active.day;
   if(!state.sessions.length) return "A";
   const last = state.sessions[state.sessions.length-1].day;
-  return ROT[(ROT.indexOf(last)+1)%ROT.length];
+  return ROT[(ROT.indexOf(last)+1)%3];
 }
 /* Təməl məşqi qəsdən yüngüldür (~50-60%, setlər yarıya endirilib).
    Proqressiya hesablamaları onu NƏZƏRƏ ALMAMALIDIR, yoxsa app aylarla

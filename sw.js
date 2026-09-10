@@ -1,7 +1,7 @@
 /* FORGE service worker
    Məqsəd: zalda siqnal olmayanda app tam işləsin.
    Yeni versiya yerləşdirəndə CACHE_VERSION-u artırın — köhnə keş silinir. */
-const CACHE_VERSION = "forge-v2";
+const CACHE_VERSION = "forge-v1";
 const SHELL = [
   "./",
   "./index.html",
