@@ -132,9 +132,13 @@ export function bodyView(view, shade = {}, uid = "b") {
  * primary -> strong colour, secondary -> muted colour.
  */
 export function exerciseBody(muscles, uid = "ex") {
+  const m = muscles || {};
+  // Exercise data uses the short keys m.p / m.s; accept the long form too.
+  const primary = m.primary || m.p || [];
+  const secondary = m.secondary || m.s || [];
   const shade = {};
-  (muscles.secondary || []).forEach(m => { shade[m] = "var(--muscle-sec)"; });
-  (muscles.primary || []).forEach(m => { shade[m] = "var(--muscle-pri)"; });
+  secondary.forEach(k => { shade[k] = "var(--muscle-sec)"; });
+  primary.forEach(k => { shade[k] = "var(--muscle-pri)"; });
   return `<div class="bodypair">${bodyView("front", shade, uid)}${bodyView("back", shade, uid)}</div>`;
 }
 
