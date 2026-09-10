@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>FORGE · 3 Günlük Kütlə Protokolu</title>
-<meta name="description" content="3 günlük tam bədən kütlə protokolu — ikiqat proqressiya, məşq jurnalı, qidalanma hədəfləri.">
-<meta name="theme-color" content="#101318">
+<title>FORGE</title>
+<meta name="description" content="Məşq jurnalı — çəki proqressiyası, əzələ həcmi, texnika.">
+<meta name="theme-color" content="#0e1116">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,1456 +13,1642 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FORGE">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 <style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#101318; --card:#171b21; --card2:#1e232b; --line:#272d38;
-  --ink:#eef1f5; --mut:#96a0ad; --dim:#6b7480;
-  --chalk:#f0ede3; --chalk-ink:#15181d;
-  --a:#e0484e; --b:#4a7dff; --c:#f3b73f;      /* competition plate colors: red / blue / yellow */
-  --green:#3ecf8e; --red:#e0484e;
-  --disp:'Oswald',system-ui,sans-serif;
-  --body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --bg:#0e1116; --card:#161a21; --card2:#1c222b; --line:#252c37;
+  --ink:#e8edf5; --dim:#8b96a7; --dim2:#5d6878;
+  --acc:#f3b73f; --good:#3ecf8e; --bad:#ff6b6b; --info:#5b9cff;
+  --r:14px;
+  --sat:env(safe-area-inset-top); --sab:env(safe-area-inset-bottom);
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg); color:var(--ink); font-family:var(--body);
-  font-size:15px; line-height:1.5;
-  background-image:
-    repeating-linear-gradient(45deg, rgba(255,255,255,.014) 0 1px, transparent 1px 7px),
-    repeating-linear-gradient(-45deg, rgba(255,255,255,.014) 0 1px, transparent 1px 7px);
-}
-.app{max-width:500px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom))}
-button{font-family:inherit;cursor:pointer}
-input,select{font-family:inherit}
-:focus-visible{outline:2px solid var(--chalk);outline-offset:2px;border-radius:6px}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink)}
+body{font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  padding-bottom:calc(78px + var(--sab));overscroll-behavior-y:none}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.02em}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--info)}
 
 /* ---------- header ---------- */
-.top{display:flex;justify-content:space-between;align-items:flex-end;padding:20px 0 6px}
-.wordmark{font-family:var(--disp);font-weight:700;font-size:27px;letter-spacing:.14em;line-height:1}
-.wordmark i{font-style:normal;color:var(--c)}
-.eyebrow{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--mut);margin-top:5px}
-.datechip{font-size:12px;color:var(--mut);text-align:right;line-height:1.35}
-.datechip b{color:var(--ink);font-weight:600}
+header{position:sticky;top:0;z-index:40;background:rgba(14,17,22,.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  padding:calc(10px + var(--sat)) 16px 10px;display:flex;align-items:center;gap:10px}
+.logo{font-size:19px;font-weight:800;letter-spacing:.16em}
+.logo b{color:var(--acc)}
+.hclock{margin-left:auto;text-align:right;line-height:1.15}
+.hclock .t{font-size:17px;font-weight:700}
+.hclock .l{font-size:10px;color:var(--dim2);text-transform:uppercase;letter-spacing:.08em}
+.iconbtn{background:var(--card2);border:1px solid var(--line);color:var(--dim);
+  width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer;flex:none}
+.iconbtn:active{background:var(--line)}
 
-/* ---------- cards & type ---------- */
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
-.card.tight{padding:14px 16px}
-.sect{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin:22px 2px 4px}
-.h-big{font-family:var(--disp);font-weight:700;font-size:24px;letter-spacing:.03em;line-height:1.15}
-.sub{color:var(--mut);font-size:13px}
-.small{font-size:12.5px;color:var(--mut)}
-.num{font-variant-numeric:tabular-nums}
-hr.split{border:0;border-top:1px solid var(--line);margin:12px 0}
+main{padding:14px 16px 20px;max-width:760px;margin:0 auto}
+.view{display:none}
+.view.on{display:block}
 
-/* ---------- buttons ---------- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  background:var(--chalk);color:var(--chalk-ink);border:0;border-radius:12px;
-  font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.09em;text-transform:uppercase;
-  padding:13px 18px;transition:transform .06s ease,opacity .15s}
-.btn:active{transform:scale(.98)}
-.btn.block{width:100%}
-.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn.danger{background:transparent;color:var(--red);border:1px solid #3d2225}
-.btn.sm{padding:9px 13px;font-size:12.5px;border-radius:10px}
-.btn:disabled{opacity:.45;cursor:default}
+/* ---------- building blocks ---------- */
+.sect{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim2);
+  margin:22px 0 9px;font-weight:700}
+.sect:first-child{margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:11px}
+.card.tight{padding:12px}
+.card.flat{background:var(--card2)}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap{flex-wrap:wrap}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.small{font-size:13px;color:var(--dim);line-height:1.55}
+.tiny{font-size:11.5px;color:var(--dim2)}
+.mut{color:var(--dim)}
+.acc{color:var(--acc)} .good{color:var(--good)} .bad{color:var(--bad)}
+.big{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.huge{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1}
 
-/* ---------- stat chips ---------- */
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 12px 10px;text-align:left}
-.stat .v{font-family:var(--disp);font-weight:700;font-size:21px;line-height:1.1}
-.stat .v small{font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.03em}
-.stat .l{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-top:3px}
-.delta-up{color:var(--green);font-size:12px;font-weight:600}
-.delta-dn{color:var(--red);font-size:12px;font-weight:600}
+.btn{background:var(--acc);color:#151206;border:0;border-radius:11px;padding:13px 16px;
+  font-weight:700;font-size:15px;cursor:pointer;width:100%;display:block}
+.btn:active{filter:brightness(.9)}
+.btn.ghost{background:var(--card2);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:9px 12px;font-size:13.5px;border-radius:9px}
+.btn.danger{background:transparent;color:var(--bad);border:1px solid var(--line)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{flex:1}
 
-/* ---------- plate day selector (signature) ---------- */
-.plates{display:flex;gap:14px;justify-content:center;padding:14px 0 4px}
-.plate{position:relative;width:82px;height:82px;border-radius:50%;border:0;
-  display:grid;place-items:center;color:#101010;background:var(--pc,#888);
-  box-shadow:inset 0 0 0 3px rgba(0,0,0,.28), inset 0 0 0 11px rgba(255,255,255,.09), inset 0 0 0 12px rgba(0,0,0,.22), 0 6px 16px rgba(0,0,0,.35);
-  filter:grayscale(.85) brightness(.55);transform:scale(.93);transition:filter .18s,transform .18s}
-.plate::after{content:"";position:absolute;inset:29px;border-radius:50%;background:var(--bg);
-  box-shadow:inset 0 2px 5px rgba(0,0,0,.7)}
-.plate span{position:relative;z-index:1;font-family:var(--disp);font-weight:700;font-size:19px;color:var(--ink)}
-.plate.on{filter:none;transform:scale(1)}
-.plate.lock{pointer-events:none;opacity:.45}
-.plate-a{--pc:var(--a)} .plate-b{--pc:var(--b)} .plate-c{--pc:var(--c)}
-.platelbl{display:flex;gap:14px;justify-content:center;margin-bottom:6px}
-.platelbl div{width:82px;text-align:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);line-height:1.35}
-.mini-plate{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:7px;
-  box-shadow:inset 0 0 0 4px rgba(0,0,0,.35)}
-.mp-a{background:var(--a)}.mp-b{background:var(--b)}.mp-c{background:var(--c)}
+.pill{display:inline-block;background:var(--card2);border:1px solid var(--line);
+  border-radius:99px;padding:4px 10px;font-size:11.5px;color:var(--dim);white-space:nowrap}
+.pill.on{background:var(--acc);color:#151206;border-color:var(--acc);font-weight:700}
+.pill.g{color:var(--good);border-color:rgba(62,207,142,.35)}
+.pill.b{color:var(--bad);border-color:rgba(255,107,107,.35)}
 
-/* ---------- exercise cards ---------- */
-.ex{border-left:3px solid var(--dc,var(--line))}
-.ex .name{font-family:var(--disp);font-weight:600;font-size:16.5px;letter-spacing:.03em}
-.ex .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.tag{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);
-  border:1px solid var(--line);border-radius:99px;padding:2px 9px;background:var(--card2)}
-.tag.hot{color:var(--ink);border-color:transparent;background:rgba(240,237,227,.12)}
-.lastline{font-size:12.5px;color:var(--mut);margin-top:8px}
-.lastline b{color:var(--ink);font-weight:600}
-.hint{font-size:12.5px;margin-top:6px;padding:8px 10px;border-radius:9px;background:var(--card2);border:1px dashed var(--line)}
-.hint.up{border-color:rgba(62,207,142,.4);color:var(--green)}
-.hint b{color:var(--ink)}
-.hint.up b{color:var(--green)}
-.ramp{font-size:12px;color:var(--mut);margin-top:6px;padding:8px 10px;border-radius:9px;background:var(--card2)}
-.ramp b{color:var(--ink);font-weight:600}
-.exhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.ex-thumb{width:56px;height:56px;border-radius:11px;object-fit:cover;background:#efece3;border:1px solid var(--line);flex-shrink:0}
-div.ex-thumb.ph{background:var(--card2)}
-.exname{display:flex;gap:10px;align-items:flex-start}
-.techimg{width:100%;max-height:220px;object-fit:cover;background:#efece3;border-radius:14px;border:1px solid var(--line);margin-bottom:12px;display:block}
-.techbtn{background:none;border:1px solid var(--line);color:var(--mut);border-radius:9px;
-  font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;white-space:nowrap}
-.techbtn:hover{color:var(--ink)}
-.exbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch;flex:none}
-.tag.swp{color:#f3b73f;border-color:rgba(243,183,63,.4)}
-.swaplist{display:flex;flex-direction:column;gap:8px;margin:14px 0 4px}
-.swopt{display:flex;align-items:center;gap:11px;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:10px 12px;color:var(--ink);text-align:left}
-.swopt.on{border-color:var(--green)}
-.swopt .swtxt{flex:1;min-width:0}
-.swopt .swtxt b{display:block;font-size:14px;line-height:1.25}
-.swopt .swtxt small{color:var(--mut);font-size:11.5px}
-.swopt .swck{flex:none;color:var(--green);font-size:17px;width:18px;text-align:center}
-.ex-thumb.ph{display:flex;align-items:center;justify-content:center;font-size:22px}
-
-/* ---------- set rows ---------- */
-.sethdr,.setrow{display:grid;grid-template-columns:22px 1fr 1fr 46px;gap:6px;align-items:center}
-.sethdr{margin:12px 0 4px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:center}
-.setrow{margin:7px 0}
-.setrow .idx{font-family:var(--disp);font-weight:600;color:var(--mut);text-align:center}
-.stepper{display:flex;align-items:stretch;background:var(--card2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.stepper button{width:32px;flex:none;background:transparent;border:0;color:var(--mut);font-size:19px;line-height:1;padding:0;
-  display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-.stepper button:active{background:rgba(240,237,227,.1);color:var(--ink)}
-.stepper input{flex:1;min-width:0;width:100%;background:transparent;border:0;
-  color:var(--ink);padding:12px 0;font-size:16px;text-align:center;font-variant-numeric:tabular-nums}
-.stepper input:focus{outline:none}
-.stepper input::placeholder{color:var(--dim)}
-.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.check{width:46px;height:46px;border-radius:11px;border:1px solid var(--line);background:var(--card2);
-  color:var(--dim);font-size:17px;line-height:1;transition:background .12s}
-.check.done{background:var(--green);border-color:var(--green);color:#0b120e}
-
-/* ---------- inputs ---------- */
-.field{margin:10px 0}
-.field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
-.field input,.field select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;
-  color:var(--ink);padding:12px;font-size:16px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--dim2);margin-bottom:5px;font-weight:700}
+.field input,.field select,.field textarea{width:100%;background:var(--card2);
+  border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:0}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--acc)}
+.field textarea{min-height:70px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.inline-log{display:flex;gap:8px}
-.inline-log input{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:12px;font-size:16px;text-align:center}
-.supprow{display:flex;flex-direction:column;gap:8px}
-.suppbtn{display:flex;align-items:center;gap:11px;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;color:var(--ink);text-align:left}
-.suppbtn .si{width:24px;height:24px;border-radius:7px;border:1px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent}
-.suppbtn.on{border-color:var(--green)}
-.suppbtn.on .si{background:var(--green);border-color:var(--green);color:#0b120e}
-.suppbtn .st{flex:1}
-.suppbtn .st b{display:block;font-size:14px}
-.suppbtn .st small{color:var(--mut);font-size:11px}
-.suppbtn .sk{font-size:12px;color:var(--mut);white-space:nowrap}
-input[type=range]{width:100%;accent-color:var(--chalk)}
 
-/* ---------- rules / details ---------- */
-details.rules{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:12px 0;overflow:hidden}
-details.rules summary{list-style:none;cursor:pointer;padding:15px 16px;display:flex;justify-content:space-between;align-items:center;
-  font-family:var(--disp);font-weight:600;font-size:13.5px;letter-spacing:.14em;text-transform:uppercase}
-details.rules summary::-webkit-details-marker{display:none}
-details.rules summary::after{content:"+";font-size:19px;color:var(--mut);font-weight:400}
-details.rules[open] summary::after{content:"–"}
-details.rules .inner{padding:0 16px 14px;border-top:1px solid var(--line)}
-.rule{padding:11px 0;border-bottom:1px solid var(--line)}
-.rule:last-child{border-bottom:0}
-.rule b{display:block;font-size:13.5px;margin-bottom:2px}
-.rule p{font-size:13px;color:var(--mut)}
+/* ---------- today brief ---------- */
+.brief{background:linear-gradient(160deg,#1b212b,#151920);border:1px solid var(--line);
+  border-radius:var(--r);padding:17px;margin-bottom:11px}
+.brief .day{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--acc);font-weight:700}
+.brief h2{font-size:23px;margin:5px 0 3px}
+.focus{list-style:none;margin:13px 0 0;padding:0}
+.focus li{display:flex;gap:9px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px;line-height:1.45}
+.focus li:first-child{border-top:0}
+.focus .ic{flex:none;width:18px;text-align:center;opacity:.9}
 
-/* ---------- coach tip ---------- */
-.coach{display:flex;gap:12px;align-items:flex-start}
-.coach .cq{font-family:var(--disp);font-weight:700;font-size:30px;color:var(--c);line-height:.8;margin-top:2px}
-.coach p{font-size:14px;color:var(--ink)}
-.coach .who{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-top:6px}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 9px;text-align:center}
+.stat .v{font-size:19px;font-weight:800}
+.stat .v small{font-size:11px;color:var(--dim2);font-weight:600}
+.stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim2);margin-top:3px}
 
-/* ---------- fuel ---------- */
-.bignum{font-family:var(--disp);font-weight:700;font-size:42px;line-height:1;letter-spacing:.02em}
-.bignum small{font-size:15px;color:var(--mut);font-weight:600;letter-spacing:.06em}
-.kcalrow{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-top:10px}
-.kcalrow b{color:var(--ink)}
-.macro{margin:13px 0 4px}
-.macro .mrow{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
-.macro .mrow b{font-variant-numeric:tabular-nums}
-.mbar{height:9px;border-radius:99px;background:var(--card2);overflow:hidden}
-.mbar i{display:block;height:100%;border-radius:99px}
-.meal{padding:11px 0;border-bottom:1px solid var(--line)}
-.meal:last-child{border-bottom:0}
-.meal .mt{display:flex;justify-content:space-between;font-weight:600;font-size:14px}
-.meal .mt span:last-child{color:var(--mut);font-weight:500;font-size:12.5px;font-variant-numeric:tabular-nums}
-.meal p{font-size:13px;color:var(--mut);margin-top:2px}
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.chips span{font-size:12.5px;border:1px solid var(--line);background:var(--card2);border-radius:99px;padding:5px 12px;color:var(--ink)}
+/* ---------- exercise / set logging ---------- */
+.exc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:11px;overflow:hidden}
+.exc.done{border-color:rgba(62,207,142,.4)}
+.exh{padding:13px 14px;display:flex;align-items:flex-start;gap:10px}
+.exh .nm{font-weight:700;font-size:15.5px;line-height:1.3}
+.exh .sub{font-size:11.5px;color:var(--dim2);margin-top:3px}
+.exh .acts{margin-left:auto;display:flex;gap:6px;flex:none}
+.mini{background:var(--card2);border:1px solid var(--line);color:var(--dim);border-radius:8px;
+  padding:6px 9px;font-size:12px;cursor:pointer;white-space:nowrap}
+.mini:active{background:var(--line)}
+.loadnote{margin:0 14px 10px;background:rgba(91,156,255,.09);border:1px solid rgba(91,156,255,.25);
+  border-radius:9px;padding:8px 10px;font-size:12px;color:#a8c7ff}
+.hint{margin:0 14px 11px;background:var(--card2);border-left:2px solid var(--dim2);
+  border-radius:0 8px 8px 0;padding:9px 11px;font-size:12.5px;color:var(--dim);line-height:1.5}
+.hint.up{border-left-color:var(--good);color:#b6e8d0}
+.hint.hold{border-left-color:var(--acc);color:#f0dcae}
 
-/* ---------- progress ---------- */
-.chartbox{margin:8px 0 4px}
+.sets{padding:0 14px 13px}
+.shead,.srow{display:grid;grid-template-columns:26px 1fr 1fr 44px;gap:8px;align-items:center}
+.shead{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim2);
+  padding-bottom:6px;font-weight:700}
+.srow{margin-bottom:7px}
+.srow .n{font-size:12px;color:var(--dim2);text-align:center;font-weight:700}
+.srow input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:9px;
+  padding:11px 8px;text-align:center;font-weight:700;font-size:15px;outline:0}
+.srow input:focus{border-color:var(--acc);background:#20262f}
+.srow.done input{border-color:rgba(62,207,142,.3);color:#9fe3c2}
+.check{background:var(--card2);border:1px solid var(--line);color:var(--dim2);border-radius:9px;
+  height:42px;font-size:16px;cursor:pointer;font-weight:800}
+.check.done{background:var(--good);border-color:var(--good);color:#062516}
+.addset{width:100%;background:transparent;border:1px dashed var(--line);color:var(--dim2);
+  border-radius:9px;padding:8px;font-size:12.5px;cursor:pointer;margin-top:2px}
+
+/* ---------- rest timer ---------- */
+.timer{position:fixed;left:0;right:0;bottom:calc(70px + var(--sab));z-index:45;
+  padding:0 16px;transform:translateY(140%);transition:transform .25s ease;pointer-events:none}
+.timer.on{transform:none;pointer-events:auto}
+.timerin{max-width:760px;margin:0 auto;background:var(--acc);color:#151206;border-radius:13px;
+  padding:11px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.timerin .tl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;opacity:.75}
+.timerin .tv{font-size:24px;font-weight:800;line-height:1}
+.timerin button{background:rgba(0,0,0,.16);border:0;color:#151206;border-radius:9px;
+  padding:8px 11px;font-weight:700;font-size:12.5px;cursor:pointer}
+
+/* ---------- tabbar ---------- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(14,17,22,.96);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  display:flex;padding:6px 6px calc(6px + var(--sab))}
+.tabbar button{flex:1;background:0;border:0;color:var(--dim2);padding:7px 2px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:10px}
+.tabbar button .ti{font-size:17px;line-height:1}
+.tabbar button .tt{font-size:10px;font-weight:700;letter-spacing:.02em}
+.tabbar button.on{color:var(--acc)}
+
+/* ---------- MODAL (mobil: aşağıdan; masaüstü: mərkəzdə, məhdud hündürlük) ---------- */
+.mask{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.62);
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:61;background:var(--card);border:1px solid var(--line);
+  display:flex;flex-direction:column;
+  left:0;right:0;bottom:0;border-radius:20px 20px 0 0;max-height:86vh;
+  transform:translateY(101%);transition:transform .26s cubic-bezier(.32,.72,0,1)}
+.sheet.on{transform:none}
+@media(min-width:700px){
+  .sheet{left:50%;right:auto;top:50%;bottom:auto;width:min(620px,92vw);max-height:82vh;
+    border-radius:16px;transform:translate(-50%,-46%) scale(.97);opacity:0;transition:.2s}
+  .sheet.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+}
+.shh{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  gap:10px;flex:none;position:relative}
+.grab{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:38px;height:4px;
+  border-radius:9px;background:var(--line)}
+@media(min-width:700px){.grab{display:none}.shh{padding-top:16px}}
+.shh .st{font-weight:700;font-size:16px;flex:1;min-width:0}
+.shx{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:9px;
+  width:34px;height:34px;font-size:17px;cursor:pointer;flex:none;font-weight:700}
+.shb{padding:15px 16px calc(20px + var(--sab));overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+@media(min-width:700px){.shb{padding-bottom:20px}}
+
+/* ---------- technique ---------- */
+.tsec{margin-bottom:15px}
+.tsec h4{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim2);margin:0 0 7px}
+.tlist{margin:0;padding-left:18px}
+.tlist li{margin-bottom:6px;font-size:13.5px;line-height:1.55}
+.tlist.err li{color:#ffb3b3}
+.vidbtn{display:flex;align-items:center;gap:10px;background:#2a1013;border:1px solid #52212a;
+  border-radius:11px;padding:12px 14px;color:#ff9d9d;text-decoration:none;font-weight:700;font-size:14px}
+.vidbtn span.p{background:#ff3b3b;color:#fff;border-radius:6px;padding:2px 7px;font-size:11px;flex:none}
+
+/* ---------- muscle map ---------- */
+.bodywrap{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bodywrap svg{width:100%;height:auto;display:block}
+.bodylab{text-align:center;font-size:10.5px;color:var(--dim2);text-transform:uppercase;
+  letter-spacing:.09em;margin-top:2px;font-weight:700}
+.legend{display:flex;align-items:center;gap:5px;justify-content:center;margin-top:11px;flex-wrap:wrap}
+.legend i{width:15px;height:9px;border-radius:2px;display:inline-block}
+.mrow{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid var(--line)}
+.mrow:first-child{border-top:0}
+.mrow .mn{font-size:13px;width:88px;flex:none}
+.mbar{flex:1;height:7px;background:var(--card2);border-radius:9px;overflow:hidden;position:relative}
+.mbar i{display:block;height:100%;border-radius:9px}
+.mbar .tgt{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--dim2);opacity:.55}
+.mrow .mv{font-size:12px;color:var(--dim);width:52px;text-align:right;flex:none}
+
+/* ---------- charts ---------- */
+.chartbox{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 8px 6px}
 .chartbox svg{width:100%;height:auto;display:block}
-.loglist{margin-top:6px}
-.logrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-.logrow:last-child{border-bottom:0}
-.logrow .d{color:var(--mut)}
-.xdel{background:none;border:0;color:var(--dim);font-size:15px;padding:4px 8px}
-.xdel:hover{color:var(--red)}
-select.lift{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:12px;font-size:15px;margin:8px 0}
-.prbadge{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#151515;background:var(--c);
-  border-radius:7px;padding:3px 9px;font-weight:700;margin-left:8px}
-details.hist{border-bottom:1px solid var(--line);padding:4px 0}
-details.hist:last-child{border-bottom:0}
-details.hist summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13.5px}
-details.hist summary::-webkit-details-marker{display:none}
-details.hist .hs{color:var(--mut);font-size:12.5px}
-.histset{font-size:12.5px;color:var(--mut);padding:3px 0 3px 10px;border-left:2px solid var(--line);margin:4px 0}
-.histset b{color:var(--ink)}
-
-/* ---------- tab bar ---------- */
-.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;
-  display:flex;gap:2px;background:rgba(14,17,22,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-top:1px solid var(--line);padding:8px 10px calc(9px + env(safe-area-inset-bottom));z-index:40}
-.tabbar button{flex:1;background:none;border:0;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:4px;
-  font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;padding:6px 2px;border-radius:11px}
-.tabbar button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.tabbar button.on{color:var(--ink)}
-.tabbar button.on::after{content:"";width:4px;height:4px;border-radius:50%;background:var(--chalk);margin-top:1px}
-
-/* ---------- rest timer (full-screen) ---------- */
-.timer{position:fixed;inset:0;background:rgba(8,9,12,.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  display:none;flex-direction:column;align-items:center;justify-content:center;gap:26px;z-index:70;
-  padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left))}
-.timer.on{display:flex}
-.timer .tlab{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--mut);text-align:center}
-.timer .exlab{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.03em;text-align:center;margin-top:2px}
-.tring{position:relative;width:min(72vw,290px);height:min(72vw,290px);display:grid;place-items:center}
-.tring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.tring .trk{fill:none;stroke:var(--card2);stroke-width:9}
-.tring .prg{fill:none;stroke:var(--red);stroke-width:9;stroke-linecap:round;filter:drop-shadow(0 0 10px rgba(224,72,78,.55));transition:stroke-dashoffset .25s linear}
-.timer .digits{position:absolute;font-family:var(--mono);font-weight:700;font-size:min(15vw,60px);line-height:1;color:var(--ink);
-  font-variant-numeric:tabular-nums}
-.timer.done .tring .prg{stroke:var(--green);filter:drop-shadow(0 0 10px rgba(62,207,142,.55))}
-.timer.done .digits{animation:blink .5s steps(2) 3}
-@keyframes blink{50%{opacity:.25}}
-.timer .tbtns{display:flex;gap:12px;width:100%;max-width:320px}
-.timer .tbtns .btn{flex:1}
-
-/* ---------- sheet / modal ---------- */
-.overlay{position:fixed;inset:0;background:rgba(6,8,11,.66);backdrop-filter:blur(3px);z-index:60;display:none}
-.overlay.on{display:block}
-.sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:500px;z-index:61;
-  background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;
-  padding:18px 18px calc(22px + env(safe-area-inset-bottom));display:none;max-height:82vh;overflow-y:auto}
-.sheet.on{display:block}
-.sheet .grab{width:40px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}
-.sheet h3{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.03em}
-.sheet .stag{font-size:12px;color:var(--mut);margin:2px 0 10px}
-.cuelist{margin:8px 0 4px}
-.cue{display:flex;gap:10px;padding:7px 0;font-size:13.5px}
-.cue .ic{flex-shrink:0;width:19px;height:19px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:1px}
-.cue.good .ic{background:rgba(62,207,142,.15);color:var(--green)}
-.cue.bad .ic{background:rgba(224,72,78,.14);color:var(--red)}
-.cue p{color:#cfd6de}
-.sheet .protoc{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 2px}
 
 /* ---------- misc ---------- */
-.banner{background:rgba(74,125,255,.1);border:1px solid rgba(74,125,255,.35);border-radius:13px;padding:11px 14px;font-size:13px;margin:12px 0}
-.warnnote{background:rgba(243,183,63,.09);border:1px solid rgba(243,183,63,.3);border-radius:13px;padding:10px 14px;font-size:12.5px;color:#e8d9b0;margin:12px 0}
-.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-90px);z-index:80;
-  background:var(--chalk);color:var(--chalk-ink);font-weight:600;font-size:14px;border-radius:12px;padding:11px 18px;
-  transition:transform .25s ease;box-shadow:0 10px 26px rgba(0,0,0,.4);max-width:88%;text-align:center}
-.toast.on{transform:translateX(-50%) translateY(0)}
-.empty{color:var(--dim);font-size:13px;text-align:center;padding:18px 8px}
-.view{display:none}.view.on{display:block}
-.footnote{font-size:11.5px;color:var(--dim);text-align:center;margin:20px 0 6px;line-height:1.6}
-@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+.warn{background:rgba(243,183,63,.1);border:1px solid rgba(243,183,63,.3);color:#f6dca2;
+  border-radius:11px;padding:11px 13px;font-size:13px;margin-bottom:11px;line-height:1.5}
+.err{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3);color:#ffbcbc}
+.ok{background:rgba(62,207,142,.1);border-color:rgba(62,207,142,.3);color:#a9e8cb}
+.empty{text-align:center;color:var(--dim2);padding:26px 12px;font-size:13.5px;line-height:1.6}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--sab));transform:translate(-50%,20px);
+  background:#e8edf5;color:#11151b;padding:11px 17px;border-radius:11px;font-weight:700;font-size:13.5px;
+  z-index:70;opacity:0;transition:.22s;pointer-events:none;max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.srch{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;
+  padding:12px 14px;outline:0;margin-bottom:10px}
+.srch:focus{border-color:var(--acc)}
+.libitem{display:flex;align-items:center;gap:11px;padding:12px 13px;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;margin-bottom:7px;cursor:pointer}
+.libitem:active{background:var(--card2)}
+.libitem .nm{font-weight:600;font-size:14px;line-height:1.3}
+.libitem .mt{font-size:11px;color:var(--dim2);margin-top:2px}
+.libitem .go{margin-left:auto;color:var(--dim2);flex:none;font-size:18px}
+.plate{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.plate span{background:var(--card2);border:1px solid var(--line);border-radius:7px;
+  padding:3px 8px;font-size:11.5px;font-weight:700}
 </style>
 </head>
 <body>
-<div class="app">
 
-  <header class="top">
-    <div>
-      <div class="wordmark">F<i>O</i>RGE</div>
-      <div class="eyebrow">3 Günlük Kütlə Protokolu</div>
-    </div>
-    <div class="datechip" id="dateChip"></div>
-  </header>
+<header>
+  <div class="logo">F<b>O</b>RGE</div>
+  <div class="hclock" onclick="openClock()">
+    <div class="t num" id="clkT">--:--</div>
+    <div class="l" id="clkL">zal saatı</div>
+  </div>
+  <button class="iconbtn" onclick="openSettings()" aria-label="Ayarlar">⚙</button>
+</header>
 
-  <div id="saveNote"></div>
-  <div id="netNote"></div>
+<main>
+  <section class="view on" id="v-today"></section>
+  <section class="view" id="v-train"></section>
+  <section class="view" id="v-prog"></section>
+  <section class="view" id="v-lib"></section>
+</main>
 
-  <main>
-    <section class="view on" id="view-today"></section>
-    <section class="view" id="view-train"></section>
-    <section class="view" id="view-fuel"></section>
-    <section class="view" id="view-prog"></section>
-  </main>
-
-  <div class="footnote">Məşqçi kimi qurulub: tam bədən A/B/C · ikiqat proqressiya · yüngül profisit.<br>Tibbi məsləhət deyil — mümkün olanda texnikanı canlı yoxlatdırın.</div>
-</div>
-
-<!-- rest timer -->
 <div class="timer" id="timer">
-  <div>
-    <div class="tlab">İSTİRAHƏT</div>
-    <div class="exlab" id="timerLab"></div>
-  </div>
-  <div class="tring">
-    <svg viewBox="0 0 200 200">
-      <circle class="trk" cx="100" cy="100" r="90"/>
-      <circle class="prg" id="timerRing" cx="100" cy="100" r="90" stroke-dasharray="565.5" stroke-dashoffset="0"/>
-    </svg>
-    <div class="digits num" id="timerDigits">0:00</div>
-  </div>
-  <div class="tbtns">
-    <button class="btn ghost" onclick="timerAdd()">+30 san</button>
-    <button class="btn" onclick="timerSkip()">İstirahəti keç</button>
+  <div class="timerin">
+    <div style="flex:1;min-width:0">
+      <div class="tl" id="tLabel">İSTİRAHƏT</div>
+      <div class="tv num" id="tVal">0:00</div>
+    </div>
+    <button onclick="timerAdd(30)">+30s</button>
+    <button onclick="timerSkip()">Keç</button>
   </div>
 </div>
 
-<!-- technique sheet -->
-<div class="overlay" id="overlay" onclick="closeSheet()"></div>
-<div class="sheet" id="sheet"></div>
+<nav class="tabbar">
+  <button data-tab="today" class="on" onclick="tab('today')"><span class="ti">◎</span><span class="tt">Bugün</span></button>
+  <button data-tab="train" onclick="tab('train')"><span class="ti">▦</span><span class="tt">Məşq</span></button>
+  <button data-tab="prog" onclick="tab('prog')"><span class="ti">◈</span><span class="tt">Proqres</span></button>
+  <button data-tab="lib" onclick="tab('lib')"><span class="ti">☰</span><span class="tt">Hərəkətlər</span></button>
+</nav>
+
+<div class="mask" id="mask" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="shh"><div class="grab"></div>
+    <div class="st" id="sheetTitle"></div>
+    <button class="shx" onclick="closeSheet()" aria-label="Bağla">✕</button>
+  </div>
+  <div class="shb" id="sheetBody"></div>
+</div>
 
 <div class="toast" id="toast"></div>
 
-<!-- tab bar -->
-<nav class="tabbar" id="tabbar">
-  <button data-tab="today" class="on" onclick="switchTab('today')">
-    <svg viewBox="0 0 24 24"><path d="M3 11.2 12 4l9 7.2"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg>Bugün</button>
-  <button data-tab="train" onclick="switchTab('train')">
-    <svg viewBox="0 0 24 24"><path d="M7.5 12h9"/><rect x="4.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="17.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="1.4" y="9.9" width="2" height="4.2" rx="1"/><rect x="20.6" y="9.9" width="2" height="4.2" rx="1"/></svg>Məşq</button>
-  <button data-tab="fuel" onclick="switchTab('fuel')">
-    <svg viewBox="0 0 24 24"><path d="M12 3c1.8 2.6 5.6 5.3 5.6 9.4A5.6 5.6 0 0 1 12 18a5.6 5.6 0 0 1-5.6-5.6c0-2.3 1.2-3.9 2.4-5.5C10 5.4 11.2 4.4 12 3Z"/><path d="M12 18v3"/></svg>Qida</button>
-  <button data-tab="prog" onclick="switchTab('prog')">
-    <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M4 16.5 9.5 11l3.5 3.5L20 8"/><path d="M16.5 8H20v3.5"/></svg>Proqres</button>
-</nav>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer onerror="this.remove()"></script>
 <script>
-/* ------------------------------------------------------------------
-   Həftəlik həcm (3 məşq/həftə, A→B→C rotasiyası):
-     Dördbaşlı  11 set / 3×      Arxa bud+sağrı  9 set / 3×
-     Kürək      11 set / 3×      Sinə            8 set / 2×
-     Yan delta   6 set / 2×      Arxa delta      3 set / 1×
-     Biseps  3 birbaşa + 11 çəkmə seti
-     Triseps 3 birbaşa +  8 press seti
-     Baldır   3 / 1×             Qarın           3 / 1×
-   Hər gündə: 1 diz + 1 omba + 1 press + 1 çəkmə + izolyasiya.
-   bw:true → normalda bədən çəkisi ilə edilir, proqressiya təkrarla gedir.
-   ------------------------------------------------------------------ */
-const PROGRAM = {
-  A: { name:"A Məşqi", sub:"Ağır · 6-10 təkrar", cls:"a", ex:[
-    { key:"sq", name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", sets:4, rMin:6, rMax:8, rest:180, inc:5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Woman_doing_squat_workout_in_gym_with_barbell.jpg/500px-Woman_doing_squat_workout_in_gym_with_barbell.jpg",
-      cues:["Ştanqı trapesiya əzələlərinə sıx bassın, onu bərk sıxın, dirsəklər aşağıda olsun.","Dərin nəfəs alın, qarnınızı zərbə alacaqmış kimi bərkidin — sonra enməyə başlayın.","Dabanlarınızın arasına oturun; dizlər ayaq barmaqları istiqamətində hərəkət etsin.","Paralel səviyyəyə və ya bir az aşağısına enin, sonra döşəməni bərk itələyərək qalxın."],
-      mist:["Dabanların qalxması / çəkinin barmaqlara keçməsi.","Qalxarkən dizlərin içəri düşməsi.","Çəki ağırlaşdıqca dərinliyin azaldılması.","Qarın bərkiliyinin itirilməsi — döşün önə çökməsi."] },
-    { key:"bp", name:"Barbell Bench Press", tag:"Döş · Triseps", sets:4, rMin:6, rMax:8, rest:180, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Sgt._Roy_McDaniel_at_Annual_Bench_Press_Competition_2005_%28USMC-13659%29.jpg/500px-Sgt._Roy_McDaniel_at_Annual_Bench_Press_Competition_2005_%28USMC-13659%29.jpg",
-      cues:["Kürək sümüklərini arxaya və aşağı sıxın, yüngül qövs verin, ayaqlar yerə möhkəm basılsın.","Çiyinlərdən bir az geniş tutun; biləklər dirsəklərin düz üzərində olsun.","Ştanqı döşün alt hissəsinə endirin, dirsəklər bədəndən ~45° bucaq altında olsun.","Yuxarı və bir az arxaya itələyin ki, ştanqı çiyinlərin düz üzərində bitsin."],
-      mist:["Ştanqı döşdən sıçratmaq.","Dirsəklərin 90°-yə qədər açılması — çiyinlər üçün təhlükəlidir.","Bədənin skamyadan qalxması.","Döşə toxunmayan yarımçıq təkrarlar."] },
-    { key:"lp", name:"Lat Pulldown", tag:"Enli kürək əzələsi", sets:4, rMin:8, rMax:10, rest:120, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/8/82/Wide-grip-lat-pull-down-1.gif",
-      cues:["Çiyinlərdən bir az geniş tutun; döşü qabağa çıxarın, bir az arxaya əyilin.","Dirsəkləri aşağı endirərək çubuğu döşün yuxarı hissəsinə çəkin.","Kürək əzələlərini bir saniyə sıxın, sonra nəzarətlə tam gərilməyə qədər buraxın.","3×8 dartılma edə bildikdə bu hərəkəti dartılma ilə əvəz edin."],
-      mist:["Çəkini qaldırmaq üçün bədəni yırğalamaq.","Çubuğu boynun arxasına çəkmək.","Yuxarıda tam gərilməyə çatmamaq."] },
-    { key:"rdl", name:"Romanian Deadlift", tag:"Arxa budun əzələsi · Sağrı əzələsi", sets:3, rMin:8, rMax:10, rest:150, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Romanian-deadlift-1.png/500px-Romanian-deadlift-1.png",
-      cues:["Dizləri yüngül bükülü saxlayın; bədəni aşağı yox, düz arxaya itələyin.","Ştanqı budların üzərindən sürüşərək ensin, bel düz qalsın.","Baldırın ortası səviyyəsində arxa budun gərilməsini hiss edin, sonra bədəni önə itələyin.","Yuxarıda sağrı əzələlərini sıxın — arxaya əyilməyin."],
-      mist:["Dizləri həddən artıq bükmək (hərəkəti çömbəlməyə çevirmək).","Belin alt hissəsinin əyilməsi.","Ştanqın ayaqlardan uzaqlaşmasına icazə vermək."] },
-    { key:"lat", name:"Dumbbell Lateral Raise", tag:"Yan delta", sets:3, rMin:12, rMax:15, rest:60, inc:1,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Dumbbell-lateral-raises-1.png/500px-Dumbbell-lateral-raises-1.png",
-      cues:["Bir az önə əyilin, dirsəklərdə yüngül bükülmə saxlayın.","Dirsəkləri önə çıxararaq yanlara, çiyin hündürlüyünə qədər qaldırın.","Yuxarı nöqtədə çeçələ barmaq baş barmaqdan bir az hündür olsun.","2 saniyə ərzində endirin — mənfi faza delta əzələsini inkişaf etdirir."],
-      mist:["Çəkiləri ətalətlə yuxarı yellətmək.","Çiyinləri qaldırmaq — trapesiya əzələsinin işi öz üzərinə götürməsi.","Çox ağır çəki götürərək hərəkəti yarımçıq yellənməyə çevirmək."] },
-    { key:"tri", name:"Rope Triceps Pushdown", tag:"Triseps", sets:3, rMin:10, rMax:12, rest:60, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/1/12/Triceps-pushdown-with-rope-1.gif",
-      cues:["Bütün dövr ərzində dirsəkləri bədənə sıx saxlayın.","Aşağı itələyin və aşağı nöqtədə kanatı iki yana ayırın.","Aşağıda bir saniyə tam sıxın, sonra nəzarətlə yuxarı qayıdın."],
-      mist:["Dirsəklərin önə çıxması — kürək əzələsinin işə qarışması.","Bədən çəkisini kabelin üzərinə atmaq.","Yuxarıda hərəkət amplitüdünün yarımçıq qalması."] }
-  ]},
-  B: { name:"B Məşqi", sub:"Orta · 8-15 təkrar", cls:"b", ex:[
-    { key:"lpz", name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", sets:4, rMin:10, rMax:12, rest:150, inc:5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/5/57/Leg_press_%28cropped%2C_flipped%29.jpg",
-      cues:["Ayaqları platformanın ortasında, çiyin enində yerləşdirin.","Dizlər ~90°-yə çatana və ya bel yastıqdan ayrılmayana qədər enin.","Bütün ayaq altını işlədərək itələyin; dizləri tam kilidləmədən dayanın."],
-      mist:["O qədər dərin enmək ki, bədən yastıqdan ayrılsın.","Ego üçün ağır çəki ilə yarımçıq təkrarlar etmək.","Dizlərin içəri düşməsi."] },
-    { key:"row", name:"Seated Cable Row", tag:"Orta kürək", sets:4, rMin:8, rMax:10, rest:120, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Cable-seated-rows-1.png/500px-Cable-seated-rows-1.png",
-      cues:["Döşü dik saxlayın; kürəyi gərmək üçün bir az önə uzanın.","Qulpu göbəyinizə doğru çəkin, dirsəklər bədənə sıx olsun.","Kürək sümüklərini bir saniyə bir-birinə sıxın.","Nəzarətlə geri qayıdın — çəkinin sizi dartmasına icazə verməyin."],
-      mist:["Ətalət yaratmaq üçün irəli-geri yırğalanmaq.","Çiyinləri yuxarı qaldırmaq.","Ağır çəki ilə gərilmə zamanı kürəyin əyilməsi."] },
-    { key:"ohp", name:"Standing Overhead Press", tag:"Çiyinlər", sets:3, rMin:8, rMax:10, rest:120, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Attractive_sporty_woman_doing_overhead_press_in_gym_with_barbell.jpg/500px-Attractive_sporty_woman_doing_overhead_press_in_gym_with_barbell.jpg",
-      cues:["Çiyinlərdən bir az geniş tutun, dirsəklər ştanqın bir az önündə olsun.","Sağrı və qarın əzələlərini sıxın ki, bədən vahid bərk sütuna çevrilsin.","Yuxarı itələyin; ştanqı alnınızı keçən kimi başınızı önə verin.","Qolları tam açaraq, bisepslər qulaqlara yaxın vəziyyətdə bitirin."],
-      mist:["Çox arxaya əyilmək — hərəkəti maili prese çevirir.","Başı geri çəkmək əvəzinə ştanqı çənənin ətrafından keçirmək.","Sağrı sıxılmadıqda yük belin alt hissəsinə düşür."] },
-    { key:"llc", name:"Lying Leg Curl", tag:"Arxa budun əzələsi", sets:3, rMin:10, rMax:12, rest:90, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/LyingLegCurlMachineExercise.JPG/500px-LyingLegCurlMachineExercise.JPG",
-      cues:["Diz oxu aparatın fırlanma oxu ilə üst-üstə düşsün — yastıq baldırın aşağısında, Axilles üstündə olsun.","Ombanı yastığa yapışdırın; hərəkət boyu çanaq qalxmasın.","Tam bükün, yuxarıda bir saniyə sıxın.","3-4 saniyə ərzində nəzarətlə açın — arxa bud məhz mənfi fazada böyüyür."],
-      mist:["Daha ağır çəki üçün ombanı yastıqdan qaldırmaq.","Yarımçıq amplituda — nə tam bükmək, nə tam açmaq.","Ayaq barmaqlarını bərk uzatmaq — baldır işi öz üzərinə götürür."] },
-    { key:"cur", name:"EZ-Bar Curl", tag:"Biseps", sets:3, rMin:10, rMax:12, rest:60, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/5/5e/Ez-bar-curl-1.gif",
-      cues:["Dirsəkləri bədənə yapışdırılmış kimi saxlayın.","Nəzarətlə qaldırın və yuxarıda bərk sıxın.","2-3 saniyə ərzində tam gərilməyə qədər endirin."],
-      mist:["Təkrara başlamaq üçün bədəni yellətmək.","Dirsəklərin önə çıxması — ön delta əzələsinin işə qarışması.","Aşağıda qolları tam açmadan dayanmaq."] },
-    { key:"calf", name:"Standing Calf Raise", tag:"Baldır əzələsi", sets:3, rMin:12, rMax:15, rest:60, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/1/11/Standing-calf-raises-1.gif",
-      cues:["Aşağıda tam gərilmə — orada bir saniyə dayanın.","Ayaq barmaqlarının ucuna qədər qalxın və 1-2 saniyə sıxın.","Yavaş enmə. Baldır əzələsi sıçramadan yox, tam amplitüddən böyüyür."],
-      mist:["Gərilmə refleksindən istifadə edərək sıçramaq.","Sürətli, yarımçıq təkrarlar.","Çəkini hiylə ilə qaldırmaq üçün dizləri bükmək."] }
-  ]},
-  C: { name:"C Məşqi", sub:"Həcm · 10-15 təkrar", cls:"c", ex:[
-    { key:"bss", name:"Bulgarian Split Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi · Hər ayaq üçün", sets:3, rMin:10, rMax:12, rest:90, inc:2, img:null,
-      cues:["Arxa ayağı skamyaya qoyun; ön ayağı kifayət qədər önə atın.","Düz aşağı enin — arxa diz döşəməyə doğru yönəlsin.","Ön diz ayaq barmaqları istiqamətində olsun; ön dabandan itələyərək qalxın.","Hər iki ayaq üçün eyni hantel çəkisini işlədin — qeyd sahəsinə həmin çəkini yazın, təkrar sahəsinə isə zəif ayağın təkrarını."],
-      mist:["Ön ayağın çox yaxın olması — diz ağrısına səbəb olur.","Aşağı nöqtədə sıçramaq.","Ön ayaq əvəzinə arxa ayaqdan itələnmək."] },
-    { key:"idp", name:"Incline Dumbbell Press", tag:"Yuxarı döş", sets:4, rMin:10, rMax:12, rest:90, inc:2,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Dumbbell-incline-bench-press-1.png/500px-Dumbbell-incline-bench-press-1.png",
-      cues:["Skamya ~30° bucaqda olsun. Hantelləri çiyin səviyyəsindən başladın.","Yuxarı və bir az bir-birinə doğru itələyin, toqquşdurmadan.","Yuxarı döşdə dərin gərilmə hiss edənə qədər yavaş-yavaş endirin."],
-      mist:["Skamyanın çox dik olması — hərəkəti çiyin presinə çevirir.","Aşağıda gərilməni tam etməmək.","Aşağı nöqtədən sıçrayışla qalxmaq."] },
-    { key:"csmr", name:"Chest-Supported Machine Row", tag:"Orta kürək · Arxa delta", sets:3, rMin:10, rMax:12, rest:90, inc:2.5, img:null,
-      cues:["Oturacağı elə qurun ki, tutacaqlar döşün orta xəttində olsun; sinə yastığa tam söykənsin.","Bel dayaqdadır — buna görə burada gövdə ilə kömək etmək mümkün deyil, əzələ təcrid olunur.","Dirsəkləri aşağı-arxaya çəkin, kürək sümüklərini bir saniyə bir-birinə sıxın.","Nəzarətlə buraxın və öndə kürəyin tam uzanmasına icazə verin."],
-      mist:["Sinəni yastıqdan qaldıraraq bədənlə dartınmaq.","Çiyinləri qulaqlara doğru qaldırmaq.","Qolları tam açmadan qısa amplituda işləmək."] },
-    { key:"be", name:"Back Extension", tag:"Bel · Sağrı əzələsi · Arxa budun əzələsi", sets:3, rMin:12, rMax:15, rest:90, inc:2.5, bw:true,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Hyperextensions-2.png/500px-Hyperextensions-2.png",
-      cues:["Bədəni yastıqcığın üzərinə qoyun, ayaq biləkləri diyircəklərin altında sabitlənsin, bədən düz xətt üzrə olsun.","Başlanğıc üçün qolları döşün üzərində çarpazlayın — bədən çəkisi asan gəldikdə döşünüzə əlavə çəki (disk) qoyun.","Arxa budun əzələlərində gərilmə hiss edənə qədər nəzarətlə enin — orada dayanın.","Sağrı və arxa budun əzələlərini sıxaraq düz xəttə qalxın. Neytral vəziyyətdə dayanın, daha da geri əyilməyin."],
-      mist:["Hiperekstenziya — yuxarıda neytral vəziyyətdən çox geri əyilmək onurğaya zərər verir, bu hərəkətin məqsədinə ziddir.","Enişi nəzarətli etmək əvəzinə aşağıda sıçramaq.","Enərkən belin alt hissəsinin əyilməsi (yumrulanması).","Qalxarkən sağrı/arxa budun əzələlərini sıxmaq əvəzinə ətalətlə dartınmaq."] },
-    { key:"fp", name:"Face Pull", tag:"Arxa delta · Duruş", sets:3, rMin:12, rMax:15, rest:60, inc:1, img:null,
-      cues:["Kabeli döşün yuxarı hissəsi / üz səviyyəsinə qurun, kanat aparatından istifadə edin.","Dirsəkləri hündür və geniş saxlayaraq gözlərinizə doğru çəkin.","Hərəkəti barmaq oynaqları arxaya baxaraq bitirin (xarici fırlanma).","Bu hərəkət çiyin sağlamlığı üçün çox dəyərlidir — heç vaxt buraxmayın."],
-      mist:["Çox ağır çəki — hərəkəti eşmə (row) halına gətirir.","Dirsəklərin biləklərdən aşağı düşməsi.","Arxaya əyilib bədən çəkisi ilə dartınmaq."] },
-    { key:"abs", name:"Cable Crunch", tag:"Qarın əzələləri", sets:3, rMin:12, rMax:15, rest:60, inc:2.5,
-      img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Seated_ab_crunch_with_cable_1.svg/500px-Seated_ab_crunch_with_cable_1.svg.png",
-      cues:["Kanat başınızın yanında olacaq şəkildə diz üstə oturun.","Qabırğaları çanağa doğru bükün — onurğanı əyin, budları yox.","Aşağıda bərk nəfəs verin, nəzarətlə geri qalxın."],
-      mist:["Qollarla dartınmaq.","Qarını bükmək əvəzinə budlardan əyilmək.","Tələsmək — bu hərəkətdə əsas olan sıxılmadır."] }
-  ]}
+/* ==================================================================
+   HƏRƏKƏT KİTABXANASI
+   eq (avadanlıq) çəkinin NECƏ qeyd olunduğunu təyin edir — bu, appın
+   ən vacib qaydasıdır və hər kartda açıq yazılır:
+     barbell / smith / ez  → ÜMUMİ çəki, ştanq daxil (plate calculator var)
+     dumbbell              → BİR hantelin çəkisi
+     machine / cable       → dəstədəki rəqəm
+     bodyweight            → ƏLAVƏ çəki (0 = sırf bədən çəkisi)
+     assisted              → kömək çəkisi (çox = asan)
+   m = əsas əzələlər, s = köməkçi əzələlər (əzələ xəritəsi bunlardan qurulur)
+   ================================================================== */
+const LIB = [
+/* ---------------- DÖŞ ---------------- */
+{k:"bb-bench",n:"Ştanqla uzanaraq press",en:"Barbell Bench Press",eq:"barbell",m:["chest"],s:["triceps","front-delt"],rep:[8,12],rest:150,
+ cue:["Kürək sümüklərini arxaya və aşağı sıx, döşü qabağa çıxar. Ayaqlar yerə möhkəm bassın.","Ştanqı döşün alt hissəsinə endir, dirsəklər bədəndən 45° bucaqda.","Aşağıda 1 saniyə dayan — sıçratma yoxdur.","Yuxarı və bir az arxaya itələ, ştanq çiyinlərin üzərində bitsin."],
+ err:["Dirsəkləri 90° açmaq — çiyin zədəsi riski.","Ştanqı döşdən sıçratmaq.","Ombanı skamyadan qaldırmaq."]},
+{k:"db-bench",n:"Hantellə uzanaraq press",en:"Dumbbell Bench Press",eq:"dumbbell",m:["chest"],s:["triceps","front-delt"],rep:[8,12],rest:120,
+ cue:["Hantellər döş xəttində, biləklər düz.","Aşağıda döşdə dərin gərilmə hiss et.","Yuxarıda hantelləri toqquşdurma — gərginlik itir."],
+ err:["Aşağı nöqtədən sıçrayışla qalxmaq.","Biləklərin geri qatlanması."]},
+{k:"incline-bb",n:"Maili ştanqla press",en:"Incline Barbell Press",eq:"barbell",m:["chest"],s:["front-delt","triceps"],rep:[8,12],rest:150,
+ cue:["Skamya 30° — daha dik olsa çiyin presinə çevrilir.","Ştanq körpücük sümüyünün altına ensin."],
+ err:["Skamyanın çox dik olması.","Yarımçıq amplituda."]},
+{k:"incline-db",n:"Maili hantellə press",en:"Incline Dumbbell Press",eq:"dumbbell",m:["chest"],s:["front-delt","triceps"],rep:[8,12],rest:120,
+ cue:["Skamya 30°. Hantelləri çiyin səviyyəsindən başlat.","Yuxarı və bir az bir-birinə doğru itələ."],
+ err:["Çox dik skamya.","Aşağıda gərilməni tam etməmək."]},
+{k:"machine-press",n:"Aparatda döş presi",en:"Machine Chest Press",eq:"machine",m:["chest"],s:["triceps","front-delt"],rep:[10,15],rest:90,
+ cue:["Oturacağı tutacaqlar döş xəttində olacaq şəkildə qur.","Kürəkləri arxaya sıx, qolları tam aç."],
+ err:["Oturacağın çox hündür qalması.","Çiyinləri qabağa yumrulamaq."]},
+{k:"dips",n:"Paralel qollarda enmə (döş)",en:"Chest Dips",eq:"bodyweight",m:["chest"],s:["triceps","front-delt"],rep:[8,12],rest:120,
+ cue:["Gövdəni önə əy — dik dursan triseps işləyir.","Çiyin dirsək səviyyəsinə çatana qədər en."],
+ err:["Çox dərin enmək — çiyin zədəsi.","Yellənərək ətalətlə qalxmaq."]},
+{k:"cable-fly",n:"Kabellə döş açması",en:"Cable Chest Fly",eq:"cable",m:["chest"],s:[],rep:[12,15],rest:75,
+ cue:["Dirsəklərdə yüngül bükülmə sabit qalır — qövs dəyişmir.","Öndə döşü sıx, geridə dərin gərilməyə aç."],
+ err:["Dirsəkləri açıb-bağlamaq (prese çevirmək).","Çox ağır çəki."]},
+{k:"pec-deck",n:"Pec Deck (kəpənək)",en:"Pec Deck",eq:"machine",m:["chest"],s:[],rep:[12,15],rest:75,
+ cue:["Kürək yastığa yapışsın.","Öndə 1 saniyə sıx."],err:["Çiyinləri qabağa itələmək."]},
+{k:"pushup",n:"Şınov",en:"Push-Up",eq:"bodyweight",m:["chest"],s:["triceps","abs","front-delt"],rep:[10,20],rest:60,
+ cue:["Bədən düz xətt — omba nə çökür, nə qalxır.","Döş yerə yaxınlaşana qədər en."],err:["Ombanın çökməsi.","Yarımçıq amplituda."]},
+
+/* ---------------- KÜRƏK ---------------- */
+{k:"pullup",n:"Dartılma (geniş tutuş)",en:"Pull-Up",eq:"bodyweight",m:["lats"],s:["biceps","upper-back"],rep:[6,12],rest:150,
+ cue:["Çiyinləri əvvəl aşağı sal, sonra dartın.","Döşü turnikə doğru apar, çənəni yox.","Aşağıda qollar tam açılsın."],
+ err:["Yellənmək (kipping).","Yarımçıq eniş."]},
+{k:"chinup",n:"Dartılma (dar, ovuc özünə)",en:"Chin-Up",eq:"bodyweight",m:["lats"],s:["biceps"],rep:[6,12],rest:150,
+ cue:["Ovuclar özünə baxır — biseps daha çox işləyir.","Dirsəkləri böyürə doğru çək."],err:["Ətalətlə dartınmaq."]},
+{k:"lat-pulldown",n:"Yuxarı blok dartma",en:"Lat Pulldown",eq:"cable",m:["lats"],s:["biceps","upper-back"],rep:[8,12],rest:120,
+ cue:["Döşü qabağa çıxar, bir az arxaya əyil.","Dirsəkləri aşağı endirərək çubuğu döşün yuxarısına çək.","1 saniyə sıx, sonra tam gərilməyə burax."],
+ err:["Bədəni yırğalamaq.","Çubuğu boynun arxasına çəkmək."]},
+{k:"close-pulldown",n:"Dar tutuşla blok dartma",en:"Close-Grip Pulldown",eq:"cable",m:["lats"],s:["biceps"],rep:[10,12],rest:100,
+ cue:["V-tutacaq, dirsəklər bədənə yaxın.","Aşağıda enli kürək əzələsini sıx."],err:["Arxaya çox əyilmək."]},
+{k:"bb-row",n:"Ştanqla əyilərək eşmə",en:"Barbell Row",eq:"barbell",m:["upper-back","lats"],s:["biceps","lower-back"],rep:[8,12],rest:150,
+ cue:["Omba büküşündən 45°-yə qədər əyil, bel düz.","Ştanqı göbəyə doğru çək.","Yuxarıda kürəkləri 1 saniyə sıx."],
+ err:["Belin yumrulanması — ən təhlükəli səhv.","Gövdəni hər təkrarda qaldırmaq."]},
+{k:"db-row",n:"Bir əllə hantellə eşmə",en:"One-Arm Dumbbell Row",eq:"dumbbell",m:["lats","upper-back"],s:["biceps"],rep:[8,12],rest:100,
+ cue:["Bir əl və diz skamyada, bel düz.","Hanteli ombaya doğru çək, gövdəni burma."],err:["Gövdəni burub ətalət yaratmaq."]},
+{k:"cable-row",n:"Oturaraq kabellə eşmə",en:"Seated Cable Row",eq:"cable",m:["upper-back","lats"],s:["biceps"],rep:[8,12],rest:120,
+ cue:["Döşü dik saxla, kürəyi gərmək üçün bir az önə uzan.","Qulpu göbəyə çək, dirsəklər bədənə sıx.","Kürəkləri 1 saniyə bir-birinə sıx."],
+ err:["İrəli-geri yırğalanmaq.","Çiyinləri yuxarı qaldırmaq."]},
+{k:"chest-row",n:"Döş dayaqlı eşmə",en:"Chest-Supported Row",eq:"machine",m:["upper-back"],s:["lats","rear-delt","biceps"],rep:[10,12],rest:100,
+ cue:["Sinə yastığa tam söykənir — gövdə ilə kömək etmək mümkün deyil, əzələ təcrid olunur.","Dirsəkləri aşağı-arxaya çək."],
+ err:["Sinəni yastıqdan qaldırmaq.","Qolları tam açmamaq."]},
+{k:"t-bar",n:"T-bar eşmə",en:"T-Bar Row",eq:"machine",m:["upper-back","lats"],s:["biceps"],rep:[8,12],rest:120,
+ cue:["Bel düz, döş yastıqda (varsa).","Dirsəkləri arxaya, kürəkləri sıx."],err:["Belin yumrulanması."]},
+{k:"machine-row",n:"Aparatda eşmə",en:"Machine Row",eq:"machine",m:["upper-back"],s:["lats","biceps"],rep:[10,12],rest:90,
+ cue:["Oturacağı tutacaqlar döş xəttində olacaq şəkildə qur.","Nəzarətlə burax, öndə tam uzanma."],err:["Ətalətlə dartınmaq."]},
+{k:"straight-arm",n:"Düz qolla blok aşağı",en:"Straight-Arm Pulldown",eq:"cable",m:["lats"],s:["abs"],rep:[12,15],rest:75,
+ cue:["Qollar demək olar düz, hərəkət yalnız çiyindən.","Aşağıda enli kürəyi sıx."],err:["Dirsəkləri bükərək triseps hərəkətinə çevirmək."]},
+{k:"face-pull",n:"Üzə doğru dartma",en:"Face Pull",eq:"cable",m:["rear-delt"],s:["upper-back"],rep:[12,20],rest:60,
+ cue:["Kabel üz səviyyəsində, kanat aparatı.","Dirsəkləri hündür saxlayaraq gözlərə doğru çək.","Barmaq oynaqları arxaya baxaraq bitir (xarici fırlanma)."],
+ err:["Çox ağır çəki — eşməyə çevrilir.","Dirsəklərin aşağı düşməsi."]},
+{k:"shrug",n:"Çiyin çəkmə (trapesiya)",en:"Dumbbell Shrug",eq:"dumbbell",m:["upper-back"],s:[],rep:[12,15],rest:75,
+ cue:["Düz yuxarı qaldır — fırlatma yoxdur.","Yuxarıda 1 saniyə sıx."],err:["Çiyinləri dairəvi fırlatmaq."]},
+
+/* ---------------- ÇİYİN ---------------- */
+{k:"ohp",n:"Ayaqüstü ştanqla baş üstü press",en:"Overhead Press",eq:"barbell",m:["front-delt"],s:["triceps","side-delt","abs"],rep:[8,12],rest:150,
+ cue:["Sağrı və qarını sıx — bədən vahid sütun olsun.","Ştanq alnı keçəndə başı önə ver.","Yuxarıda bisepslər qulaqlara yaxın."],
+ err:["Çox arxaya əyilmək.","Sağrını sıxmamaq — yük belə düşür."]},
+{k:"db-ohp",n:"Oturaraq hantellə çiyin presi",en:"Seated Dumbbell Press",eq:"dumbbell",m:["front-delt"],s:["triceps","side-delt"],rep:[8,12],rest:120,
+ cue:["Hantellər qulaq səviyyəsindən yuxarı.","Beli əymə — kürək dayaqda, qarın gərgin."],err:["Beli qövsə salmaq."]},
+{k:"machine-ohp",n:"Aparatda çiyin presi",en:"Machine Shoulder Press",eq:"machine",m:["front-delt"],s:["triceps"],rep:[10,12],rest:90,
+ cue:["Tutacaqlar çiyin səviyyəsində başlasın."],err:["Dirsəkləri tam kilidləmək."]},
+{k:"lateral-raise",n:"Hantellə yana qaldırma",en:"Dumbbell Lateral Raise",eq:"dumbbell",m:["side-delt"],s:[],rep:[12,20],rest:60,
+ cue:["Bir az önə əyil, dirsəklərdə yüngül bükülmə.","Çiyin hündürlüyünə qədər qaldır, daha yuxarı yox.","2 saniyə ərzində endir — mənfi faza əsasdır."],
+ err:["Çəkiləri ətalətlə yellətmək.","Trapesiyanın işi öz üzərinə götürməsi (çiyinlərin qalxması)."]},
+{k:"cable-lateral",n:"Kabellə yana qaldırma",en:"Cable Lateral Raise",eq:"cable",m:["side-delt"],s:[],rep:[12,20],rest:60,
+ cue:["Kabel bədənin arxasından keçsin — daimi gərginlik.","Aşağıda da gərginliyi burax­ma."],err:["Bədənlə itələmək."]},
+{k:"rear-fly",n:"Arxa delta açması",en:"Reverse Pec Deck",eq:"machine",m:["rear-delt"],s:["upper-back"],rep:[12,20],rest:60,
+ cue:["Üzü aparata otur, qollar geniş açılır.","Arxa deltada sıxılmanı hiss et."],err:["Geriyə yellənmək."]},
+
+/* ---------------- QOL ---------------- */
+{k:"bb-curl",n:"Ştanqla biseps bükməsi",en:"Barbell Curl",eq:"barbell",m:["biceps"],s:["forearms"],rep:[8,12],rest:90,
+ cue:["Dirsəklər böyürdə yapışıq.","Yuxarıda sıx, 2-3 saniyə ərzində endir."],err:["Bədəni yellətmək.","Dirsəkləri önə çıxarmaq."]},
+{k:"ez-curl",n:"EZ ştanqla biseps",en:"EZ-Bar Curl",eq:"ez",m:["biceps"],s:["forearms"],rep:[8,12],rest:90,
+ cue:["EZ ştanq bilək üçün daha rahatdır.","Aşağıda qolları tam aç."],err:["Yarımçıq amplituda."]},
+{k:"db-curl",n:"Hantellə biseps",en:"Dumbbell Curl",eq:"dumbbell",m:["biceps"],s:["forearms"],rep:[10,12],rest:75,
+ cue:["Yuxarıda biləyi bir az çölə burma (supinasiya).","Dirsəklər sabit."],err:["Yellənmək."]},
+{k:"hammer",n:"Çəkic bükməsi",en:"Hammer Curl",eq:"dumbbell",m:["biceps"],s:["forearms"],rep:[10,12],rest:75,
+ cue:["Neytral tutuş, ovuclar bir-birinə baxır.","Qolun qalınlığını verən brachialis əzələsini işlədir."],err:["Çiyinlə qaldırmaq."]},
+{k:"incline-curl",n:"Maili skamyada biseps",en:"Incline Dumbbell Curl",eq:"dumbbell",m:["biceps"],s:[],rep:[10,12],rest:75,
+ cue:["Qollar bədənin arxasında qalır — bisepsin uzun başı gərilir.","Yavaş endir."],err:["Dirsəkləri önə çəkmək."]},
+{k:"preacher",n:"Preacher (dayaqlı) biseps",en:"Preacher Curl",eq:"machine",m:["biceps"],s:[],rep:[10,12],rest:75,
+ cue:["Qoltuq yastığa yapışsın.","Aşağıda tam aç, amma kilidləmə."],err:["Aşağıda kəskin açmaq — dirsək zədəsi."]},
+{k:"cable-curl",n:"Kabellə biseps",en:"Cable Curl",eq:"cable",m:["biceps"],s:[],rep:[10,15],rest:75,
+ cue:["Kabel daimi gərginlik verir.","Dirsəkləri önə çıxarma."],err:["Bədənlə kömək etmək."]},
+{k:"pushdown",n:"Blokda triseps aşağı itələmə",en:"Triceps Pushdown",eq:"cable",m:["triceps"],s:[],rep:[10,15],rest:75,
+ cue:["Dirsəklər bədənə sıx, hərəkət yalnız saiddən.","Aşağıda 1 saniyə tam sıx."],err:["Dirsəklərin önə çıxması.","Bədən çəkisini kabelə atmaq."]},
+{k:"oh-ext",n:"Baş üstü triseps açması",en:"Overhead Triceps Extension",eq:"cable",m:["triceps"],s:[],rep:[10,15],rest:75,
+ cue:["Dirsəklər başın yanında sabit.","Aşağıda tam uzanma — trisepsin uzun başı buradadır."],err:["Dirsəkləri açıb-yaymaq."]},
+{k:"skull",n:"Skull crusher",en:"EZ-Bar Skull Crusher",eq:"ez",m:["triceps"],s:[],rep:[10,12],rest:90,
+ cue:["Dirsəklər tavana baxır, ştanq alına doğru enir.","Çiyinləri tərpətmə."],err:["Dirsəklərin açılması — prese çevrilir."]},
+{k:"tri-dips",n:"Paralel qollarda enmə (triseps)",en:"Triceps Dips",eq:"bodyweight",m:["triceps"],s:["chest","front-delt"],rep:[8,12],rest:120,
+ cue:["Gövdəni dik saxla — önə əysən döş işləyir.","Dirsəklər arxaya."],err:["Çox dərin enmək."]},
+
+/* ---------------- AYAQ ---------------- */
+{k:"back-squat",n:"Ştanqla çömbəlmə",en:"Barbell Back Squat",eq:"barbell",m:["quads","glutes"],s:["hamstrings","lower-back","abs"],rep:[6,10],rest:180,
+ cue:["Ştanqı trapesiyaya sıx bas, dirsəklər aşağıda.","Dərin nəfəs al, qarnı bərkid, sonra en.","Dabanların arasına otur; dizlər barmaq istiqamətində.","Paralel və ya bir az aşağı en, sonra döşəməni itələ."],
+ err:["Dabanların qalxması.","Dizlərin içəri düşməsi.","Çəki ağırlaşdıqca dərinliyin azalması."]},
+{k:"front-squat",n:"Ön çömbəlmə",en:"Front Squat",eq:"barbell",m:["quads"],s:["abs","glutes"],rep:[6,10],rest:180,
+ cue:["Dirsəklər hündür, ştanq çiyin önündə oturur.","Gövdə dik qalmalıdır."],err:["Dirsəklərin düşməsi — ştanq sürüşür."]},
+{k:"hack-squat",n:"Hack squat",en:"Hack Squat",eq:"machine",m:["quads"],s:["glutes"],rep:[10,12],rest:150,
+ cue:["Kürəyi yastığa sıx bas, dabanlar platformada.","Tam dərinliyə en."],err:["Yarımçıq amplituda."]},
+{k:"leg-press",n:"Ayaq presi",en:"Leg Press",eq:"machine",m:["quads","glutes"],s:["hamstrings"],rep:[10,15],rest:150,
+ cue:["Ayaqlar platformanın ortasında, çiyin enində.","Bel yastıqdan ayrılmayana qədər en.","Dizləri tam kilidləmədən dayan."],
+ err:["Belin qalxacağı qədər dərin enmək.","Ego çəkisi ilə yarımçıq təkrarlar."]},
+{k:"bulgarian",n:"Bolqar bölünmüş çömbəlmə",en:"Bulgarian Split Squat",eq:"dumbbell",m:["quads","glutes"],s:["hamstrings"],rep:[8,12],rest:100,unil:true,
+ cue:["Arxa ayaq skamyada, ön ayaq kifayət qədər önə.","Düz aşağı en — arxa diz döşəməyə doğru.","Ön dabandan itələyərək qalx."],
+ err:["Ön ayağın çox yaxın olması — diz ağrısı.","Arxa ayaqdan itələnmək."]},
+{k:"lunge",n:"Addımlayaraq lunge",en:"Walking Lunge",eq:"dumbbell",m:["quads","glutes"],s:["hamstrings"],rep:[10,12],rest:100,unil:true,
+ cue:["Uzun addım — ön diz barmaq xəttini keçməsin.","Gövdə dik."],err:["Qısa addım — diz üzərinə yük düşür."]},
+{k:"goblet",n:"Goblet çömbəlmə",en:"Goblet Squat",eq:"dumbbell",m:["quads","glutes"],s:["abs"],rep:[10,15],rest:100,
+ cue:["Hanteli sinəyə sıx, gövdə dik.","Dirsəklər dizlərin arasına doğru en."],err:["Dabanların qalxması."]},
+{k:"rdl",n:"Rumın ölü qaldırması",en:"Romanian Deadlift",eq:"barbell",m:["hamstrings","glutes"],s:["lower-back"],rep:[8,12],rest:150,
+ cue:["Dizlər yüngül bükülü — bədəni aşağı yox, ombanı arxaya itələ.","Ştanq budlardan sürüşərək ensin, bel düz.","Baldırın ortasında gərilməni hiss et, sonra ombanı önə itələ."],
+ err:["Dizləri çox bükmək — çömbəlməyə çevrilir.","Belin yumrulanması."]},
+{k:"deadlift",n:"Ölü qaldırma",en:"Conventional Deadlift",eq:"barbell",m:["hamstrings","glutes","lower-back"],s:["upper-back","quads"],rep:[5,8],rest:210,
+ cue:["Ştanq baldıra toxunacaq qədər yaxın.","Kürəkləri ştanqın üzərinə gətir, bel düz.","Ayaqla döşəməni itələ, sonra ombanı aç."],
+ err:["Belin yumrulanması.","Ştanqın bədəndən uzaqlaşması.","Yuxarıda arxaya əyilmək."]},
+{k:"leg-curl",n:"Uzanaraq ayaq bükməsi",en:"Lying Leg Curl",eq:"machine",m:["hamstrings"],s:["calves"],rep:[10,15],rest:90,
+ cue:["Diz oxu aparatın oxu ilə üst-üstə düşsün.","Ombanı yastığa yapışdır — çanaq qalxmasın.","3-4 saniyə ərzində nəzarətlə aç."],
+ err:["Ombanı qaldırmaq.","Yarımçıq amplituda."]},
+{k:"seated-curl",n:"Oturaraq ayaq bükməsi",en:"Seated Leg Curl",eq:"machine",m:["hamstrings"],s:[],rep:[10,15],rest:90,
+ cue:["Omba kəməri bərkidilsin.","Tam bük, nəzarətlə aç."],err:["Çanağı qaldırmaq."]},
+{k:"good-morning",n:"Good morning",en:"Good Morning",eq:"barbell",m:["hamstrings"],s:["lower-back","glutes"],rep:[10,12],rest:120,
+ cue:["Yüngül çəki ilə başla — bu hərəkət texnika tələb edir.","Omba arxaya, bel düz."],err:["Ağır çəki ilə belin yumrulanması."]},
+{k:"hip-thrust",n:"Omba itələməsi",en:"Hip Thrust",eq:"barbell",m:["glutes"],s:["hamstrings"],rep:[10,15],rest:120,
+ cue:["Kürək skamyada, ştanq omba büküşündə (yastıqla).","Yuxarıda sağrını sıx, çənə sinəyə doğru.","Bel yox, omba işləsin."],
+ err:["Beli qövsə salmaq.","Yarımçıq açılma."]},
+{k:"back-ext",n:"Bel ekstenziyası",en:"Back Extension",eq:"bodyweight",m:["lower-back","glutes"],s:["hamstrings"],rep:[12,20],rest:75,
+ cue:["Bədən düz xətt üzrə. Başlanğıc üçün qolları döşdə çarpazla.","Asan gəldikdə döşünə disk götür.","Neytral vəziyyətdə dayan — daha geri əyilmə."],
+ err:["Hiperekstenziya — yuxarıda çox geri əyilmək.","Enərkən belin yumrulanması."]},
+{k:"leg-ext",n:"Ayaq açması",en:"Leg Extension",eq:"machine",m:["quads"],s:[],rep:[12,15],rest:75,
+ cue:["Yuxarıda 1 saniyə sıx.","Nəzarətlə endir."],err:["Çəkini sıçratmaq."]},
+{k:"calf-standing",n:"Ayaqüstü baldır",en:"Standing Calf Raise",eq:"machine",m:["calves"],s:[],rep:[12,20],rest:60,
+ cue:["Aşağıda tam gərilmə — 1 saniyə dayan.","Barmaq ucuna qədər qalx, 1-2 saniyə sıx."],
+ err:["Gərilmə refleksi ilə sıçramaq.","Sürətli yarımçıq təkrarlar."]},
+{k:"calf-seated",n:"Oturaraq baldır",en:"Seated Calf Raise",eq:"machine",m:["calves"],s:[],rep:[12,20],rest:60,
+ cue:["Aşağıda dabanı tam sallа.","Yuxarıda 1 saniyə saxla."],err:["Sürətli təkrarlar."]},
+
+/* ---------------- QARIN ---------------- */
+{k:"cable-crunch",n:"Kabellə qarın bükməsi",en:"Cable Crunch",eq:"cable",m:["abs"],s:[],rep:[12,20],rest:60,
+ cue:["Kanat başın yanında, diz üstə otur.","Qabırğaları çanağa doğru bük — onurğanı əy, budları yox."],
+ err:["Qollarla dartınmaq.","Budlardan əyilmək."]},
+{k:"hanging-raise",n:"Asılı vəziyyətdə diz qaldırma",en:"Hanging Knee Raise",eq:"bodyweight",m:["abs"],s:["obliques"],rep:[10,20],rest:60,
+ cue:["Dizləri sinəyə qaldır, ombanı da yuxarı bur.","Yellənmə."],err:["Ətalətlə yellənmək."]},
+{k:"plank",n:"Planka",en:"Plank",eq:"bodyweight",m:["abs"],s:["obliques","lower-back"],rep:[30,60],rest:60,time:true,
+ cue:["Bədən düz xətt, sağrı sıxılmış.","Saniyə ilə qeyd et."],err:["Ombanın çökməsi və ya qalxması."]},
+{k:"ab-wheel",n:"Qarın təkəri",en:"Ab Wheel Rollout",eq:"bodyweight",m:["abs"],s:["lower-back"],rep:[8,15],rest:75,
+ cue:["Bel neytral — çökməsinə icazə vermə.","Bacardığın qədər uzan, nəzarətlə qayıt."],err:["Belin çökməsi."]},
+{k:"russian-twist",n:"Rus burması",en:"Russian Twist",eq:"bodyweight",m:["obliques"],s:["abs"],rep:[15,25],rest:60,
+ cue:["Gövdəni bur, qolları yox.","Yavaş və nəzarətli."],err:["Sürətlə yellənmək."]}
+];
+
+/* ==================================================================
+   ƏZƏLƏ QRUPLARI — xəritə və həcm hesabatı üçün
+   ================================================================== */
+const MUSC = {
+  "chest":      {n:"Döş",             side:"front"},
+  "front-delt": {n:"Ön delta",        side:"front"},
+  "side-delt":  {n:"Yan delta",       side:"front"},
+  "rear-delt":  {n:"Arxa delta",      side:"back"},
+  "biceps":     {n:"Biseps",          side:"front"},
+  "triceps":    {n:"Triseps",         side:"back"},
+  "forearms":   {n:"Said",            side:"front"},
+  "abs":        {n:"Qarın",           side:"front"},
+  "obliques":   {n:"Yan qarın",       side:"front"},
+  "lats":       {n:"Enli kürək",      side:"back"},
+  "upper-back": {n:"Üst kürək",       side:"back"},
+  "lower-back": {n:"Bel",             side:"back"},
+  "glutes":     {n:"Sağrı",           side:"back"},
+  "quads":      {n:"Dördbaşlı",       side:"front"},
+  "hamstrings": {n:"Arxa bud",        side:"back"},
+  "calves":     {n:"Baldır",          side:"back"}
 };
 
-const ROT = ["A","B","C"];
-
-const RULES = [
-  { t:"Niyə həftədə 3 dəfə tam bədən?", d:"Hər məşqdə bir diz, bir omba, bir itələmə və bir çəkmə hərəkəti var — buna görə ayaqlar, kürək və çiyin qurşağı həftədə 2-3 dəfə yüklənir. Push/pull/legs bölgüsündə isə hər əzələ həftədə cəmi bir dəfə işləyir. A, B və C ağırlıqda fərqlənir (ağır → orta → həcm), əzələ qrupunda yox. Bazar ertəsi · Çərşənbə · Cümə ideal seçimdir, lakin ardıcıl olmayan istənilən 3 gün işləyir." },
-  { t:"1-ci həftə: çəkiləri müəyyənləşdirin", d:"Son təkrardan sonra təxminən 2 təkrar da edə biləcəyiniz çəki seçin. Hər şeyi qeyd edin — 2-ci həftədən tətbiq sizə çəkini nə vaxt artırmalı olduğunuzu dəqiq deyəcək." },
-  { t:"İkiqat proqressiya", d:"Təkrar diapazonunda qalın. Bütün dövrlərdə diapazonun ƏN YUXARI həddinə düzgün texnika ilə çatdıqda, növbəti dəfə çəkini artırın (tətbiq bunu bildirir). Həmişə kiçik addımlar — bütün sirr budur." },
-  { t:"Səy: ehtiyatda 1-2 təkrar", d:"Əksər dövrləri hələ 1-2 təmiz təkrar edə biləcəyiniz halda bitirin. Hər dövrü tükənənə qədər aparmaq bərpanı korlayır və növbəti məşqinizdən çalır. İzolyasiya hərəkətlərinin son dövrü tükənməyə daha yaxın apara bilərsiniz." },
-  { t:"Texnika — çəki artırmağın açarıdır", d:"Əgər təkrarları bitirmək üçün texnika pozulubsa, həmin dövr proqressiyaya hesablanmır. Eyni çəkini təkrarlayın. Ən yüksək dövrlərinizi həftədə bir dəfə yan tərəfdən video çəkmək ən ucuz məşqçilik üsuludur." },
-  { t:"Dövrlər arası istirahət", d:"Böyük hərəkətlər: 2.5-3 dəqiqə. Orta: ~2 dəqiqə. İzolyasiya: 60-90 saniyə. Az istirahət daha çox əzələ vermir — sadəcə növbəti dövrü zəiflədir. Dövrü işarələdikdə taymer avtomatik başlayır." },
-  { t:"Gün buraxdınız?", d:"Heç vaxt hərfi (məşqi) buraxmayın. Sadəcə növbəti idman zalı gününüzdə növbədəki məşqi edin. Sıra həftəlik balansınızı qoruyur." },
-  { t:"Hər 6-8 həftədə bir yüngülləşdirmə həftəsi", d:"Ştanqın sürəti azaldıqda və oynaqlar bütün həftə yorğun hiss olunduqda, bir yüngül həftə keçirin: eyni hərəkətlər, çəkilərinizin ~60%-i, hər birindən 2 dövr. Daha güclü qayıdacaqsınız." }
-];
-
-const WARMUP = "Hər məşqdə: 5 dəqiqə yüngül kardio → qol fırlatma, ayaq yellənmələri, bədən çəkisi ilə çömbəlmə → sonra ilk hərəkətə tədricən keçin: boş ştanqla ×10, ~50% ×6, ~70% ×3, sonra iş dövrləri.";
-
-const TIPS = [
-  "Hər məşqdə haradasa 2.5 kq və ya bir təkrar əlavə etməyə çalışın. Kiçik addımlar, həmişə — əzələ kütləsi məhz belə qurulur.",
-  "Siz məşqlər arasında böyüyürsünüz, məşq zamanı yox. Yuxunuzu rekordlarınızı qoruduğunuz kimi qoruyun: 7-9 saat.",
-  "Bu həftə tərəzi yerindən tərpənmədi? Deməli profisit əslində profisit deyilmiş. ~200 kkal əlavə edin və növbəti həftə yenidən yoxlayın.",
-  "Həftədə bir dəfə ən yüksək dövrünüzü yan tərəfdən video çəkin. Kamera sizin tuta biləcəyiniz ən ucuz məşqçidir.",
-  "Hər yeməkdə 30-50 q zülal. Gündəlik ümumi miqdar hər hansı vaxtlama hiyləsindən daha vacibdir.",
-  "Əksər dövrlərdə 1-2 təkrar ehtiyatda saxlayın. Hər dövrü tükənənə qədər aparmaq sadəcə cümə günkü məşqinizdən çalır.",
-  "Yavaş enişlə edilən iki nəzarətli təkrar, beş səliqəsiz təkrardan daha yaxşıdır. Enmə fazasına sahib çıxın.",
-  "Sabitlik intensivlikdən üstündür: bir il ərzində hər həftə üç dürüst məşq, bir ay ərzində altı mükəmməl məşqdən daha yaxşıdır."
-];
-
-/* k artıq rəqəmdir — şablon istifadəçinin hesablanmış hədəfinə görə miqyaslanır. */
-const MEALS = [
-  { t:"Səhər yeməyi (yüngül)", k:300, d:"1 dilim çörək + 1 xörək qaşığı qaymaq + 30 q pendir. Səhərlər az iştahınız üçün — ağır heç nə yox." },
-  { t:"Yumurta yeməyi", k:450, d:"3 bütöv yumurta + 2 yumurta ağı, zeytun yağında bişirilmiş + tərəvəz. Günortadan sonra / axşama yaxın yeyin." },
-  { t:"Nahar", k:800, d:"200 q toyuq döşü + 120 q düyü (quru çəki) + tərəvəz + 1 xörək qaşığı zeytun yağı" },
-  { t:"Məşqdən sonra / Qəlyanaltı", k:500, d:"Su ilə hazırlanmış protein çalxalaması + 1 banan — və ya bal və qoz-fındıqla qatıq" },
-  { t:"Şam yeməyi", k:750, d:"200 q toyuq döşü və ya yağsız mal əti + kartof və ya düyü + zeytun yağlı böyük salat" },
-  { t:"Yatmazdan əvvəl", k:250, d:"Qatıq və ya kəsmik + bir ovuc qoz" }
-];
-const MEAL_BASE = MEALS.reduce((a,m)=>a+m.k, 0);   /* 3050 kkal */
-
-const STAPLES = ["Düyü","Makaron","Kartof","Çörək","Qaymaq","Pendir","Qatıq","Yumurta","Toyuq döşü","Toyuq budu","Mal əti","Araxis yağı","Zeytun yağı","Qoz-fındıq","Banan","Bal"];
-
-/* Alternativ hərəkətlər — avadanlıq məşğul olanda keçid üçün. Eyni əzələ qrupu,
-   eyni dövr/təkrar sxemi. QAYDA: bir açar yalnız BİR slotun alternativi ola bilər,
-   əks halda EXMAP-də iki dəfə qurulur və yanlış sxem miras alır. */
-const ALTS = {
-  sq:   [{key:"hsq", name:"Hack Squat", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Hack_squat_machine_1.svg/500px-Hack_squat_machine_1.svg.png", cues:["Kürəyinizi yastığa sıx basın, dabanlar platformada qalsın.","Dizlər ayaq barmaqları istiqamətində, tam dərinliyə enin."]},
-         {key:"gsq", name:"Goblet Squat", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Kettle_bell_squats.jpg/500px-Kettle_bell_squats.jpg", cues:["Hanteli sinəyə sıxın, gövdəni dik saxlayın.","Dirsəklər dizlərin arasına doğru, dabanlar yerdə."]}],
-  bp:   [{key:"dbp", name:"Dumbbell Bench Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Personal_training_dumbbell_chest_press.jpg/500px-Personal_training_dumbbell_chest_press.jpg", cues:["Hantellər sinə xəttində, biləklər düz.","Aşağı nöqtədə kürəkləri sıxılmış saxlayın."]},
-         {key:"mchp", name:"Machine Chest Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Girl_doing_chest_press_machine_exercise.jpg/500px-Girl_doing_chest_press_machine_exercise.jpg", cues:["Oturacağı tutacaqlar sinə səviyyəsində olacaq şəkildə tənzimləyin.","Kürəkləri arxaya sıxın, qolları tam açın."]}],
-  lp:   [{key:"apu", name:"Assisted Pull-Up", bw:true, cues:["Sinəni turnikə doğru çəkin, dirsəklər aşağı-arxaya.","Aşağıda qollar tam açılsın."]}],
-  rdl:  [{key:"ht", name:"Hip Thrust", cues:["Kürək skamyada, ştanq omba büküşündə.","Yuxarıda sağrını sıxın, çənə sinəyə doğru."]},
-         {key:"cpt", name:"Cable Pull-Through", cues:["Kabel ayaqların arasından, omba geriyə itələnir.","Bel düz — hərəkət ombadan gəlir, qollardan yox."]}],
-  lat:  [{key:"clr", name:"Cable Lateral Raise", cues:["Kabel bədənin arxasından keçsin, qolu yana qaldırın.","Çiyin səviyyəsindən yuxarı qaldırmayın."]}],
-  tri:  [{key:"ohte", name:"Overhead Cable Triceps Extension", cues:["Dirsəklər başın yanında sabit, yalnız said hərəkət edir.","Aşağıda tam uzanma hiss edin, yuxarıda sıxın."]},
-         {key:"skc", name:"EZ-Bar Skull Crusher", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Lying_close_grip_triceps_extension_behind_the_head_with_barbell_1.svg/500px-Lying_close_grip_triceps_extension_behind_the_head_with_barbell_1.svg.png", cues:["Dirsəklər tavana baxır, ştanq alına doğru enir.","Çiyinləri tərpətmədən yalnız dirsəkdən açın."]}],
-  lpz:  [{key:"smsq", name:"Smith Machine Squat", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Smith_machine_squats_1.svg/500px-Smith_machine_squats_1.svg.png", cues:["Ayaqlar bir az öndə — ştanq xətti topuqdan keçsin.","Nəzarətli enin, dabanlarla itələyin."]}],
-  row:  [{key:"oadr", name:"One-Arm Dumbbell Row", cues:["Bir əl və diz skamyada, bel düz.","Hanteli ombaya doğru çəkin, gövdəni burmadan."]}],
-  ohp:  [{key:"sdp", name:"Seated Dumbbell Shoulder Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Girl_doing_dumbbell_shoulder_press_02.jpg/500px-Girl_doing_dumbbell_shoulder_press_02.jpg", cues:["Hantellər qulaq səviyyəsindən yuxarı itələnir.","Beli əymədən — qarın gərgin, kürək dayaqda."]},
-         {key:"mshp", name:"Machine Shoulder Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Shoulder-press-machine-1.png/500px-Shoulder-press-machine-1.png", cues:["Tutacaqlar çiyin səviyyəsində başlasın.","Yuxarıda dirsəkləri tam kilidləməyin."]}],
-  llc:  [{key:"slc", name:"Seated Leg Curl", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Seated-leg-curl-1.png/500px-Seated-leg-curl-1.png", cues:["Yastıq baldırın aşağısında olsun, omba kəməri bərkidilsin.","Tam bükün, nəzarətlə açın."]}],
-  cur:  [{key:"dbcu", name:"Dumbbell Curl", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Girl_doing_biceps_curls_with_dumbbell_closeup.jpg/500px-Girl_doing_biceps_curls_with_dumbbell_closeup.jpg", cues:["Dirsəklər böyürdə sabit, yellənmə yoxdur.","Yuxarıda bisepsi sıxın, nəzarətlə endirin."]},
-         {key:"cbcu", name:"Cable Curl", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Standing_biceps_curl_with_cable_1.svg/500px-Standing_biceps_curl_with_cable_1.svg.png", cues:["Kabel daimi gərginlik verir — aşağıda da işləyir.","Dirsəkləri önə çıxarmadan bükün."]},
-         {key:"ham", name:"Hammer Curl", img:"https://upload.wikimedia.org/wikipedia/commons/8/86/Bicep-hammer-curl-2.png", cues:["Neytral tutuş, ovuclar bir-birinə baxsın.","Brachialis əzələsini inkişaf etdirir — qolların qalın görünməsini təmin edən budur."]}],
-  calf: [{key:"scr", name:"Seated Calf Raise", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/SeatedCalfRaiseMachineExercise.JPG/500px-SeatedCalfRaiseMachineExercise.JPG", cues:["Aşağıda dabanı tam sallayın — uzanma vacibdir.","Yuxarıda 1 saniyə saxlayın."]},
-         {key:"lpcr", name:"Leg Press Calf Raise", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Gym_Leg_Press_Machine.jpg/500px-Gym_Leg_Press_Machine.jpg", cues:["Pəncələr platformanın aşağı kənarında.","Tam amplituda — aşağı uzanma, yuxarı sıxma."]}],
-  bss:  [{key:"wlg", name:"Dumbbell Walking Lunge", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Dumbbell_lunges.jpg/500px-Dumbbell_lunges.jpg", cues:["Uzun addım — ön diz barmaq xəttini keçməsin.","Gövdə dik, arxa diz yerə yaxınlaşır."]},
-         {key:"stpu", name:"Dumbbell Step-Up", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Step_up_single_leg_balance_with_bicep_curl_using_dumbbells_1.svg/500px-Step_up_single_leg_balance_with_bicep_curl_using_dumbbells_1.svg.png", cues:["Platformadakı ayaqla itələnin, arxa ayaqla yox.","Yuxarıda tam dikəlin, nəzarətlə enin."]}],
-  idp:  [{key:"incm", name:"Incline Machine Press", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Smith_machine_incline_bench_press_1.svg/500px-Smith_machine_incline_bench_press_1.svg.png", cues:["Oturacağı elə qurun ki, tutacaqlar yuxarı sinə xəttində olsun.","Nəzarətli enin, partlayışla itələyin."]},
-         {key:"fly", name:"Cable Chest Fly", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Cable-crossover-1.png/500px-Cable-crossover-1.png", cues:["Dirsəklər yüngül bükülü sabit qalır, qövs dəyişmir.","Öndə sinəni sıxın, geriyə nəzarətlə dərin gərilməyə açın."]},
-         {key:"pdk", name:"Pec Deck", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Pec_deck_Fly.jpg/500px-Pec_deck_Fly.jpg", cues:["Dirsəklər bir az bükülü sabit qalır.","Öndə sinəni sıxın, geriyə nəzarətlə açın."]},
-         {key:"dbfl", name:"Dumbbell Fly", img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/DumbbellFlye.JPG/500px-DumbbellFlye.JPG", cues:["Qollar geniş qövslə açılır, dirsəklər yumşaq.","Aşağıda sinədə uzanma hiss edin."]}],
-  csmr: [{key:"mhr", name:"Machine High Row", cues:["Sinə yastığa söykənir, dirsəklər aşağı-arxaya çəkilir.","Kürəkləri aşağı sıxın, boyun boş qalsın."]}],
-  be:   [{key:"ght", name:"Glute-Ham Raise", bw:true, cues:["Ayaq biləkləri sabitlənir, bədən düz xətt üzrə qalır.","Enişi bacardığınız qədər yavaş nəzarətdə saxlayın — bu hərəkətin əsl işi enişdədir."]}],
-  fp:   [{key:"rpd", name:"Reverse Pec Deck", cues:["Üzü aparata oturun, qollar geniş açılır.","Arxa deltada sıxılmanı hiss edin, geriyə yellənməyin."]},
-         {key:"bpa", name:"Band Pull-Apart", bw:true, img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Back-flyes-with-resistance-bands-1.png/500px-Back-flyes-with-resistance-bands-1.png", cues:["Rezini çiyin səviyyəsində iki yana dartın.","Kürəkləri sıxın, qollar düz qalsın."]}],
-  abs:  [{key:"hkr", name:"Hanging Knee Raise", bw:true, cues:["Dizləri sinəyə doğru qaldırın, yellənməyin.","Qarını sıxaraq ombanı da yuxarı burun."]},
-         {key:"dsu", name:"Decline Sit-Up", bw:true, cues:["Nəzarətlə enin — düşməyin.","Ağırlığı sinədə tutub çətinləşdirmək olar."]}]
+/* Həftəlik tövsiyə olunan iş dövrü sayı (elmi konsensus aralığı) */
+const MUSC_TARGET = {
+  chest:[10,20], lats:[10,20], "upper-back":[10,20], quads:[10,20], hamstrings:[8,16],
+  glutes:[8,16], "side-delt":[8,16], "rear-delt":[6,12], "front-delt":[6,12],
+  biceps:[8,16], triceps:[8,16], calves:[6,16], abs:[6,16], "lower-back":[4,10],
+  obliques:[4,10], forearms:[0,10]
 };
 
-const ACT_OPTS = [
-  { v:1.375, l:"Aşağı — ofis işi, həftədə 3 dəfə idman zalı" },
-  { v:1.55,  l:"Orta — çox ayaq üstə iş + idman zalı" },
-  { v:1.725, l:"Yüksək — fiziki iş + idman zalı" }
-];
+const EQ = {
+  barbell:   {n:"Ştanq",        note:"ÜMUMİ çəki — ştanq daxil", bar:true},
+  ez:        {n:"EZ ştanq",     note:"ÜMUMİ çəki — ştanq daxil", bar:true},
+  smith:     {n:"Smith",        note:"ÜMUMİ çəki — ştanq daxil", bar:true},
+  dumbbell:  {n:"Hantel",       note:"BİR hantelin çəkisi"},
+  machine:   {n:"Aparat",       note:"Dəstədəki rəqəm"},
+  cable:     {n:"Kabel",        note:"Dəstədəki rəqəm"},
+  bodyweight:{n:"Bədən çəkisi", note:"ƏLAVƏ çəki (0 = sırf bədən çəkisi)"},
+  assisted:  {n:"Kömkli",       note:"Kömək çəkisi (çox = asan)"}
+};
 
-/* ================= state & persistence ================= */
-/* profile.w yalnız ilk qurulum üçün "toxumdur" — həqiqi mənbə həmişə state.weights[]-dir.
-   Qurulumdan sonra heç bir yerdə oxunmur; bax latestW() və setWeight(). */
-const DEFAULTS = { profile:{name:"Elvin",age:"",h:"",w:"",sex:"m",act:1.375,sur:350,weeklyTarget:3}, weights:[], sessions:[], active:null, supps:[], deloadAt:0 };
-let state = JSON.parse(JSON.stringify(DEFAULTS));
-let storageOK = true, saveT = null;
 
+/* ==================================================================
+   1. STATE
+   ================================================================== */
+const KEY = "forge-data";
+const DEF = {
+  v: 3,
+  profile: { name:"", sex:"m", age:"", h:"", weeklyTarget:3, clockOffset:0 },
+  settings: {
+    inc: { barbell:2.5, ez:2.5, smith:2.5, dumbbell:2, machine:5, cable:5, bodyweight:2.5, assisted:5 },
+    barWeight: 20, ezWeight: 10,
+    plates: [20,15,10,5,2.5,1.25],
+    repMin: 8, repMax: 12, useLibRange: false,
+    autoRest: true
+  },
+  plan: {
+    A: { name:"A · Ağır",  ex:["back-squat","bb-bench","lat-pulldown","rdl","lateral-raise","pushdown"] },
+    B: { name:"B · Orta",  ex:["leg-press","cable-row","db-ohp","leg-curl","ez-curl","calf-standing"] },
+    C: { name:"C · Həcm",  ex:["bulgarian","incline-db","chest-row","back-ext","face-pull","cable-crunch"] }
+  },
+  sessions: [], weights: [], active: null, deloadAt: 0, ts: 0
+};
+let state = JSON.parse(JSON.stringify(DEF));
+let storageOK = true;
+
+const EXBY = {}; LIB.forEach(e => EXBY[e.k] = e);
 const $ = s => document.querySelector(s);
-const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const todayISO = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
-const fmtD = iso => { const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d).toLocaleDateString("az",{day:"numeric",month:"short"}); };
-const EXMAP = {}; Object.keys(PROGRAM).forEach(D => PROGRAM[D].ex.forEach(e => {
-  EXMAP[e.key] = {...e, day:D};
-  (ALTS[e.key]||[]).forEach(a => EXMAP[a.key] = {...e, ...a, cues:a.cues||[], mist:a.mist||[], img:a.img||null, day:D});
-}));
-/* aktiv məşqdə slot üçün seçilmiş effektiv hərəkət (əsas və ya alternativ) */
-function effEx(slotKey){
-  const ak = state.active && state.active.swap && state.active.swap[slotKey];
-  return (ak && EXMAP[ak]) ? EXMAP[ak] : EXMAP[slotKey];
-}
-function openSwap(slotKey){
-  const opts = [EXMAP[slotKey], ...(ALTS[slotKey]||[]).map(a=>EXMAP[a.key])];
-  const cur = effEx(slotKey).key;
-  $("#sheet").innerHTML = `<div class="grab"></div>
-    <h3>Hərəkəti seçin</h3><div class="stag">${EXMAP[slotKey].tag}</div>
-    <div class="swaplist">${opts.map((o,oi)=>{
-      const p = lastPerf(o.key);
-      return `<button class="swopt ${o.key===cur?"on":""}" onclick="chooseEx('${slotKey}','${o.key}')">
-        ${o.img?`<img class="ex-thumb" src="${o.img}" alt="${esc(o.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ex-thumb ph',textContent:'🏋️'}))">`:`<div class="ex-thumb ph">🏋️</div>`}
-        <span class="swtxt"><b>${o.name}</b><small>${oi===0?"Əsas hərəkət":"Alternativ"} · ${p?`Son: ${perfStr(p)}`:"ilk dəfə"}</small></span>
-        <span class="swck">${o.key===cur?"✓":""}</span>
-      </button>`;
-    }).join("")}</div>
-    <button class="btn block ghost" style="margin-top:6px" onclick="closeSheet()">Bağla</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
-}
-function chooseEx(slotKey, key){
-  if(key===slotKey){ if(state.active.swap) delete state.active.swap[slotKey]; }
-  else { state.active.swap = state.active.swap || {}; state.active.swap[slotKey] = key; }
-  const sug = suggestKg(key);
-  state.active.ex[slotKey].forEach(s=>{ if(!s.done){ s.kg = sug ?? ""; s.reps = ""; } });
-  closeSheet(); save(); renderTrain();
-  toast(`Seçildi: ${EXMAP[key].name}`);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+/* ---- köhnə versiyadan açar uyğunluğu — tarixçə itmir ---- */
+const OLDKEY = {
+  sq:"back-squat", bp:"bb-bench", lp:"lat-pulldown", rdl:"rdl", lat:"lateral-raise", tri:"pushdown",
+  lpz:"leg-press", row:"cable-row", ohp:"ohp", llc:"leg-curl", cur:"ez-curl", calf:"calf-standing",
+  bss:"bulgarian", idp:"incline-db", csmr:"chest-row", be:"back-ext", fp:"face-pull", abs:"cable-crunch",
+  hsq:"hack-squat", gsq:"goblet", dbp:"db-bench", mchp:"machine-press", apu:"pullup", ht:"hip-thrust",
+  cpt:"hip-thrust", clr:"cable-lateral", ohte:"oh-ext", skc:"skull", smsq:"back-squat", oadr:"db-row",
+  sdp:"db-ohp", mshp:"machine-ohp", slc:"seated-curl", dbcu:"db-curl", cbcu:"cable-curl", ham:"hammer",
+  scr:"calf-seated", lpcr:"calf-standing", wlg:"lunge", stpu:"lunge", incm:"incline-bb", fly:"cable-fly",
+  pdk:"pec-deck", dbfl:"cable-fly", mhr:"machine-row", ght:"back-ext", rpd:"rear-fly", bpa:"rear-fly",
+  hkr:"hanging-raise", dsu:"cable-crunch"
+};
+
+function migrate(d){
+  const s = {...JSON.parse(JSON.stringify(DEF)), ...d};
+  s.profile  = {...DEF.profile,  ...(d.profile||{})};
+  s.settings = {...DEF.settings, ...(d.settings||{})};
+  s.settings.inc = {...DEF.settings.inc, ...((d.settings||{}).inc||{})};
+  s.plan = (d.plan && d.plan.A && d.plan.A.ex) ? d.plan : JSON.parse(JSON.stringify(DEF.plan));
+  s.sessions = Array.isArray(d.sessions) ? d.sessions : [];
+  s.weights  = Array.isArray(d.weights)  ? d.weights  : [];
+
+  /* v1/v2 → v3: hərəkət açarlarını yeni kitabxanaya bağla */
+  s.sessions.forEach(ss => {
+    (ss.ex||[]).forEach(e => {
+      if(!EXBY[e.key] && OLDKEY[e.key]) e.key = OLDKEY[e.key];
+      if(EXBY[e.key]) e.name = EXBY[e.key].n;
+      (e.sets||[]).forEach(st => { st.kg = parseFloat(st.kg)||0; st.reps = parseFloat(st.reps)||0; });
+    });
+    if(!ss.id) ss.id = "s" + (ss.d||"") + Math.random().toString(36).slice(2,7);
+  });
+  if(s.active && s.active.ex){
+    const fixed = {};
+    Object.keys(s.active.ex).forEach(k => { fixed[EXBY[k] ? k : (OLDKEY[k]||k)] = s.active.ex[k]; });
+    s.active.ex = fixed;
+  }
+  /* köhnə profile.w → weights[] */
+  if(!s.weights.length && d.profile && parseFloat(d.profile.w))
+    s.weights.push({ d: todayISO(), kg: parseFloat(d.profile.w) });
+  s.weights.sort((a,b)=> a.d < b.d ? -1 : 1);
+  s.v = 3;
+  return s;
 }
 
-function applyLoaded(v){
-  if(!v) return;
-  const d = (typeof v === "string") ? JSON.parse(v) : v;
-  state = {...JSON.parse(JSON.stringify(DEFAULTS)), ...d, profile:{...DEFAULTS.profile, ...(d.profile||{})}};
-  migrate();
-}
-/* köhnə yaddaşı səssizcə yeni sxemə keçirir — heç bir qeyd itmir */
-function migrate(){
-  if(!Array.isArray(state.weights)) state.weights = [];
-  if(!Array.isArray(state.sessions)) state.sessions = [];
-  if(!Array.isArray(state.supps)) state.supps = [];
-  if(!state.weights.length && parseFloat(state.profile.w))
-    state.weights.push({ d: todayISO(), kg: parseFloat(state.profile.w) });
-  if(!state.profile.sex) state.profile.sex = "m";
-  if(!state.profile.weeklyTarget) state.profile.weeklyTarget = 3;
-  if(typeof state.deloadAt !== "number") state.deloadAt = 0;
-  state.weights.sort((a,b)=>a.d<b.d?-1:1);
-}
-async function loadState(){
-  try{ /* inside Claude: artifact storage */
-    if(typeof window.storage !== "undefined"){
-      const r = await window.storage.get("forge-data");
-      applyLoaded(r && r.value);
-      return;
-    }
-  }catch(e){ /* açar hələ yoxdur və ya artefakt yaddaşı əlçatmazdır — localStorage-a keçirik */ }
-  try{ /* self-hosted website: browser localStorage */
-    applyLoaded(localStorage.getItem("forge-data"));
-    return;
-  }catch(e){}
-  storageOK = false;
-}
-/* Lokal yazma sürətlidir və heç vaxt şəbəkəni gözləmir (350 ms).
-   Bulud yazması ayrıca və NADİR olur — hər rəqəm yazılanda upsert
-   göndərmək zalın zəif siqnalında növbə yaradır və batareya yeyir.
-   save({cloud:true}) yalnız mənalı hadisələrdə çağırılır:
-   məşq bitdikdə, çəki qeyd edildikdə, silmə əməliyyatlarında. */
-let cloudT = null, cloudDirty = false;
-function save(opts){
+let saveT = null;
+function save(){
+  state.ts = Date.now();
   clearTimeout(saveT);
-  saveT = setTimeout(async () => {
-    state.ts = Date.now();
-    const json = JSON.stringify(state);
-    try{
-      if(typeof window.storage !== "undefined"){ await window.storage.set("forge-data", json); }
-      else localStorage.setItem("forge-data", json);
-    }catch(e){ if(storageOK){ storageOK=false; renderSaveNote(); } }
-  }, 350);
-  cloudDirty = true;
-  if(opts && opts.cloud) scheduleCloud();
+  saveT = setTimeout(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch(e){ storageOK = false; }
+  }, 250);
 }
-function scheduleCloud(){
-  clearTimeout(cloudT);
-  cloudT = setTimeout(()=>{ if(sbUser && cloudDirty) cloudPush(); }, 10000);
+/* Təcili yazma — brauzer tabı bağlayanda və ya məşq bitəndə
+   250 ms-lik gecikməni gözləmirik, dərhal diskə yazırıq. */
+function flush(){
+  clearTimeout(saveT);
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch(e){ storageOK = false; }
 }
-/* 60 saniyəlik boşluq mühafizəsi — məşq uzun sürsə də data buludda qalır */
-setInterval(()=>{ if(sbUser && cloudDirty) cloudPush(); }, 60000);
-window.addEventListener("online", ()=>{ renderNetNote(); if(sbUser && cloudDirty) cloudPush(); });
-window.addEventListener("offline", renderNetNote);
-function renderNetNote(){
-  const el = $("#netNote"); if(!el) return;
-  el.innerHTML = navigator.onLine ? "" :
-    `<div class="warnnote">📴 Oflayn — qeydlər telefonda saxlanılır, şəbəkə qayıdanda özü buluda göndəriləcək.</div>`;
-}
-function renderSaveNote(){
-  $("#saveNote").innerHTML = storageOK ? "" :
-    `<div class="warnnote">⚠ Bu brauzer kontekstində yadda saxlama mövcud deyil — səhifə bağlandıqda qeydlər sıfırlanacaq.</div>`;
+document.addEventListener("visibilitychange", () => { if(document.hidden) flush(); });
+window.addEventListener("pagehide", flush);
+window.addEventListener("beforeunload", flush);
+
+function load(){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if(raw) state = migrate(JSON.parse(raw));
+  } catch(e){ storageOK = false; }
 }
 
-/* ================= cloud sync (Supabase) =================
-   localStorage gündəlik/oflayn yaddaş olaraq qalır; hər dəyişiklik
-   həm lokal, həm də buluda yazılır. Yükləmədə yenisi qalib gəlir. */
-const SB_URL = "https://jcavlzmsnwaqbaduhtkj.supabase.co";  // Supabase Project URL
-const SB_KEY = "sb_publishable_Uoe0k2MtlM8gRcFo6T8sWA_jF1KNqpB";  // Supabase publishable (anon) key
-let sb = null, sbUser = null, sbStatus = "";
-function sbReady(){ return !!(SB_URL && SB_KEY && window.supabase); }
-async function sbBoot(){
-  if(!sbReady()) return;
-  sb = window.supabase.createClient(SB_URL, SB_KEY);
-  try{
-    const { data } = await sb.auth.getSession();
-    sbUser = data.session ? data.session.user : null;
-  }catch(e){ sbUser = null; }
-  if(sbUser) await cloudSync();
-  refresh();
+/* ==================================================================
+   2. TARİX + ZAL SAATI
+   ================================================================== */
+function todayISO(d){ const x = d || new Date(); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`; }
+function fmtD(iso){ const [y,m,d] = iso.split("-").map(Number); return new Date(y,m-1,d).toLocaleDateString("az",{day:"numeric",month:"short"}); }
+function daysAgo(iso){ const [y,m,d]=iso.split("-").map(Number); return Math.round((Date.now()-new Date(y,m-1,d).getTime())/864e5); }
+
+/* Zalın divar saatı real saatdan fərqlənir — ofset dəqiqə ilə saxlanılır
+   və APP-dakı bütün vaxtlar zal saatı ilə göstərilir. */
+function gymNow(){ return new Date(Date.now() + (state.profile.clockOffset||0)*60000); }
+function hhmm(d){ return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; }
+function tickClock(){
+  const el = $("#clkT"); if(!el) return;
+  el.textContent = hhmm(gymNow());
+  const off = state.profile.clockOffset||0;
+  $("#clkL").textContent = off ? `zal saatı (${off>0?"+":""}${off} dəq)` : "zal saatı";
 }
-/* HƏQİQİ birləşdirmə. Köhnə kod bütün state-i əvəz edirdi: iki cihazda
-   oflayn işləsən, birinin məşqləri tamamilə itirdi. İndi hər massiv
-   açar üzrə birləşir və heç bir qeyd silinmir. */
-function mergeStates(local, remote){
-  const out = JSON.parse(JSON.stringify(local));
-  const preferRemote = (remote.ts||0) > (local.ts||0);
-  const index = (arr, kf) => { const m={}; (arr||[]).forEach(x=>{ m[kf(x)] = x; }); return m; };
-  const union = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])];
 
-  /* məşqlər: açar = tarix + gün; toqquşmada daha çox dövr qeyd olunanı saxlayırıq */
-  const setsOf = s => (s.ex||[]).reduce((a,e)=>a+(e.sets?e.sets.length:0), 0);
-  const ls = index(local.sessions, s=>s.d+"|"+s.day), rs = index(remote.sessions, s=>s.d+"|"+s.day);
-  out.sessions = union(ls, rs).map(k=>{
-    const a=ls[k], b=rs[k];
-    if(!a) return b; if(!b) return a;
-    return setsOf(b) > setsOf(a) ? b : a;
-  }).sort((x,y)=> x.d<y.d?-1:1);
+/* ==================================================================
+   3. ÇƏKİ QAYDALARI — appın ən vacib hissəsi
+   ================================================================== */
+function eqOf(k){ const e = EXBY[k]; return e ? e.eq : "machine"; }
+function incOf(k){
+  const e = EXBY[k]; if(!e) return 2.5;
+  return parseFloat(state.settings.inc[e.eq]) || 2.5;
+}
+function loadNote(k){
+  const e = EXBY[k]; if(!e) return "";
+  let t = `${EQ[e.eq].n} — ${EQ[e.eq].note}`;
+  if(e.unil) t += " · hər ayaq/qol üçün";
+  return t;
+}
+function repRange(k){
+  const e = EXBY[k];
+  if(state.settings.useLibRange && e && e.rep) return e.rep;
+  return [state.settings.repMin, state.settings.repMax];
+}
+function restOf(k){ const e = EXBY[k]; return e && e.rest ? e.rest : 90; }
 
-  /* çəki: açar = tarix; toqquşmada daha yeni state-dəki dəyər */
-  const lw = index(local.weights, x=>x.d), rw = index(remote.weights, x=>x.d);
-  out.weights = union(lw, rw).map(k=>{
-    const a=lw[k], b=rw[k];
-    if(!a) return b; if(!b) return a;
-    return preferRemote ? b : a;
-  }).sort((x,y)=> x.d<y.d?-1:1);
+/* Ştanq üçün disk hesabı: hər tərəfə nə qoymalı.
+   "2.5 kq artırmaq" sualının cavabı budur — hər tərəfə 1.25. */
+function plates(total, eq){
+  const bar = eq === "ez" ? (parseFloat(state.settings.ezWeight)||10) : (parseFloat(state.settings.barWeight)||20);
+  let side = (total - bar) / 2;
+  if(side < 0) return { bar, side: 0, list: null, err:"Çəki ştanqdan yüngüldür" };
+  const avail = (state.settings.plates||[]).slice().sort((a,b)=>b-a);
+  const list = []; let rem = Math.round(side*100)/100;
+  avail.forEach(p => { while(rem >= p - 1e-9){ list.push(p); rem = Math.round((rem-p)*100)/100; } });
+  return { bar, side, list, err: rem > 0.01 ? `${rem} kq disklərlə yığılmır` : null };
+}
 
-  /* əlavələr: açar = tarix; işarələr MƏNTIQİ VƏ YA ilə birləşir */
-  const lp = index(local.supps, x=>x.d), rp = index(remote.supps, x=>x.d);
-  out.supps = union(lp, rp).map(k=>{
-    const a=lp[k]||{d:k}, b=rp[k]||{d:k};
-    return { d:k, creatine: !!(a.creatine||b.creatine), protein: !!(a.protein||b.protein) };
-  }).sort((x,y)=> x.d<y.d?-1:1);
-
-  out.profile  = preferRemote ? {...local.profile, ...remote.profile} : {...remote.profile, ...local.profile};
-  out.deloadAt = Math.max(local.deloadAt||0, remote.deloadAt||0);
-  out.active   = local.active;   /* davam edən məşq HEÇ VAXT sinxronizasiya ilə silinmir */
-  out.ts       = Math.max(local.ts||0, remote.ts||0);
+/* ==================================================================
+   4. PROQRESSİYA MÜHƏRRİKİ
+   Keçmiş nəticə + istifadəçinin "necə keçdi" rəyi → növbəti təklif.
+   ================================================================== */
+function history(k){
+  const out = [];
+  state.sessions.forEach(s => {
+    const f = (s.ex||[]).find(e => e.key === k);
+    if(f && f.sets && f.sets.length) out.push({ d:s.d, sets:f.sets, feel:f.feel, note:f.note });
+  });
   return out;
 }
-async function cloudSync(){
-  if(!sb || !sbUser) return;
-  try{
-    const { data, error } = await sb.from("forge_data").select("data,updated_at").eq("user_id", sbUser.id).maybeSingle();
-    if(error){
-      /* ən çox rast gəlinən səbəb: user_id üzərində unikal məhdudiyyət yoxdur,
-         upsert hər dəfə yeni sətir əlavə edir və maybeSingle() partlayır */
-      sbStatus = "xəta";
-      toast("Bulud oxunmadı: " + (error.message||"naməlum xəta"));
-      return;
-    }
-    if(data && data.data){
-      const merged = mergeStates(state, data.data);
-      const changed = JSON.stringify(merged) !== JSON.stringify(state);
-      state = merged;
-      if(changed){ save(); sbStatus = "birləşdirildi"; }
-      else sbStatus = "sinxrondur";
-    }
-    await cloudPush();
-    await rlsSelfCheck();
-  }catch(e){ sbStatus = "oflayn"; }
+function lastOf(k){ const h = history(k); return h.length ? h[h.length-1] : null; }
+
+/* Bir məşqin "işçi çəkisi" = ən çox təkrar edilən/ən ağır iş dövrü */
+function workKg(sets){ return sets.length ? Math.max(...sets.map(s => s.kg)) : 0; }
+function topReps(sets, kg){ const at = sets.filter(s => s.kg === kg); return at.length ? Math.max(...at.map(s=>s.reps)) : 0; }
+
+function suggest(k){
+  const h = history(k), [rMin, rMax] = repRange(k), inc = incOf(k), e = EXBY[k];
+  if(!h.length) return { kg:null, reps:rMin, why:"first" };
+  const last = h[h.length-1];
+  const kg = workKg(last.sets);
+  const allTop = last.sets.length >= 2 && last.sets.every(s => s.reps >= rMax);
+  const anyLow = last.sets.some(s => s.reps < rMin);
+
+  /* iki ardıcıl uğursuz məşq → həmin hərəkət üçün 10% geri çəkilmə */
+  if(h.length >= 2){
+    const prev = h[h.length-2];
+    const failNow  = last.sets.some(s => s.reps < rMin);
+    const failPrev = prev.sets.some(s => s.reps < rMin);
+    if(failNow && failPrev && kg > 0)
+      return { kg: roundTo(kg*0.9, inc), reps:rMin, why:"deload" };
+  }
+  if(e && e.eq === "bodyweight" && kg === 0){
+    return allTop ? { kg:inc, reps:rMin, why:"bw-add" } : { kg:0, reps:rMax, why:"bw-hold" };
+  }
+  if(allTop && last.feel === "easy") return { kg: kg + inc*2, reps:rMin, why:"double" };
+  if(allTop)                          return { kg: kg + inc,   reps:rMin, why:"up" };
+  if(anyLow || last.feel === "hard")  return { kg, reps:rMax, why:"hold" };
+  return { kg, reps:rMax, why:"grind" };
 }
-/* RLS yoxlaması: öz sətrimizdən başqa bir şey görürüksə, cədvəl açıqdır. */
-async function rlsSelfCheck(){
-  try{
-    const { data, error } = await sb.from("forge_data").select("user_id").neq("user_id", sbUser.id).limit(1);
-    if(!error && data && data.length){
-      sbStatus = "TƏHLÜKƏSİZLİK XƏBƏRDARLIĞI";
-      toast("⚠ Supabase cədvəlində RLS aktiv deyil — başqalarının qeydləri görünür.");
-    }
-  }catch(e){}
-}
-async function cloudPush(){
-  if(!sb || !sbUser) return;
-  if(!navigator.onLine){ cloudDirty = true; return; }
-  try{
-    /* onConflict olmadan hər çağırış YENİ sətir yaradır və sonra
-       maybeSingle() xəta verir — cədvəldə unique(user_id) da olmalıdır */
-    const { error } = await sb.from("forge_data")
-      .upsert({ user_id: sbUser.id, data: state, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-    if(error){ sbStatus = "xəta"; cloudDirty = true; toast("Buluda yazılmadı: " + (error.message||"")); }
-    else { sbStatus = "sinxrondur"; cloudDirty = false; }
-  }catch(e){ sbStatus = "oflayn"; cloudDirty = true; }
-}
-async function sbSignIn(){
-  const email = $("#sb-email").value.trim(), pass = $("#sb-pass").value;
-  if(!email || !pass){ toast("E-poçt və şifrəni daxil edin"); return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if(error){ toast("Daxil olmaq alınmadı: " + error.message); return; }
-  sbUser = data.user;
-  await cloudSync(); refresh();
-  toast("Daxil oldunuz — bulud sinxronizasiyası aktivdir ☁️");
-}
-async function sbSignUp(){
-  const email = $("#sb-email").value.trim(), pass = $("#sb-pass").value;
-  if(!email || pass.length<6){ toast("E-poçt və ən azı 6 simvolluq şifrə daxil edin"); return; }
-  const { data, error } = await sb.auth.signUp({ email, password: pass });
-  if(error){ toast("Qeydiyyat alınmadı: " + error.message); return; }
-  if(!data.session){ toast("Qeydiyyat tamam — e-poçtunuzu təsdiqləyin, sonra daxil olun"); return; }
-  sbUser = data.user;
-  await cloudPush(); refresh();
-  toast("Hesab yaradıldı — məlumatlar buludda ☁️");
-}
-async function sbSignOut(){
-  try{ await sb.auth.signOut(); }catch(e){}
-  sbUser = null; refresh(); toast("Çıxış edildi — qeydlər lokal davam edir");
+function roundTo(v, step){ return Math.round(v/step)*step; }
+
+function hintText(k){
+  const s = suggest(k), [rMin,rMax] = repRange(k), inc = incOf(k), last = lastOf(k);
+  const prev = last ? ` Keçən dəfə: ${last.sets.map(x=>`${x.kg>0?x.kg:"BÇ"}×${x.reps}`).join(", ")} (${fmtD(last.d)}).` : "";
+  switch(s.why){
+    case "first":   return { cls:"", t:`İlk dəfə. ${rMax} təkrardan sonra hələ 1-2 təkrar qalacaq çəki seç — o rəqəmi yaz, qalanını mən hesablayacağam.` };
+    case "up":      return { cls:"up", t:`Keçən dəfə bütün dövrlərdə ${rMax} təkrara çatdın → <b>+${inc} kq</b>. Bu gün ${s.kg} kq, hədəf ${rMin} təkrar.${prev}` };
+    case "double":  return { cls:"up", t:`Keçən dəfə hamısı ${rMax} idi və "asan" qeyd etmişdin → <b>+${inc*2} kq</b>. Bu gün ${s.kg} kq.${prev}` };
+    case "hold":    return { cls:"hold", t:`Çəki eyni qalır — ${s.kg} kq. Hədəf: hər dövrdə ${rMax} təkrara çatmaq, sonra çəki artır.${prev}` };
+    case "deload":  return { cls:"hold", t:`İki məşq ardıcıl hədəfə çatmadın. Çəkini <b>${s.kg} kq</b>-a endir (−10%), texnikanı bərpa et, yenidən qalx.${prev}` };
+    case "bw-add":  return { cls:"up", t:`Bədən çəkisi ilə hədəfə çatdın → indi <b>+${inc} kq</b> əlavə çəki götür.${prev}` };
+    case "bw-hold": return { cls:"", t:`Bədən çəkisi ilə davam — çəki xanası 0 qala bilər. Hədəf ${rMax} təkrar.${prev}` };
+    default:        return { cls:"", t:`${s.kg} kq ilə davam et, ${rMax} təkrara çatmağa çalış.${prev}` };
+  }
 }
 
-/* ================= tiny utils ================= */
-/* ---------------- lokal ixrac / idxal ----------------
-   Bulud xarici asılılıqdır. İstifadəçinin öz nəzarətində olan
-   nüsxəsi həmişə olmalıdır. */
-function exportData(){
-  try{
-    const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `forge-${todayISO()}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
-    toast("Fayl yükləndi 📁");
-  }catch(e){ toast("İxrac alınmadı: " + e.message); }
-}
-function importPick(){ $("#importFile").click(); }
-function importData(input){
-  const f = input.files && input.files[0]; if(!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    let d;
-    try{ d = JSON.parse(rd.result); }
-    catch(e){ toast("Fayl oxunmadı — düzgün JSON deyil."); input.value=""; return; }
-    if(!d || typeof d !== "object" || !Array.isArray(d.sessions) || !Array.isArray(d.weights)){
-      toast("Bu FORGE ehtiyat faylı deyil."); input.value=""; return;
-    }
-    const ns = d.sessions.length, nw = d.weights.length;
-    if(!confirm(`Fayldan ${ns} məşq və ${nw} çəki qeydi birləşdiriləcək.\n\nMövcud qeydləriniz SİLİNMİR — yalnız çatışmayanlar əlavə olunur. Davam edilsin?`)){ input.value=""; return; }
-    state = mergeStates(state, {...JSON.parse(JSON.stringify(DEFAULTS)), ...d});
-    migrate(); save({cloud:true}); refresh();
-    toast(`Birləşdirildi — indi ${state.sessions.length} məşq var`);
-    input.value = "";
-  };
-  rd.readAsText(f);
-}
-
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("on"),2400); }
-/* mondayOf: artıq istifadə olunmur — weekCount() sürüşən 7 günə keçdi. */
-function latestW(){ return state.weights.length ? state.weights[state.weights.length-1].kg : (parseFloat(state.profile.w)||null); }
-function e1rm(kg,reps){ return kg*(1+reps/30); }
+/* ==================================================================
+   5. SESSİYA
+   ================================================================== */
 function nextDay(){
-  if(state.active) return state.active.day;
-  if(!state.sessions.length) return "A";
-  const last = state.sessions[state.sessions.length-1].day;
-  return ROT[(ROT.indexOf(last)+1)%3];
+  const order = Object.keys(state.plan);
+  if(!state.sessions.length) return order[0];
+  const lastDay = state.sessions[state.sessions.length-1].day;
+  const i = order.indexOf(lastDay);
+  return order[(i+1) % order.length];
 }
-/* Təməl məşqi qəsdən yüngüldür (~50-60%, setlər yarıya endirilib).
-   Proqressiya hesablamaları onu NƏZƏRƏ ALMAMALIDIR, yoxsa app aylarla
-   real işçi çəkidən aşağıda qalır. Tarixçə və qrafiklər isə göstərir. */
-function lastPerf(key, opts){
-  const inc = opts && opts.includeFoundation;
-  for(let i=state.sessions.length-1;i>=0;i--){
-    if(state.sessions[i].foundation && !inc) continue;
-    const f = state.sessions[i].ex.find(e=>e.key===key);
-    if(f && f.sets.length) return { d:state.sessions[i].d, sets:f.sets };
+
+function startSession(dayKey){
+  if(state.active && !confirm("Davam edən məşq var. Onu ləğv edib yenisini başladım?")) return;
+  const plan = state.plan[dayKey];
+  const ex = {};
+  plan.ex.forEach(k => {
+    const s = suggest(k), [rMin,rMax] = repRange(k);
+    const n = 3;
+    ex[k] = Array.from({length:n}, () => ({
+      kg: s.kg === null ? "" : String(s.kg),
+      reps: String(s.reps || rMin),
+      done: false, pre: true            /* pre = təklif olunmuş, istifadəçi toxunmayıb */
+    }));
+  });
+  state.active = { id:"s"+Date.now(), day:dayKey, d:todayISO(), start:Date.now(), ex, notes:{} };
+  save(); tab("train");
+}
+
+/* Dövr ƏSLİNDƏ qeyd olunur: təklif olunan rəqəmlər real dəyərlərdir,
+   ✓ isə "bunu etdim" təsdiqidir. Boş qalan heç nə yoxdur. */
+function setVal(k, i, field, v){
+  const s = state.active.ex[k][i];
+  s[field] = v; s.pre = false; save();
+}
+function tick(k, i){
+  const s = state.active.ex[k][i];
+  s.done = !s.done;
+  if(s.done && state.settings.autoRest) startTimer(restOf(k), EXBY[k] ? EXBY[k].n : "");
+  save(); renderTrain(false);
+}
+function addSet(k){
+  const arr = state.active.ex[k], last = arr[arr.length-1];
+  arr.push({ kg:last?last.kg:"", reps:last?last.reps:"", done:false, pre:true });
+  save(); renderTrain();
+}
+function delSet(k, i){ state.active.ex[k].splice(i,1); save(); renderTrain(); }
+
+function doneCount(){
+  if(!state.active) return 0;
+  return Object.values(state.active.ex).reduce((a,arr)=>a+arr.filter(s=>s.done).length, 0);
+}
+
+/* ==================================================================
+   6. RENDER — ümumi köməkçilər
+   ================================================================== */
+let curTab = "today";
+function tab(name){
+  curTab = name;
+  document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("on"));
+  $("#v-"+name).classList.add("on");
+  ({ today:renderToday, train:renderTrain, prog:renderProg, lib:renderLib })[name]();
+  window.scrollTo({top:0});
+}
+function refresh(){ ({ today:renderToday, train:renderTrain, prog:renderProg, lib:renderLib })[curTab](); }
+
+let toastT = null;
+function toast(m){
+  const el = $("#toast"); el.textContent = m; el.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove("on"), 2200);
+}
+
+function openSheet(title, html){
+  $("#sheetTitle").textContent = title;
+  $("#sheetBody").innerHTML = html;
+  $("#sheetBody").scrollTop = 0;
+  $("#mask").classList.add("on"); $("#sheet").classList.add("on");
+}
+function closeSheet(){ $("#mask").classList.remove("on"); $("#sheet").classList.remove("on"); }
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeSheet(); });
+
+/* ==================================================================
+   7. TAYMER
+   ================================================================== */
+let tLeft = 0, tInt = null;
+function startTimer(sec, label){
+  tLeft = sec; $("#tLabel").textContent = label ? ("İSTİRAHƏT · " + label) : "İSTİRAHƏT";
+  $("#timer").classList.add("on"); drawTimer();
+  clearInterval(tInt);
+  tInt = setInterval(() => {
+    tLeft--; drawTimer();
+    if(tLeft <= 0){ clearInterval(tInt); beep(); setTimeout(timerSkip, 1200); }
+  }, 1000);
+}
+function drawTimer(){ $("#tVal").textContent = `${Math.floor(Math.max(0,tLeft)/60)}:${String(Math.max(0,tLeft)%60).padStart(2,"0")}`; }
+function timerAdd(s){ tLeft += s; drawTimer(); }
+function timerSkip(){ clearInterval(tInt); $("#timer").classList.remove("on"); }
+function beep(){
+  try{
+    const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    const c = new C(), o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination); o.frequency.value = 780;
+    g.gain.setValueAtTime(.22, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, c.currentTime + .5);
+    o.start(); o.stop(c.currentTime + .5);
+  }catch(e){}
+  if(navigator.vibrate) navigator.vibrate([120,60,120]);
+}
+
+
+/* ==================================================================
+   8. ƏZƏLƏ HƏCMİ VƏ XƏRİTƏ
+   Əsas əzələ = 1 dövr, köməkçi əzələ = 0.5 dövr (standart yanaşma).
+   ================================================================== */
+function volume(days){
+  const cut = todayISO(new Date(Date.now() - (days-1)*864e5));
+  const v = {}; Object.keys(MUSC).forEach(m => v[m] = 0);
+  state.sessions.filter(s => s.d >= cut).forEach(s => {
+    (s.ex||[]).forEach(e => {
+      const lib = EXBY[e.key]; if(!lib) return;
+      const n = (e.sets||[]).length;
+      (lib.m||[]).forEach(m => { if(v[m] !== undefined) v[m] += n; });
+      (lib.s||[]).forEach(m => { if(v[m] !== undefined) v[m] += n*0.5; });
+    });
+  });
+  return v;
+}
+function lerp(a,b,t){
+  const h = x => [parseInt(x.slice(1,3),16), parseInt(x.slice(3,5),16), parseInt(x.slice(5,7),16)];
+  const A = h(a), B = h(b);
+  return "#" + A.map((c,i) => Math.round(c + (B[i]-c)*t).toString(16).padStart(2,"0")).join("");
+}
+function muscColor(sets, key){
+  const t = MUSC_TARGET[key] || [8,16];
+  if(sets <= 0) return "#1a1f27";
+  if(sets < t[0]) return lerp("#3a3520", "#f3b73f", sets/t[0]);
+  if(sets <= t[1]) return "#3ecf8e";
+  return "#ff6b6b";
+}
+
+function bodySVG(side, vol){
+  const c = k => muscColor(vol[k]||0, k);
+  const P = (k, shape) => shape.replace("%C%", c(k)).replace("%K%", k);
+  const silo = '#151a21', stroke = '#252c37';
+  const head = `<circle cx="60" cy="16" r="10" fill="${silo}" stroke="${stroke}"/>
+                <rect x="55" y="24" width="10" height="8" fill="${silo}"/>`;
+  const legsOutline = `<path d="M42,96 h36 l4,44 -6,66 h-11 l-3,-58 -3,58 h-11 l-6,-66z" fill="${silo}" stroke="${stroke}"/>`;
+  const armsOutline = `<path d="M38,34 l-12,10 -6,52 h11 l6,-46z" fill="${silo}" stroke="${stroke}"/>
+                       <path d="M82,34 l12,10 6,52 h-11 l-6,-46z" fill="${silo}" stroke="${stroke}"/>`;
+  const torso = `<path d="M42,34 h36 l4,26 -3,38 h-38 l-3,-38z" fill="${silo}" stroke="${stroke}"/>`;
+
+  if(side === "front"){
+    return `<svg viewBox="0 0 120 260" xmlns="http://www.w3.org/2000/svg">
+      ${head}${torso}${armsOutline}${legsOutline}
+      ${P("front-delt",'<ellipse data-m="%K%" cx="38" cy="42" rx="10" ry="8" fill="%C%"/>')}
+      ${P("front-delt",'<ellipse data-m="%K%" cx="82" cy="42" rx="10" ry="8" fill="%C%"/>')}
+      ${P("chest",'<rect data-m="%K%" x="43" y="36" width="16" height="18" rx="5" fill="%C%"/>')}
+      ${P("chest",'<rect data-m="%K%" x="61" y="36" width="16" height="18" rx="5" fill="%C%"/>')}
+      ${P("biceps",'<ellipse data-m="%K%" cx="32" cy="62" rx="7" ry="12" fill="%C%"/>')}
+      ${P("biceps",'<ellipse data-m="%K%" cx="88" cy="62" rx="7" ry="12" fill="%C%"/>')}
+      ${P("forearms",'<ellipse data-m="%K%" cx="27" cy="88" rx="6" ry="13" fill="%C%"/>')}
+      ${P("forearms",'<ellipse data-m="%K%" cx="93" cy="88" rx="6" ry="13" fill="%C%"/>')}
+      ${P("obliques",'<rect data-m="%K%" x="42" y="58" width="8" height="30" rx="4" fill="%C%"/>')}
+      ${P("obliques",'<rect data-m="%K%" x="70" y="58" width="8" height="30" rx="4" fill="%C%"/>')}
+      ${P("abs",'<rect data-m="%K%" x="52" y="57" width="16" height="33" rx="4" fill="%C%"/>')}
+      ${P("quads",'<ellipse data-m="%K%" cx="50" cy="130" rx="11" ry="27" fill="%C%"/>')}
+      ${P("quads",'<ellipse data-m="%K%" cx="70" cy="130" rx="11" ry="27" fill="%C%"/>')}
+      ${P("calves",'<ellipse data-m="%K%" cx="50" cy="192" rx="8" ry="20" fill="%C%"/>')}
+      ${P("calves",'<ellipse data-m="%K%" cx="70" cy="192" rx="8" ry="20" fill="%C%"/>')}
+    </svg>`;
   }
-  return null;
+  return `<svg viewBox="0 0 120 260" xmlns="http://www.w3.org/2000/svg">
+    ${head}${torso}${armsOutline}${legsOutline}
+    ${P("rear-delt",'<ellipse data-m="%K%" cx="38" cy="42" rx="10" ry="8" fill="%C%"/>')}
+    ${P("rear-delt",'<ellipse data-m="%K%" cx="82" cy="42" rx="10" ry="8" fill="%C%"/>')}
+    ${P("upper-back",'<rect data-m="%K%" x="45" y="34" width="30" height="20" rx="6" fill="%C%"/>')}
+    ${P("lats",'<path data-m="%K%" d="M44,52 L44,80 L57,88 L57,56 Z" fill="%C%"/>')}
+    ${P("lats",'<path data-m="%K%" d="M76,52 L76,80 L63,88 L63,56 Z" fill="%C%"/>')}
+    ${P("triceps",'<ellipse data-m="%K%" cx="32" cy="62" rx="7" ry="12" fill="%C%"/>')}
+    ${P("triceps",'<ellipse data-m="%K%" cx="88" cy="62" rx="7" ry="12" fill="%C%"/>')}
+    ${P("forearms",'<ellipse data-m="%K%" cx="27" cy="88" rx="6" ry="13" fill="%C%"/>')}
+    ${P("forearms",'<ellipse data-m="%K%" cx="93" cy="88" rx="6" ry="13" fill="%C%"/>')}
+    ${P("lower-back",'<rect data-m="%K%" x="51" y="78" width="18" height="14" rx="4" fill="%C%"/>')}
+    ${P("glutes",'<ellipse data-m="%K%" cx="51" cy="106" rx="11" ry="11" fill="%C%"/>')}
+    ${P("glutes",'<ellipse data-m="%K%" cx="69" cy="106" rx="11" ry="11" fill="%C%"/>')}
+    ${P("hamstrings",'<ellipse data-m="%K%" cx="50" cy="142" rx="11" ry="24" fill="%C%"/>')}
+    ${P("hamstrings",'<ellipse data-m="%K%" cx="70" cy="142" rx="11" ry="24" fill="%C%"/>')}
+    ${P("calves",'<ellipse data-m="%K%" cx="50" cy="192" rx="8" ry="20" fill="%C%"/>')}
+    ${P("calves",'<ellipse data-m="%K%" cx="70" cy="192" rx="8" ry="20" fill="%C%"/>')}
+  </svg>`;
 }
-/* yalnız təməl məşqi var, ondan sonrakı ilk real məşqdəyik? */
-function afterFoundationOnly(key){
-  return !lastPerf(key) && !!lastPerf(key, {includeFoundation:true});
+
+/* ==================================================================
+   9. QRAFİKLƏR
+   ================================================================== */
+function lineChart(pts, color, unit){
+  if(pts.length < 2) return `<div class="empty">Trend üçün ən azı 2 qeyd lazımdır</div>`;
+  const W = 320, H = 110, pad = 26;
+  const ys = pts.map(p=>p.y), lo = Math.min(...ys), hi = Math.max(...ys), rng = (hi-lo)||1;
+  const X = i => pad + i*(W-pad-8)/(pts.length-1);
+  const Y = v => H-20 - ((v-lo)/rng)*(H-34);
+  const d = pts.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
+  const area = d + `L${X(pts.length-1).toFixed(1)},${H-20} L${pad},${H-20} Z`;
+  return `<svg viewBox="0 0 ${W} ${H}">
+    <defs><linearGradient id="g${color.slice(1)}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity=".28"/><stop offset="1" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#g${color.slice(1)})"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${i===pts.length-1?3.6:2.2}" fill="${color}"/>`).join("")}
+    <text x="2" y="14" fill="#5d6878" font-size="9">${hi}${unit}</text>
+    <text x="2" y="${H-16}" fill="#5d6878" font-size="9">${lo}${unit}</text>
+    <text x="${pad}" y="${H-4}" fill="#5d6878" font-size="9">${fmtD(pts[0].d)}</text>
+    <text x="${W-8}" y="${H-4}" fill="#5d6878" font-size="9" text-anchor="end">${fmtD(pts[pts.length-1].d)}</text>
+  </svg>`;
 }
-function perfStr(p){ return p.sets.map(s=>`${s.kg>0?s.kg:"BÇ"}×${s.reps}`).join(", "); }
-function suggestKg(key){
-  const p = lastPerf(key), ex = EXMAP[key];
-  if(!p) return null;
-  const top = Math.max(...p.sets.map(s=>s.kg));
-  /* bədən çəkisi hərəkəti hələ yüksüz gedirsə, proqressiya çəki ilə yox, təkrarla olur */
-  if(ex.bw && top === 0) return 0;
-  const allTop = p.sets.every(s=>s.reps>=ex.rMax);
-  return Math.round((allTop ? top+ex.inc : top)*10)/10;
+function barChart(pts, color, unit){
+  if(!pts.length) return `<div class="empty">Hələ məlumat yoxdur</div>`;
+  const W = 320, H = 100, n = pts.length, bw = (W-16)/n;
+  const hi = Math.max(...pts.map(p=>p.y)) || 1;
+  return `<svg viewBox="0 0 ${W} ${H}">
+    ${pts.map((p,i)=>{
+      const h = Math.max(2, (p.y/hi)*(H-30));
+      return `<rect x="${(8+i*bw+bw*.15).toFixed(1)}" y="${(H-20-h).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${color}" opacity="${i===n-1?1:.55}"/>
+              <text x="${(8+i*bw+bw*.5).toFixed(1)}" y="${H-7}" fill="#5d6878" font-size="8.5" text-anchor="middle">${p.l}</text>`;
+    }).join("")}
+    <text x="2" y="12" fill="#5d6878" font-size="9">${Math.round(hi)}${unit}</text>
+  </svg>`;
 }
-function hintFor(ex, p){
-  if(!p){
-    if(afterFoundationOnly(ex.key))
-      return { cls:"up", txt:`Təməl məşqi tamamlandı — o, qəsdən yüngül idi və proqressiyaya sayılmır. <b>Bu gün real işçi çəkinizi qoyun:</b> ${ex.rMax} təkrardan sonra hələ 1-2 təkrar qalacaq ağırlıq. Bundan sonrasını app hesablayacaq.` };
-    return { cls:"", txt:"İlk dəfə: ~2 əlavə təkrar edə biləcəyiniz çəki seçin. Qeyd edin — davamını mən götürəcəyəm." };
-  }
-  const sug = suggestKg(ex.key);
-  const allTop = p.sets.every(s=>s.reps>=ex.rMax);
-  if(ex.bw && sug === 0){
-    if(allTop) return { cls:"up", txt:`Bədən çəkisi ilə bütün dövrlərdə ${ex.rMax} təkrara çatdınız — indi döşünüzə <b>+${ex.inc} kq</b> disk əlavə edin.` };
-    return { cls:"", txt:`Bədən çəkisi ilə davam — çəki xanası boş qala bilər. Hədəf: hər dövrdə ${ex.rMax} təkrar, sonra disk əlavə edirik.` };
-  }
-  if(allTop) return { cls:"up", txt:`Bu gün bütün dövrlər: <b>${sug} kq</b> (+${ex.inc} kq) — keçən dəfə hamısı ${ex.rMax} təkrara çatdı. Haqq etmisiniz.` };
-  return { cls:"", txt:`Bu gün bütün dövrlər: <b>${sug} kq</b> — çəkini saxlayın, hər dövrdə ${ex.rMax} təkrara doğru çalışın. Proqres = əvvəl təkrar, sonra çəki.` };
-}
-const r25 = v => Math.round(v/2.5)*2.5;
-/* Sürüşən 7 gün — bazar ertəsinə bağlı deyil, gün-aşırı rejimdə də doğru sayır. */
-function weekCount(){
-  const cut = new Date(); cut.setHours(0,0,0,0); cut.setDate(cut.getDate()-6);
-  return state.sessions.filter(s=>{const [y,m,d]=s.d.split("-").map(Number); return new Date(y,m-1,d)>=cut;}).length;
-}
-function weeklyTarget(){ return parseInt(state.profile.weeklyTarget) || 3; }
-/* Hər gün üçün real vaxt təxmini: iş dövrləri + istirahət + qızışma. */
-function estMinutes(dayKey){
-  const ex = PROGRAM[dayKey].ex;
-  const secs = ex.reduce((a,e)=>a + e.sets*(40+e.rest), 0);
-  const ramp = ex.filter(e=>e.rest>=120).length * 150;   /* ağır hərəkətlərin qızışma dövrləri */
-  const total = Math.round((secs + ramp + 480) / 60);     /* +8 dəq ümumi qızışma */
-  return `${Math.round(total/5)*5-5}-${Math.round(total/5)*5+5} dəq`;
-}
-/* Yüngülləşdirmə həftəsi: son deload-dan bəri 18 real (təməl olmayan) məşq. */
-function deloadDue(){
-  const real = state.sessions.filter(s=>!s.foundation).length;
-  return real - (state.deloadAt||0) >= 18;
-}
-function dismissDeload(){ state.deloadAt = state.sessions.filter(s=>!s.foundation).length; save(); renderToday(); }
-function profileDone(){ const p=state.profile; return p.name && p.age && p.h && (p.w || state.weights.length); }
-function isFirstEver(){ return state.sessions.length===0; }
-function isoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function suppToday(kind){ const e=state.supps.find(x=>x.d===todayISO()); return !!(e && e[kind]); }
-function toggleSupp(kind){
-  const t = todayISO();
-  let e = state.supps.find(x=>x.d===t);
-  if(!e){ e = {d:t, creatine:false, protein:false}; state.supps.push(e); state.supps.sort((a,b)=>a.d<b.d?-1:1); }
-  e[kind] = !e[kind];
-  save(); renderToday();
-}
-function suppStreak(kind){
-  let n=0, d=new Date();
-  while(true){
-    const e = state.supps.find(x=>x.d===isoOf(d));
-    if(!e || !e[kind]) break;
-    n++; d.setDate(d.getDate()-1);
+
+/* ==================================================================
+   10. BUGÜN — qısa brifinq
+   ================================================================== */
+function weekSessions(){ const cut = todayISO(new Date(Date.now()-6*864e5)); return state.sessions.filter(s=>s.d>=cut).length; }
+function streak(){
+  let n = 0; const seen = new Set(state.sessions.map(s=>s.d));
+  for(let i=0;i<400;i++){
+    const d = todayISO(new Date(Date.now()-i*864e5));
+    if(seen.has(d)) n++;
+    else if(i > 0 && n > 0 && i - n > 3) break;
   }
   return n;
 }
-const FOUNDATION_NOTE = "1-ci gün · Təməl Məşqi — yüngül saxlayın. Bədəniniz hər hərəkəti təhlükəsiz öyrənsin deyə demək olar ki, çox asan hiss olunan çəki seçin (~50-60% səy). Bu günkü dövrlər yarıya endirilib; tam həcm və proqressiv yükləmə növbəti məşqdən başlayacaq.";
+function latestW(){ return state.weights.length ? state.weights[state.weights.length-1].kg : null; }
 
-/* ================= tabs ================= */
-let viewDay = null, selLift = null;
-function switchTab(name){
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
-  $("#view-"+name).classList.add("on");
-  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
-  ({today:renderToday, train:renderTrain, fuel:renderFuel, prog:renderProg})[name]();
-  window.scrollTo({top:0});
-}
-function refresh(){ const on=document.querySelector(".tabbar button.on").dataset.tab; switchTab(on); }
-
-/* ================= TODAY ================= */
 function renderToday(){
-  const p = state.profile, nd = nextDay(), D = PROGRAM[nd];
-  const last = state.sessions[state.sessions.length-1];
-  const w = latestW();
-  const prevW = state.weights.length>1 ? state.weights[state.weights.length-2].kg : null;
-  const dlt = (w && prevW) ? (w-prevW) : null;
-  const tip = TIPS[(state.sessions.length + new Date().getDate()) % TIPS.length];
+  const box = $("#v-today");
+  if(!state.profile.h){ box.innerHTML = setupCard(); return; }
 
-  let setup = "";
-  if(!profileDone()){
-    setup = `<div class="card">
-      <div class="h-big">Protokolunuzu qurun</div>
-      <div class="sub" style="margin-top:2px">30 saniyə — bu, qidalanma hədəflərinizi və proqres izlənməsini işə salır.</div>
-      <div class="field"><label>Ad</label><input id="su-name" value="${esc(p.name)}"></div>
-      <div class="grid3">
-        <div class="field"><label>Yaş</label><input id="su-age" type="number" inputmode="numeric" value="${esc(p.age)}" placeholder="27"></div>
-        <div class="field"><label>Boy (sm)</label><input id="su-h" type="number" inputmode="numeric" value="${esc(p.h)}" placeholder="178"></div>
-        <div class="field"><label>Çəki (kq)</label><input id="su-w" type="number" inputmode="decimal" step="0.1" value="${esc(p.w)}" placeholder="70"></div>
-      </div>
-      <div class="field"><label>Cins</label><select id="su-sex"><option value="m" ${p.sex!=="f"?"selected":""}>Kişi</option><option value="f" ${p.sex==="f"?"selected":""}>Qadın</option></select></div>
-      <div class="field"><label>Gündəlik fəallıq</label><select id="su-act">${ACT_OPTS.map(o=>`<option value="${o.v}" ${p.act==o.v?"selected":""}>${o.l}</option>`).join("")}</select></div>
-      <button class="btn block" onclick="saveSetup()">Yadda saxla və başla</button>
-    </div>`;
+  /* bitirilməmiş sessiya bərpası */
+  let recover = "";
+  if(state.active && (state.active.d !== todayISO() || Date.now() - state.active.start > 5*36e5)){
+    recover = `<div class="warn"><b>Bitirilməmiş məşq: ${fmtD(state.active.d)}</b><br>
+      ${doneCount()} dövr işarələnib. Yəqin bitirməyi unutmusan.
+      <div class="btnrow" style="margin-top:10px">
+        <button class="btn sm" onclick="openFinish()">Saxla</button>
+        <button class="btn sm ghost" onclick="tab('train')">Davam et</button>
+        <button class="btn sm danger" onclick="dropActive()">Sil</button>
+      </div></div>`;
   }
 
-  $("#view-today").innerHTML = `
-    ${p.name && profileDone() ? `<div class="h-big" style="margin:8px 2px 0">Hazırsınız, ${esc(p.name)}.</div>` : ""}
-    ${setup}
-    <div class="sect">Növbəti məşq</div>
-    <div class="card">
-      <div class="exhead">
-        <div>
-          <div class="h-big"><span class="mini-plate mp-${D.cls}"></span>${D.name}</div>
-          <div class="sub">${D.sub} · ${D.ex.length} hərəkət · ${estMinutes(nd)}</div>
-        </div>
-      </div>
-      <div class="lastline" style="margin:8px 0 12px">${ state.active ? "<b>Məşq davam edir</b> — davam edin." : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${PROGRAM[last.day].name}` : `Birinci gün. Növbələşmə A → B → C şəklindədir — tövsiyə olunan bölgü: <b>Bazar ertəsi · Çərşənbə · Cümə</b>.` }</div>
-      ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}</div>` : ""}
-      <button class="btn block" onclick="${state.active ? "switchTab('train')" : `startSession('${nd}')`}">${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
+  const nd = state.active ? state.active.day : nextDay();
+  const plan = state.plan[nd];
+  const vol = volume(7);
+  const weak = Object.keys(MUSC_TARGET)
+    .filter(m => (MUSC_TARGET[m][0] > 0) && (vol[m]||0) < MUSC_TARGET[m][0]*0.5)
+    .sort((a,b)=>(vol[a]||0)-(vol[b]||0)).slice(0,2);
+
+  /* diqqət nöqtələri: nə dəyişir */
+  const focus = plan.ex.map(k => {
+    const s = suggest(k), e = EXBY[k], last = lastOf(k);
+    if(s.why === "up" || s.why === "double")
+      return { ic:"▲", t:`<b>${e.n}</b> — ${s.kg} kq (+${(s.kg - workKg(last.sets)).toFixed(1).replace(".0","")})` };
+    if(s.why === "deload")
+      return { ic:"▼", t:`<b>${e.n}</b> — ${s.kg} kq-a en, iki məşq hədəfə çatmadın` };
+    if(s.why === "first")
+      return { ic:"◆", t:`<b>${e.n}</b> — ilk dəfə, çəkini özün seç` };
+    return null;
+  }).filter(Boolean).slice(0,4);
+
+  const bw = latestW(), bwPrev = state.weights.length>1 ? state.weights[state.weights.length-2].kg : null;
+  const dw = bw && bwPrev ? (bw-bwPrev) : null;
+  const est = plan.ex.reduce((a,k)=>a + 3*(40+restOf(k)), 0) + 480;
+  const endT = new Date(gymNow().getTime() + est*1000);
+
+  box.innerHTML = `
+  ${recover}
+  <div class="brief">
+    <div class="day">${state.active ? "Davam edən məşq" : "Növbəti məşq"}</div>
+    <h2>${esc(plan.name)}</h2>
+    <div class="small">${plan.ex.length} hərəkət · ~${Math.round(est/60)} dəq · zal saatı ilə bitiş ≈ <b class="acc">${hhmm(endT)}</b></div>
+    ${focus.length ? `<ul class="focus">${focus.map(f=>`<li><span class="ic acc">${f.ic}</span><span>${f.t}</span></li>`).join("")}</ul>` : ""}
+    ${weak.length ? `<ul class="focus"><li><span class="ic">!</span><span>Bu həftə geridə: <b>${weak.map(m=>MUSC[m].n).join(", ")}</b></span></li></ul>` : ""}
+    <button class="btn" style="margin-top:14px" onclick="${state.active ? "tab('train')" : `startSession('${nd}')`}">
+      ${state.active ? "Məşqə qayıt" : "Başla"}</button>
+  </div>
+
+  <div class="statgrid">
+    <div class="stat"><div class="v num">${weekSessions()}<small> / ${state.profile.weeklyTarget}</small></div><div class="l">Son 7 gün</div></div>
+    <div class="stat"><div class="v num">${state.sessions.length}</div><div class="l">Ümumi məşq</div></div>
+    <div class="stat"><div class="v num">${bw ? bw : "—"}${bw?'<small> kq</small>':''}</div>
+      <div class="l">${dw !== null ? (dw>0?"▲ ":"▼ ")+Math.abs(dw).toFixed(1)+" kq" : "Çəki"}</div></div>
+  </div>
+
+  <div class="sect">Başqa gün seç</div>
+  <div class="row wrap">
+    ${Object.keys(state.plan).map(d=>`<button class="mini" onclick="startSession('${d}')">${esc(state.plan[d].name)}</button>`).join("")}
+  </div>
+
+  <div class="sect">Çəkini qeyd et</div>
+  <div class="card tight"><div class="row">
+    <input class="srch" style="margin:0;flex:1" id="wIn" type="number" inputmode="decimal" step="0.1" placeholder="${bw||"kq"}">
+    <button class="btn sm" style="width:auto;padding:12px 18px" onclick="addWeight()">Yaz</button>
+  </div></div>`;
+}
+
+function setupCard(){
+  return `<div class="card">
+    <h2 style="margin-bottom:4px">Salam</h2>
+    <div class="small" style="margin-bottom:14px">Bir neçə rəqəm — sonra birbaşa məşqə keçirik.</div>
+    <div class="field"><label>Ad</label><input id="su-n" placeholder="Ad"></div>
+    <div class="grid3">
+      <div class="field"><label>Yaş</label><input id="su-a" type="number" inputmode="numeric"></div>
+      <div class="field"><label>Boy (sm)</label><input id="su-h" type="number" inputmode="numeric"></div>
+      <div class="field"><label>Çəki (kq)</label><input id="su-w" type="number" inputmode="decimal" step="0.1"></div>
     </div>
-
-    <div class="stats">
-      <div class="stat"><div class="v num">${w ? w.toFixed(1).replace(/\.0$/,"") : "—"}<small> kq</small></div><div class="l">Bədən çəkisi ${dlt!==null?`<span class="${dlt>=0?"delta-up":"delta-dn"}">${dlt>=0?"+":""}${dlt.toFixed(1)}</span>`:""}</div></div>
-      <div class="stat"><div class="v num">${weekCount()}<small> / ${weeklyTarget()}</small></div><div class="l">Son 7 gün</div></div>
-      <div class="stat"><div class="v num">${state.sessions.length}</div><div class="l">Ümumi məşq sayı</div></div>
-    </div>
-
-    ${profileDone() ? `<div class="sect">Bədən çəkisini qeyd et</div>
-    <div class="card tight"><div class="inline-log">
-      <input id="qw" type="number" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"kq"}">
-      <button class="btn sm" onclick="addWeight('qw')">Qeyd et</button>
-    </div><div class="small" style="margin-top:8px">Həftədə 2-3 dəfə, səhərlər, yeməkdən əvvəl çəkilin. Kütlə dövründə hədəf: <b style="color:var(--ink)">+0.25-0.5 kq/həftə</b>.</div></div>` : ""}
-
-    ${deloadDue() ? `<div class="card" style="border-color:var(--c)">
-      <div class="h-big">Yüngülləşdirmə həftəsi vaxtıdır</div>
-      <div class="small" style="margin-top:6px">Sonuncu yüngül həftədən bəri 18 məşq keçib. Bu həftə eyni hərəkətləri edin, amma <b style="color:var(--ink)">çəkilərinizin ~60%-i</b> və hər hərəkətdən <b style="color:var(--ink)">2 dövr</b>. Ştanqın sürəti və oynaqlar bərpa olunacaq, sonra daha güclü qayıdacaqsınız.</div>
-      <button class="btn sm ghost" style="margin-top:10px" onclick="dismissDeload()">Yüngül həftəni etdim / sonra</button>
-    </div>` : ""}
-
-    <div class="sect">Əlavələr</div>
-    <div class="card tight"><div class="supprow">
-      <button class="suppbtn ${suppToday("creatine")?"on":""}" onclick="toggleSupp('creatine')">
-        <span class="si">✓</span>
-        <span class="st"><b>Kreatin</b><small>5 q, hər gün</small></span>
-        <span class="sk">${suppStreak("creatine")} gün 🔥</span>
-      </button>
-      <button class="suppbtn ${suppToday("protein")?"on":""}" onclick="toggleSupp('protein')">
-        <span class="si">✓</span>
-        <span class="st"><b>Protein tozu</b><small>zülal hədəfini bağlamaq üçün</small></span>
-        <span class="sk">${suppStreak("protein")} gün 🔥</span>
-      </button>
-    </div></div>
-
-    ${sbReady() ? `<div class="sect">Bulud yedəyi</div>
-    <div class="card tight">${ sbUser
-      ? `<div class="small">☁️ Sinxronizasiya aktivdir — <b style="color:var(--ink)">${esc(sbUser.email)}</b>${sbStatus?` · ${sbStatus}`:""}. Hər dəyişiklik avtomatik buluda yazılır.</div>
-         <button class="btn sm ghost" style="margin-top:10px" onclick="sbSignOut()">Çıxış</button>`
-      : `<div class="small" style="margin-bottom:4px">Daxil olun — qeydləriniz buludda saxlansın, telefon dəyişəndə və ya Safari yaddaşı silinəndə itməsin.</div>
-         <div class="field"><label>E-poçt</label><input id="sb-email" type="email" autocomplete="email" placeholder="ad@epoçt.com"></div>
-         <div class="field"><label>Şifrə</label><input id="sb-pass" type="password" autocomplete="current-password" placeholder="••••••"></div>
-         <div style="display:flex;gap:8px">
-           <button class="btn sm" style="flex:1" onclick="sbSignIn()">Daxil ol</button>
-           <button class="btn sm ghost" style="flex:1" onclick="sbSignUp()">Qeydiyyat</button>
-         </div>` }</div>` : ""}
-
-    <div class="sect">Yerli nüsxə</div>
-    <div class="card tight">
-      <div class="small" style="margin-bottom:10px">Bütün qeydlərinizi bir JSON faylına yazın. Buluddan asılı olmayan, tam sizin nəzarətinizdə olan ehtiyat nüsxə.</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn sm" style="flex:1" onclick="exportData()">İxrac et</button>
-        <button class="btn sm ghost" style="flex:1" onclick="importPick()">İdxal et</button>
-      </div>
-      <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importData(this)">
-    </div>
-
-    <div class="sect">Məşqçinin köşəsi</div>
-    <div class="card coach"><div class="cq">“</div><div><p>${tip}</p><div class="who">— Protokol</div></div></div>`;
+    <button class="btn" onclick="saveSetup()">Başlayaq</button>
+  </div>`;
 }
 function saveSetup(){
-  const p = state.profile;
-  p.name = $("#su-name").value.trim() || "İdmançı";
-  p.age = parseFloat($("#su-age").value)||"";
-  p.h = parseFloat($("#su-h").value)||"";
-  p.w = parseFloat($("#su-w").value)||"";
-  p.sex = $("#su-sex").value;
-  p.act = parseFloat($("#su-act").value);
-  if(p.w) setWeight(p.w, {quiet:true});
-  save({cloud:true}); toast("Protokol hazırdır 💪"); renderToday();
+  const h = parseFloat($("#su-h").value), w = parseFloat($("#su-w").value);
+  if(!h){ toast("Boyu yaz"); return; }
+  state.profile.name = $("#su-n").value.trim();
+  state.profile.age = parseFloat($("#su-a").value)||"";
+  state.profile.h = h;
+  if(w) state.weights.push({ d:todayISO(), kg:w });
+  save(); flush(); renderToday();
 }
-/* Bədən çəkisinin YEGANƏ mənbəyi state.weights[]-dir.
-   Bütün yollar (Bugün, Proqres, Qida) buradan keçir. */
-function setWeight(v, opts){
-  v = parseFloat(v);
-  if(!v || v<25 || v>350) return false;
+function addWeight(){
+  const v = parseFloat($("#wIn").value);
+  if(!v || v<25 || v>350){ toast("Kiloqramla yaz"); return; }
   const t = todayISO(), ex = state.weights.find(x=>x.d===t);
   if(ex) ex.kg = v; else state.weights.push({d:t, kg:v});
   state.weights.sort((a,b)=>a.d<b.d?-1:1);
-  state.profile.w = v;                       /* yalnız geriyə uyğunluq üçün güzgü */
-  save({cloud:true});
-  if(!(opts && opts.quiet)) toast(`${v} kq qeyd edildi`);
-  return true;
+  save(); toast(`${v} kq qeyd edildi`); renderToday();
 }
-function addWeight(inputId){
-  if(!setWeight($("#"+inputId).value)){ toast("Kiloqramla çəki daxil edin"); return; }
-  refresh();
-}
-let fuelWT = null;
-function fuelWeight(v){
-  clearTimeout(fuelWT);
-  fuelWT = setTimeout(()=>{ if(setWeight(v, {quiet:true})) renderFuelOut(); }, 700);
-}
+function dropActive(){ if(confirm("Bu məşq silinsin?")){ state.active = null; save(); renderToday(); } }
 
-/* ================= TRAIN ================= */
+
+/* ==================================================================
+   11. MƏŞQ EKRANI
+   ================================================================== */
 function renderTrain(){
-  if(viewDay===null) viewDay = nextDay();
-  if(state.active) viewDay = state.active.day;
-  const D = PROGRAM[viewDay];
-  const plates = ROT.map(k=>`<button class="plate plate-${PROGRAM[k].cls} ${viewDay===k?"on":""} ${state.active&&state.active.day!==k?"lock":""}" onclick="selDay('${k}')" aria-label="${PROGRAM[k].name}"><span>${k}</span></button>`).join("");
-  const lbls = ROT.map(k=>`<div>${PROGRAM[k].sub}</div>`).join("");
-
-  const rules = `<details class="rules"><summary>Məşqçinin qaydaları — bir dəfə oxuyun</summary><div class="inner">
-      <div class="rule" style="border-bottom:1px solid var(--line)"><p style="padding-top:10px">${WARMUP}</p></div>
-      ${RULES.map(r=>`<div class="rule"><b>${r.t}</b><p>${r.d}</p></div>`).join("")}
-    </div></details>`;
-
-  let body;
-  if(state.active && state.active.day===viewDay){
-    body = D.ex.map((ex,i)=>{
-      const eff = effEx(ex.key), swapped = eff.key!==ex.key;
-      const p = lastPerf(eff.key), st = state.active.ex[ex.key];
-      const rows = st.map((s,si)=>{
-        const pkg = smartKg(ex.key,si), prep = smartReps(ex.key,si);
-        return `<div class="setrow">
-          <div class="idx num">${si+1}</div>
-          <div class="stepper">
-            <button onclick="stepVal('${ex.key}',${si},'kg',-1)" aria-label="minus kg">−</button>
-            <input id="in-${ex.key}-${si}-kg" type="number" inputmode="decimal" step="0.5" placeholder="${pkg??"kq"}" value="${s.kg}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
-            <button onclick="stepVal('${ex.key}',${si},'kg',1)" aria-label="plus kg">+</button>
-          </div>
-          <div class="stepper">
-            <button onclick="stepVal('${ex.key}',${si},'reps',-1)" aria-label="minus reps">−</button>
-            <input id="in-${ex.key}-${si}-reps" type="number" inputmode="numeric" placeholder="${prep}" value="${s.reps}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
-            <button onclick="stepVal('${ex.key}',${si},'reps',1)" aria-label="plus reps">+</button>
-          </div>
-          <button class="check ${s.done?"done":""}" data-set="${ex.key}-${si}" onclick="toggleDone('${ex.key}',${si})" aria-label="set done">✓</button>
-        </div>`;
-      }).join("");
-      const h = hintFor(eff,p);
-      const wk = parseFloat(st[0].kg) || suggestKg(eff.key);
-      const ramp = (eff.rest>=120 && wk && wk>=30) ? `<div class="ramp">Qızışma dövrləri: <b class="num">${r25(wk*0.4)} kq × 8 → ${r25(wk*0.6)} kq × 5 → ${r25(wk*0.8)} kq × 3</b> — sonra iş dövrləri (sayılmır)</div>` : "";
-      return `<div class="card ex" style="--dc:var(--${D.cls})">
-        <div class="exhead"><div class="exname">
-          ${eff.img?`<img class="ex-thumb" src="${eff.img}" alt="${esc(eff.name)}" loading="lazy" onerror="this.remove()">`:""}
-          <div>
-            <div class="name">${i+1}. ${eff.name}</div>
-            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">istirahət ${Math.round(eff.rest/60*10)/10} dəq</span>${swapped?`<span class="tag swp">alternativ</span>`:`<span class="tag">${eff.tag}</span>`}</div>
-          </div>
-        </div><div class="exbtns"><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${(ALTS[ex.key]||[]).length?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}</div></div>
-        ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
-        <div class="hint ${h.cls}">${h.txt}</div>
-        ${ramp}
-        <div class="sethdr"><div>Dövr</div><div>kq</div><div>Təkrar</div><div>✓</div></div>
-        ${rows}
-      </div>`;
-    }).join("");
-    body += `<button class="btn block" style="margin-top:6px" onclick="finishSession()">Bitir və yadda saxla</button>
-             <button class="btn block danger" style="margin-top:10px" onclick="cancelSession()">Məşqi ləğv et</button>`;
-  } else {
-    body = `<div class="card tight"><div class="small"><b style="color:var(--ink)">Əvvəlcə qızışın.</b> ${WARMUP}</div></div>` +
-      D.ex.map((ex,i)=>{
-        const p = lastPerf(ex.key), h = hintFor(ex,p);
-        return `<div class="card ex" style="--dc:var(--${D.cls})">
-          <div class="exhead"><div class="exname">
-            ${ex.img?`<img class="ex-thumb" src="${ex.img}" alt="${esc(ex.name)}" loading="lazy" onerror="this.remove()">`:""}
-            <div>
-              <div class="name">${i+1}. ${ex.name}</div>
-              <div class="meta"><span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span><span class="tag">istirahət ${Math.round(ex.rest/60*10)/10} dəq</span><span class="tag">${ex.tag}</span></div>
-            </div>
-          </div><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button></div>
-          ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
-          <div class="hint ${h.cls}">${h.txt}</div>
-        </div>`;
-      }).join("") +
-      `<button class="btn block" style="margin-top:6px" onclick="startSession('${viewDay}')">${D.name} başla</button>`;
+  const box = $("#v-train");
+  if(!state.active){
+    box.innerHTML = `<div class="card"><div class="empty">Aktiv məşq yoxdur.<br>Bugün səhifəsindən başla.</div>
+      <button class="btn" onclick="tab('today')">Bugünə keç</button></div>`;
+    return;
   }
-
-  $("#view-train").innerHTML = `
-    <div class="plates">${plates}</div>
-    <div class="platelbl">${lbls}</div>
-    ${state.active && state.active.day!==viewDay ? "" : ""}
-    ${rules}
-    <div class="sect">${D.name} · ${D.sub}</div>
-    ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote">${FOUNDATION_NOTE}</div>` : ""}
-    ${body}`;
-}
-function selDay(k){ if(state.active && state.active.day!==k){ toast("Əvvəlcə cari məşqi bitirin və ya ləğv edin"); return; } viewDay=k; renderTrain(); }
-function startSession(day){
-  const foundation = isFirstEver();
-  const exState = {};
-  PROGRAM[day].ex.forEach(ex=>{
-    const sug = suggestKg(ex.key);
-    const setCount = foundation ? Math.max(2, Math.round(ex.sets/2)) : ex.sets;
-    exState[ex.key] = Array.from({length:setCount},()=>({ kg: sug ?? "", reps:"", done:false }));
-  });
-  state.active = { day, started: todayISO(), ex: exState, foundation };
-  viewDay = day; save(); switchTab("train");
-  toast(foundation ? "Təməl məşqi başladı — yüngül saxlayın." : `${PROGRAM[day].name} başladı — işə başlayın.`);
-}
-function setVal(key,i,f,v){ state.active.ex[key][i][f] = v; save(); }
-function smartKg(key,i){
-  const st = state.active.ex[key];
-  for(let j=i-1;j>=0;j--){ const v=parseFloat(st[j].kg); if(v) return v; }
-  const p = lastPerf(effEx(key).key);
-  if(p) return p.sets[i]?.kg ?? p.sets[p.sets.length-1].kg;
-  return null;
-}
-/* DİQQƏT: bu yalnız placeholder (göz üçün ipucu) qaytarır.
-   Heç vaxt state-ə YAZILMIR — istifadəçinin daxil etmədiyi təkrar
-   proqressiyaya sayılsaydı, app uydurma məlumat üzərində çəki artırardı. */
-function smartReps(key,i){
-  const st = state.active.ex[key];
-  for(let j=i-1;j>=0;j--){ const v=parseFloat(st[j].reps); if(v) return v; }
-  return EXMAP[key].rMax;
-}
-function stepVal(key,i,f,dir){
-  const s = state.active.ex[key][i];
-  const step = f==="kg" ? (EXMAP[key].inc || 2.5) : 1;
-  let v = parseFloat(s[f]);
-  if(!v){ v = f==="kg" ? (smartKg(key,i) ?? step) : smartReps(key,i); } /* first tap = accept suggestion */
-  else v += dir*step;
-  v = Math.max(0, Math.round(v*10)/10);
-  s[f] = String(v);
-  const inp = document.getElementById(`in-${key}-${i}-${f}`);
-  if(inp) inp.value = v;
-  save();
-}
-function toggleDone(key,i){
-  const s = state.active.ex[key][i]; s.done = !s.done;
-  if(s.done){
-    /* çəkini əvvəlki dövrdən götürmək məntiqlidir; təkrarı UYDURMAQ olmaz */
-    if(s.kg === "" ){ const k = smartKg(key,i); if(k !== null && k !== undefined) s.kg = String(k); }
-    const kgIn = document.getElementById(`in-${key}-${i}-kg`);
-    if(kgIn) kgIn.value = s.kg;
-    if(!parseFloat(s.reps)) toast("Təkrar sayını yazın — boş dövr proqressiyaya sayılmır.");
-    startTimer(EXMAP[key].rest, effEx(key).name);
-  }
-  /* yalnız həmin düyməni yenilə — bütün görünüşü yenidən qurmaq
-     açıq qaydalar panelini bağlayır və input fokusunu itirir */
-  const btn = document.querySelector(`.check[data-set="${key}-${i}"]`);
-  if(btn) btn.classList.toggle("done", s.done); else renderTrain();
-  save();
-}
-function finishSession(){
-  const a = state.active; if(!a) return;
-  const rec = { d: todayISO(), day: a.day, ex: [], foundation: !!a.foundation };
-  let n = 0, skipped = 0;
-  PROGRAM[a.day].ex.forEach(ex=>{
-    const eff = effEx(ex.key);
-    /* Çəki 0 ola bilər (bədən çəkisi hərəkətləri). Yeganə şərt: təkrar yazılıb.
-       Köhnə kod kg>0 tələb edirdi və Back Extension kimi hərəkətləri səssizcə silirdi. */
-    const raw = a.ex[ex.key];
-    skipped += raw.filter(s=>s.done && !(parseFloat(s.reps)>0)).length;
-    const sets = raw.filter(s=>parseFloat(s.reps)>0)
-      .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
-    if(sets.length){ rec.ex.push({key:eff.key, name:eff.name, sets}); n += sets.length; }
-  });
-  if(!n){ alert("Bitirmədən əvvəl ən azı bir dövrün təkrar sayını yazın."); return; }
-  const warn = skipped ? `\n\nDİQQƏT: ${skipped} işarələnmiş dövrdə təkrar sayı boşdur — onlar qeyd olunmayacaq.` : "";
-  if(!confirm(`${PROGRAM[a.day].name} yadda saxlanılsın? ${n} dövr qeyd edilib.${warn}`)) return;
-  state.sessions.push(rec); state.active = null; timerSkip(); save({cloud:true});
-  toast(`${PROGRAM[rec.day].name} yadda saxlanıldı · növbəti: ${ROT[(ROT.indexOf(rec.day)+1)%3]} Məşqi`);
-  viewDay = ROT[(ROT.indexOf(rec.day)+1)%3];
-  switchTab("today");
-}
-function cancelSession(){ if(!confirm("Bu məşqi ləğv etmək istəyirsiniz? Qeyd edilən dövrlər itiriləcək.")) return; state.active=null; timerSkip(); save(); renderTrain(); }
-
-/* ================= technique sheet ================= */
-function openTech(day,i){
-  const base = PROGRAM[day].ex[i];
-  const ex = (state.active && state.active.day===day) ? effEx(base.key) : base;
-  const alts = (ALTS[base.key]||[]);
-  $("#sheet").innerHTML = `<div class="grab"></div>
-    ${ex.img?`<img class="techimg" src="${ex.img}" alt="${esc(ex.name)}" loading="lazy" onerror="this.remove()">`:""}
-    <h3>${ex.name}</h3><div class="stag">${ex.tag}</div>
-    <div class="protoc">
-      <span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span>
-      <span class="tag">istirahət ${Math.round(ex.rest/60*10)/10} dəq</span>
-      <span class="tag">proqres: +${ex.inc} kq</span>
+  const a = state.active, plan = state.plan[a.day];
+  box.innerHTML = `
+    <div class="spread" style="margin-bottom:12px">
+      <div><h2>${esc(plan.name)}</h2><div class="tiny">${fmtD(a.d)} · başlanğıc ${hhmm(new Date(a.start + (state.profile.clockOffset||0)*60000))}</div></div>
+      <button class="mini" onclick="openAddEx()">+ Hərəkət</button>
     </div>
-    <div class="cuelist">${ex.cues.map(c=>`<div class="cue good"><div class="ic">✓</div><p>${c}</p></div>`).join("")}</div>
-    ${ex.mist.length?`<hr class="split">
-    <div class="small" style="letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-bottom:2px">Ümumi səhvlər</div>
-    <div class="cuelist">${ex.mist.map(c=>`<div class="cue bad"><div class="ic">✕</div><p>${c}</p></div>`).join("")}</div>`:""}
-    ${alts.length?`<hr class="split">
-    <div class="small">Avadanlıq məşğuldursa, alternativlər: <b style="color:var(--ink)">${alts.map(a=>a.name).join(" · ")}</b> — məşq zamanı kartdakı “⇄ Dəyiş” düyməsi ilə keçin.</div>`:""}
-    <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
-}
-function closeSheet(){ $("#overlay").classList.remove("on"); $("#sheet").classList.remove("on"); }
-
-/* ================= rest timer ================= */
-let tInt=null, tLeft=0, tTotal=0;
-const RING_C = 565.5; // 2*pi*90, matches the SVG circle radius
-function startTimer(sec,label){
-  clearInterval(tInt); tLeft=sec; tTotal=sec;
-  const el=$("#timer"); el.classList.add("on"); el.classList.remove("done");
-  $("#timerLab").textContent = label.toUpperCase();
-  tickRender();
-  acquireWakeLock();
-  tInt = setInterval(tick,1000);
-}
-function tick(){
-  tLeft--; tickRender();
-  if(tLeft<=0){
-    clearInterval(tInt); tInt=null; $("#timer").classList.add("done"); beep();
-    try{navigator.vibrate && navigator.vibrate([160,90,160]);}catch(e){}
-    releaseWakeLock();
-    setTimeout(()=>{ if(tLeft<=0) $("#timer").classList.remove("on"); },1900);
-  }
-}
-function tickRender(){
-  const m=Math.floor(Math.max(tLeft,0)/60), s=Math.max(tLeft,0)%60;
-  $("#timerDigits").textContent = m+":"+String(s).padStart(2,"0");
-  const frac = tTotal>0 ? Math.min(1,Math.max(0,tLeft/tTotal)) : 0;
-  $("#timerRing").setAttribute("stroke-dashoffset", (RING_C*(1-frac)).toFixed(1));
-}
-function timerAdd(){
-  tLeft+=30; tTotal=Math.max(tTotal,tLeft); $("#timer").classList.remove("done");
-  if(!tInt){ $("#timer").classList.add("on"); acquireWakeLock(); tInt=setInterval(tick,1000); }
-  tickRender();
-}
-function timerSkip(){ clearInterval(tInt); tInt=null; tLeft=0; tTotal=0; $("#timer").classList.remove("on"); releaseWakeLock(); }
-
-/* ---- keep the screen awake while resting (iOS 16.4+ Safari) ---- */
-let wakeLock = null;
-async function acquireWakeLock(){
-  try{ if("wakeLock" in navigator){ wakeLock = await navigator.wakeLock.request("screen"); } }catch(e){}
-}
-function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock=null; }
-document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && tInt) acquireWakeLock(); });
-function beep(){
-  try{
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    [0,0.22].forEach(t=>{
-      const o=ctx.createOscillator(), g=ctx.createGain();
-      o.type="square"; o.frequency.value=880; o.connect(g); g.connect(ctx.destination);
-      g.gain.setValueAtTime(0.0001,ctx.currentTime+t);
-      g.gain.exponentialRampToValueAtTime(0.18,ctx.currentTime+t+0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+t+0.16);
-      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.18);
-    });
-  }catch(e){}
+    ${Object.keys(a.ex).map(k => exCard(k)).join("")}
+    <button class="btn" style="margin-top:6px" onclick="openFinish()">Məşqi bitir · <span id="dcnt">${doneCount()}</span> dövr</button>
+    <button class="btn ghost sm" style="margin-top:8px" onclick="dropActive()">Məşqi ləğv et</button>`;
 }
 
-/* ================= FUEL ================= */
-function renderFuel(){
-  const p = state.profile;
-  $("#view-fuel").innerHTML = `
-    <div class="sect">Sizin göstəricilər</div>
-    <div class="card">
-      <div class="grid3">
-        <div class="field"><label>Yaş</label><input id="f-age" type="number" inputmode="numeric" value="${esc(p.age)}" oninput="fuelIn()"></div>
-        <div class="field"><label>Boy (sm)</label><input id="f-h" type="number" inputmode="numeric" value="${esc(p.h)}" oninput="fuelIn()"></div>
-        <div class="field"><label>Çəki (kq)</label><input id="f-w" type="number" inputmode="decimal" step="0.1" value="${latestW()||""}" oninput="fuelWeight(this.value)"></div>
+function exCard(k){
+  const e = EXBY[k]; if(!e) return "";
+  const sets = state.active.ex[k], h = hintText(k), [rMin,rMax] = repRange(k);
+  const allDone = sets.length && sets.every(s => s.done);
+  const isBar = EQ[e.eq].bar;
+  return `<div class="exc ${allDone?"done":""}" id="card-${k}">
+    <div class="exh">
+      <div style="min-width:0">
+        <div class="nm">${esc(e.n)}</div>
+        <div class="sub">${sets.length}×${rMin}-${rMax} · ${(e.m||[]).map(m=>MUSC[m].n).join(", ")}</div>
       </div>
-      <div class="field"><label>Cins <span style="color:var(--dim);text-transform:none;letter-spacing:0">(BMR düsturu üçün)</span></label><select id="f-sex" onchange="fuelIn()"><option value="m" ${p.sex!=="f"?"selected":""}>Kişi</option><option value="f" ${p.sex==="f"?"selected":""}>Qadın</option></select></div>
-      <div class="field"><label>Gündəlik fəallıq</label><select id="f-act" onchange="fuelIn()">${ACT_OPTS.map(o=>`<option value="${o.v}" ${p.act==o.v?"selected":""}>${o.l}</option>`).join("")}</select></div>
-      <div class="field"><label>Profisit: <span id="surV" class="num">+${p.sur}</span> kkal <span style="color:var(--dim);text-transform:none;letter-spacing:0">(yüngül kütlə 250 → aqressiv 500)</span></label>
-      <input type="range" id="f-sur" min="250" max="500" step="50" value="${p.sur}" oninput="fuelIn()"></div>
+      <div class="acts">
+        ${isBar ? `<button class="mini" onclick="openPlates('${k}')">Disklər</button>` : ""}
+        <button class="mini" onclick="openTech('${k}')">Texnika</button>
+        <button class="mini" onclick="openSwap('${k}')">⇄</button>
+      </div>
     </div>
-    <div id="fuelOut"></div>
-
-    <div class="sect">Günlük şablon</div>
-    <div class="card">
-      ${MEALS.map(m=>`<div class="meal"><div class="mt"><span>${m.t}</span><span class="num">~${Math.round(m.k*mealRatio()/10)*10} kkal</span></div><p>${m.d}</p></div>`).join("")}
-      <div class="small" style="margin-top:10px">${ mealRatio()===1
-        ? `Şablon ≈ ${MEAL_BASE.toLocaleString()} kkal. Hədəfinizi görmək üçün yuxarıda yaş, boy və çəkini doldurun.`
-        : `Şablon sizin hədəfinizə uyğunlaşdırılıb — porsiyalar əsas siyahıdan <b style="color:var(--ink)">×${mealRatio().toFixed(2)}</b> nisbətindədir. Karbohidratlar (düyü, kartof, çörək) ən asan tənzimlənən elementdir.` }</div>
-    </div>
-
-    <div class="sect">Kütlə dövrü üçün əsas məhsullar</div>
-    <div class="card tight"><div class="chips">${STAPLES.map(s=>`<span>${s}</span>`).join("")}</div></div>
-
-    <div class="sect">Məşqçinin qeydləri</div>
-    <div class="card">
-      <div class="rule"><b>Tərəzi hakimdir</b><p>2 həftə ardıcıl həftədə 0.25 kq-dan az artım → 200 kkal əlavə edin. Həftədə 0.5 kq-dan xeyli çox artım → 200 kkal azaldın. Təxmin etməyin, tənzimləyin.</p></div>
-      <div class="rule"><b>Zülal əsası</b><p>Bədən çəkisinin hər kiloqramına ~2 q, 30-50 q-lıq 4-5 yeməyə bölünmüş şəkildə. Əvvəlcə zülal hədəfinə çatın, qalanını karbohidrat və yağla doldurun.</p></div>
-      <div class="rule"><b>Əhəmiyyətli əlavələr</b><p>Hər gün 5 q kreatin monohidrat (mövcud ən sübut edilmiş əlavə), zülal boşluqlarını doldurmaq üçün zərdab zülalı (whey), istəsəniz məşqdən əvvəl kofein. Qalan hər şey marketinqdir.</p></div>
-      <div class="rule"><b>Bərpa da proqramın hissəsidir</b><p>7-9 saat yuxu, 2-3 L su. Yuxusuz profisit sadəcə yağa çevrilir.</p></div>
-    </div>`;
-  renderFuelOut();
-}
-/* şablonu hesablanmış hədəfə uyğunlaşdıran əmsal */
-function mealRatio(){
-  const p = state.profile, w = latestW();
-  if(!(p.age && p.h && w)) return 1;
-  const bmr = 10*w + 6.25*p.h - 5*p.age + (p.sex === "f" ? -161 : 5);
-  const target = bmr*p.act + p.sur;
-  return Math.max(0.5, Math.min(1.6, target/MEAL_BASE));
-}
-function fuelIn(){
-  const p = state.profile;
-  p.age = parseFloat($("#f-age").value)||"";
-  p.h = parseFloat($("#f-h").value)||"";
-  p.sex = $("#f-sex").value;
-  p.act = parseFloat($("#f-act").value);
-  p.sur = parseInt($("#f-sur").value);
-  $("#surV").textContent = "+"+p.sur;
-  save(); renderFuelOut();
-}
-function renderFuelOut(){
-  /* Çəki HƏMİŞƏ state-dən oxunur, DOM inputundan yox — tək mənbə qaydası (bax setWeight). */
-  const p = state.profile, w = latestW();
-  const box = $("#fuelOut");
-  if(!(p.age && p.h && w)){ box.innerHTML = `<div class="card"><div class="empty">Hədəflərinizi görmək üçün yaş, boy və çəkinizi daxil edin.</div></div>`; return; }
-  const bmr = 10*w + 6.25*p.h - 5*p.age + (p.sex === "f" ? -161 : 5);   /* Mifflin-St Jeor */
-  const tdee = bmr*p.act, target = Math.round((tdee+p.sur)/10)*10;
-  const pr = Math.round(2.0*w), fat = Math.round(0.9*w);
-  const carbs = Math.max(0, Math.round((target - pr*4 - fat*9)/4));
-  const pct = v => Math.round(v/target*100);
-  box.innerHTML = `<div class="card">
-    <div class="small" style="letter-spacing:.16em;text-transform:uppercase;font-size:10.5px">Gündəlik hədəf · kütlə artımı</div>
-    <div class="bignum num">${target.toLocaleString()} <small>kkal</small></div>
-    <div class="kcalrow"><span>Saxlama ≈ <b class="num">${Math.round(tdee).toLocaleString()}</b></span><span>Hədəf: <b class="num">+${(w*0.0025).toFixed(1)}–${(w*0.005).toFixed(1)} kq/həftə</b></span></div>
-    <div class="macro">
-      <div class="mrow"><span>Zülal</span><b class="num">${pr} q · ${pct(pr*4)}%</b></div><div class="mbar"><i style="width:${pct(pr*4)}%;background:var(--b)"></i></div>
-    </div>
-    <div class="macro">
-      <div class="mrow"><span>Karbohidrat</span><b class="num">${carbs} q · ${pct(carbs*4)}%</b></div><div class="mbar"><i style="width:${pct(carbs*4)}%;background:var(--c)"></i></div>
-    </div>
-    <div class="macro">
-      <div class="mrow"><span>Yağ</span><b class="num">${fat} q · ${pct(fat*9)}%</b></div><div class="mbar"><i style="width:${pct(fat*9)}%;background:var(--a)"></i></div>
+    <div class="loadnote">${loadNote(k)}</div>
+    <div class="hint ${h.cls}">${h.t}</div>
+    <div class="sets">
+      <div class="shead"><div>#</div><div>Çəki (kq)</div><div>Təkrar</div><div></div></div>
+      ${sets.map((s,i)=>`
+        <div class="srow ${s.done?"done":""}" id="row-${k}-${i}">
+          <div class="n" onclick="delSet('${k}',${i})">${i+1}</div>
+          <input type="number" inputmode="decimal" step="0.5" value="${esc(s.kg)}"
+            onfocus="this.select()" oninput="setVal('${k}',${i},'kg',this.value)">
+          <input type="number" inputmode="numeric" value="${esc(s.reps)}"
+            onfocus="this.select()" oninput="setVal('${k}',${i},'reps',this.value)">
+          <button class="check ${s.done?"done":""}" id="chk-${k}-${i}" onclick="tick('${k}',${i})">✓</button>
+        </div>`).join("")}
+      <button class="addset" onclick="addSet('${k}')">+ dövr əlavə et</button>
     </div>
   </div>`;
 }
 
-/* ================= PROGRESS ================= */
-function chartSVG(pts,color,unit){
-  if(!pts.length) return `<div class="empty">Hələ heç nə qeyd edilməyib — məlumat burada özü çəkilir.</div>`;
-  const W=340,H=150,L=8,R=14,T=18,B=22;
-  const ys = pts.map(p=>p.y);
-  let mn=Math.min(...ys), mx=Math.max(...ys);
-  if(mn===mx){mn-=1;mx+=1;} const pad=(mx-mn)*0.15; mn-=pad; mx+=pad;
-  const X=i=> L + (W-L-R) * (pts.length===1 ? 0.5 : i/(pts.length-1));
-  const Y=v=> T + (H-T-B) * (1-(v-mn)/(mx-mn));
-  const path = pts.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(p.y).toFixed(1)}`).join(" ");
-  const dots = pts.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${i===pts.length-1?4.5:3}" fill="${i===pts.length-1?color:"#171b21"}" stroke="${color}" stroke-width="2"/>`).join("");
-  const lastX=X(pts.length-1), lastY=Y(pts[pts.length-1].y);
-  const anchor = lastX > W-64 ? "end" : "middle";
-  const grid = [0.25,0.5,0.75].map(f=>`<line x1="${L}" x2="${W-R}" y1="${(T+(H-T-B)*f).toFixed(1)}" y2="${(T+(H-T-B)*f).toFixed(1)}" stroke="#232933" stroke-width="1"/>`).join("");
-  return `<svg viewBox="0 0 ${W} ${H}" role="img">
-    ${grid}
-    <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    ${dots}
-    <text x="${lastX}" y="${Math.max(lastY-11,12)}" text-anchor="${anchor}" font-size="12.5" font-weight="700" fill="${color}" font-family="var(--mono)">${pts[pts.length-1].y}${unit}</text>
-    <text x="${L}" y="${H-4}" font-size="10" fill="#6b7480">${fmtD(pts[0].d)}</text>
-    <text x="${W-R}" y="${H-4}" text-anchor="end" font-size="10" fill="#6b7480">${fmtD(pts[pts.length-1].d)}</text>
-  </svg>`;
+/* Yalnız toxunulan sətri yeniləyirik — tam re-render input fokusunu itirir */
+function tick(k,i){
+  const s = state.active.ex[k][i];
+  s.done = !s.done;
+  const row = document.getElementById(`row-${k}-${i}`), chk = document.getElementById(`chk-${k}-${i}`);
+  if(row) row.classList.toggle("done", s.done);
+  if(chk) chk.classList.toggle("done", s.done);
+  const card = document.getElementById(`card-${k}`);
+  if(card) card.classList.toggle("done", state.active.ex[k].every(x=>x.done));
+  const c = document.getElementById("dcnt"); if(c) c.textContent = doneCount();
+  if(s.done && state.settings.autoRest) startTimer(restOf(k), EXBY[k] ? EXBY[k].n : "");
+  save();
 }
-function renderProg(){
-  const wPts = state.weights.map(x=>({d:x.d, y:Math.round(x.kg*10)/10}));
-  const liftKeys = [...new Set(state.sessions.flatMap(s=>s.ex.map(e=>e.key)))];
-  if(!selLift || !liftKeys.includes(selLift)) selLift = liftKeys.includes("sq") ? "sq" : liftKeys[0] || null;
 
-  let liftBlock = `<div class="empty">İlk məşqinizi bitirin, güc qrafikləri burada görünəcək.</div>`;
-  if(selLift){
-    /* Bədən çəkisi ilə edilən hərəkətdə 1TM mənasızdır (kg=0 → düz sıfır xətti).
-       Belə hallarda ümumi təkrar sayının trendini göstəririk. */
-    const bwOnly = state.sessions.every(s=>{
-      const f=s.ex.find(e=>e.key===selLift);
-      return !f || f.sets.every(st=>!(st.kg>0));
-    });
-    const pts=[]; let pr=null;
-    state.sessions.forEach(s=>{
-      const f=s.ex.find(e=>e.key===selLift); if(!f) return;
-      if(bwOnly){
-        const reps = f.sets.reduce((a,st)=>a+st.reps,0);
-        pts.push({d:s.d, y:reps});
-        if(!pr||reps>pr.v) pr={v:reps, kg:0, reps, d:s.d};
-        return;
-      }
-      let best=null;
-      f.sets.forEach(st=>{ const v=e1rm(st.kg,st.reps); if(!best||v>best.v) best={v,kg:st.kg,reps:st.reps}; });
-      if(best){ pts.push({d:s.d, y:Math.round(best.v)}); if(!pr||best.v>pr.v) pr={...best,d:s.d}; }
-    });
-    liftBlock = `
-      <select class="lift" onchange="pickLift(this.value)">${liftKeys.map(k=>`<option value="${k}" ${k===selLift?"selected":""}>${EXMAP[k].name}</option>`).join("")}</select>
-      <div class="chartbox">${chartSVG(pts,"#f3b73f", bwOnly?" təkrar":" kq")}</div>
-      ${pr?( bwOnly
-        ? `<div class="small">Bədən çəkisi · ümumi təkrar trendi · Ən yaxşı məşq: <b style="color:var(--ink)" class="num">${pr.reps} təkrar</b> (${fmtD(pr.d)})<span class="prbadge">REKORD ${pr.v} təkrar</span></div>`
-        : `<div class="small">Təxmini 1TM trendi · Ən yaxşı dövr: <b style="color:var(--ink)" class="num">${pr.kg} kq × ${pr.reps}</b> (${fmtD(pr.d)})<span class="prbadge">REKORD ${Math.round(pr.v)} kq</span></div>`):""}`;
+/* ==================================================================
+   12. BİTİRMƏ — nəzərdən keçir, rəy ver, saxla
+   ================================================================== */
+function countable(s){ return s.done || (!s.pre && parseFloat(s.reps) > 0); }
+
+function openFinish(){
+  const a = state.active; if(!a) return;
+  const body = Object.keys(a.ex).map(k => {
+    const e = EXBY[k], sets = a.ex[k], keep = sets.filter(countable);
+    const feel = (a.notes[k]||{}).feel || "";
+    return `<div class="card tight" style="margin-bottom:9px">
+      <div class="spread"><b style="font-size:14px">${esc(e.n)}</b>
+        <span class="pill ${keep.length?"g":"b"}">${keep.length}/${sets.length} dövr</span></div>
+      <div class="small" style="margin:6px 0 9px">${keep.length
+        ? keep.map(s=>`${parseFloat(s.kg)||0}×${parseFloat(s.reps)||0}`).join("  ·  ")
+        : `<span class="bad">İşarələnməyib — saxlanılmayacaq</span>`}</div>
+      ${keep.length ? `<div class="row" style="gap:6px">
+        <span class="tiny" style="width:62px">Necə keçdi?</span>
+        ${["easy","ok","hard"].map(f=>`<button class="pill ${feel===f?"on":""}" onclick="setFeel('${k}','${f}')">${({easy:"Asan",ok:"Normal",hard:"Çətin"})[f]}</button>`).join("")}
+      </div>` : `<button class="btn sm ghost" onclick="confirmAll('${k}')">Təklif olunan kimi saxla</button>`}
+    </div>`;
+  }).join("");
+
+  openSheet("Məşqi bitir", `
+    <div class="small" style="margin-bottom:12px">Rəyin növbəti məşqin çəki təklifinə birbaşa təsir edir: <b>Asan</b> → iki addım artım, <b>Çətin</b> → çəki saxlanılır.</div>
+    ${body}
+    <div class="field" style="margin-top:12px"><label>Qeyd (istəyə bağlı)</label>
+      <textarea id="fNote" placeholder="Məs: sağ çiyin narahat idi, bench-i yüngül saxladım">${esc(a.note||"")}</textarea></div>
+    <button class="btn ghost sm" style="margin-bottom:9px" onclick="confirmAllAll()">Bütün dövrləri təsdiqlə</button>
+    <button class="btn" onclick="finishSession()">Saxla və bitir</button>`);
+}
+function setFeel(k,f){
+  state.active.notes[k] = {...(state.active.notes[k]||{}), feel:f};
+  save(); openFinish();
+}
+function confirmAll(k){ state.active.ex[k].forEach(s=>{ s.done = true; }); save(); openFinish(); }
+function confirmAllAll(){ Object.keys(state.active.ex).forEach(k=>state.active.ex[k].forEach(s=>{s.done=true;})); save(); openFinish(); }
+
+function finishSession(){
+  const a = state.active;
+  const noteEl = $("#fNote"); if(noteEl) a.note = noteEl.value;
+  const rec = { id:a.id, d:a.d, day:a.day, ts:Date.now(), dur:Math.round((Date.now()-a.start)/60000), ex:[], note:a.note||"" };
+  Object.keys(a.ex).forEach(k => {
+    const keep = a.ex[k].filter(countable)
+      .map(s => ({ kg: parseFloat(s.kg)||0, reps: parseFloat(s.reps)||0 }))
+      .filter(s => s.reps > 0);
+    if(keep.length) rec.ex.push({ key:k, name:EXBY[k]?EXBY[k].n:k, sets:keep, feel:(a.notes[k]||{}).feel||"" });
+  });
+  if(!rec.ex.length){ toast("Heç bir dövr işarələnməyib"); return; }
+  const totalSets = rec.ex.reduce((x,e)=>x+e.sets.length,0);
+  state.sessions.push(rec);
+  state.sessions.sort((x,y)=> x.d<y.d?-1:1);
+  state.active = null; save(); flush(); closeSheet(); timerSkip();
+  toast(`Saxlanıldı — ${totalSets} dövr`);
+  tab("today");
+}
+
+/* ==================================================================
+   13. PROQRES
+   ================================================================== */
+function renderProg(){
+  const box = $("#v-prog");
+  if(!state.sessions.length){
+    box.innerHTML = `<div class="card"><div class="empty">Hələ məşq qeydi yoxdur.<br>Bir məşq bitirdikdən sonra burada trendlər görünəcək.</div></div>`;
+    return;
+  }
+  const vol = volume(7);
+  const muscles = Object.keys(MUSC).filter(m => (MUSC_TARGET[m]||[0,0])[1] > 0)
+    .sort((a,b)=>(vol[b]||0)-(vol[a]||0));
+
+  /* həftəlik dövr sayı — son 8 həftə */
+  const wk = [];
+  for(let i=7;i>=0;i--){
+    const end = new Date(Date.now()-i*7*864e5), start = new Date(end.getTime()-6*864e5);
+    const a = todayISO(start), b = todayISO(end);
+    const sets = state.sessions.filter(s=>s.d>=a&&s.d<=b)
+      .reduce((x,s)=>x+(s.ex||[]).reduce((y,e)=>y+e.sets.length,0),0);
+    wk.push({ l:i===0?"bu":`-${i}`, y:sets });
   }
 
-  const hist = state.sessions.length ? state.sessions.slice().reverse().map((s,ri)=>{
-    const i = state.sessions.length-1-ri;
-    const n = s.ex.reduce((a,e)=>a+e.sets.length,0);
-    return `<details class="hist"><summary><span><span class="mini-plate mp-${PROGRAM[s.day].cls}"></span><b>${PROGRAM[s.day].name}</b>${s.foundation?` <span class="prbadge">TƏMƏL</span>`:""} · ${fmtD(s.d)}</span><span class="hs num">${n} dövr</span></summary>
-      ${s.ex.map(e=>`<div class="histset"><b>${e.name}</b> — <span class="num">${e.sets.map(x=>`${x.kg}×${x.reps}`).join(", ")}</span></div>`).join("")}
-      <button class="btn sm danger" style="margin:8px 0 10px" onclick="delSession(${i})">Məşqi sil</button>
-    </details>`;
-  }).join("") : `<div class="empty">Hələ məşq yoxdur. Məşq etdikcə tarixçə özü yazılacaq.</div>`;
+  /* güc cədvəli */
+  const keys = [...new Set(state.sessions.flatMap(s=>(s.ex||[]).map(e=>e.key)))].filter(k=>EXBY[k]);
+  const rows = keys.map(k => {
+    const h = history(k); if(h.length < 2) return null;
+    const now = workKg(h[h.length-1].sets);
+    const monthAgo = h.filter(x => daysAgo(x.d) >= 28);
+    const then = monthAgo.length ? workKg(monthAgo[monthAgo.length-1].sets) : workKg(h[0].sets);
+    const diff = now - then;
+    const stall = h.length >= 3 && h.slice(-3).every(x => workKg(x.sets) === now);
+    return { k, n:EXBY[k].n, now, diff, stall, n2:h.length };
+  }).filter(Boolean).sort((a,b)=>b.diff-a.diff);
 
-  $("#view-prog").innerHTML = `
-    <div class="sect">Bədən çəkisi</div>
-    <div class="card">
-      <div class="chartbox">${chartSVG(wPts,"#4a7dff"," kq")}</div>
-      <div class="inline-log" style="margin-top:10px">
-        <input id="pw" type="number" inputmode="decimal" step="0.1" placeholder="Bugünkü çəkini qeyd et (kq)">
-        <button class="btn sm" onclick="addWeight('pw')">Qeyd et</button>
+  /* rekordlar */
+  const prs = keys.map(k => {
+    const h = history(k); let best = null;
+    h.forEach(x => x.sets.forEach(s => {
+      const e1 = s.kg > 0 ? s.kg*(1+s.reps/30) : s.reps;
+      if(!best || e1 > best.e1) best = { e1, kg:s.kg, reps:s.reps, d:x.d };
+    }));
+    return best ? { n:EXBY[k].n, ...best } : null;
+  }).filter(Boolean).sort((a,b)=>b.e1-a.e1).slice(0,6);
+
+  const wpts = state.weights.slice(-20).map(w=>({d:w.d, y:w.kg}));
+
+  box.innerHTML = `
+  <div class="sect">Bu həftə</div>
+  <div class="statgrid">
+    <div class="stat"><div class="v num">${weekSessions()}</div><div class="l">Məşq</div></div>
+    <div class="stat"><div class="v num">${Math.round(Object.values(vol).reduce((a,b)=>a+b,0))}</div><div class="l">Dövr (çəkili)</div></div>
+    <div class="stat"><div class="v num">${state.sessions.slice(-1)[0].dur||"—"}<small> dəq</small></div><div class="l">Son məşq</div></div>
+  </div>
+
+  <div class="sect">Əzələ yükü · son 7 gün</div>
+  <div class="card">
+    <div class="bodywrap">
+      <div><div>${bodySVG("front", vol)}</div><div class="bodylab">Ön</div></div>
+      <div><div>${bodySVG("back", vol)}</div><div class="bodylab">Arxa</div></div>
+    </div>
+    <div class="legend tiny">
+      <i style="background:#1a1f27"></i> yox
+      <i style="background:#f3b73f"></i> az
+      <i style="background:#3ecf8e"></i> optimal
+      <i style="background:#ff6b6b"></i> həddindən çox
+    </div>
+  </div>
+  <div class="card">
+    ${muscles.map(m=>{
+      const t = MUSC_TARGET[m], v = Math.round((vol[m]||0)*10)/10;
+      const pct = clamp(v/t[1]*100, 0, 100);
+      return `<div class="mrow">
+        <div class="mn">${MUSC[m].n}</div>
+        <div class="mbar"><i style="width:${pct}%;background:${muscColor(v,m)}"></i>
+          <span class="tgt" style="left:${clamp(t[0]/t[1]*100,0,100)}%"></span></div>
+        <div class="mv num">${v} <span class="tiny">/${t[0]}-${t[1]}</span></div>
+      </div>`;
+    }).join("")}
+    <div class="tiny" style="margin-top:9px">Xətt həftəlik minimum hədəfi göstərir. Köməkçi əzələlər yarım dövr sayılır.</div>
+  </div>
+
+  <div class="sect">Həftəlik həcm</div>
+  <div class="card"><div class="chartbox">${barChart(wk,"#5b9cff"," dövr")}</div></div>
+
+  <div class="sect">Güc — 4 həftəlik dəyişim</div>
+  <div class="card">
+    ${rows.length ? rows.map(r=>`
+      <div class="mrow">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px">${esc(r.n)}</div>
+          <div class="tiny">${r.n2} məşq</div>
+        </div>
+        <div class="num" style="width:66px;text-align:right;font-weight:700">${r.now} kq</div>
+        <div style="width:78px;text-align:right">
+          ${r.stall ? `<span class="pill b">dayanıb</span>`
+            : r.diff > 0 ? `<span class="pill g">+${Math.round(r.diff*10)/10}</span>`
+            : r.diff < 0 ? `<span class="pill b">${Math.round(r.diff*10)/10}</span>`
+            : `<span class="pill">=</span>`}
+        </div>
+      </div>`).join("")
+      : `<div class="empty">Ən azı 2 məşq lazımdır</div>`}
+    ${rows.some(r=>r.stall) ? `<div class="warn" style="margin:11px 0 0">
+      <b>Dayanmış hərəkətlər var.</b> 3 məşq üst-üstə eyni çəki — ya təkrarları artır, ya 10% en və yenidən qalx, ya da hərəkəti dəyiş.</div>` : ""}
+  </div>
+
+  ${wpts.length>1 ? `<div class="sect">Bədən çəkisi</div>
+    <div class="card"><div class="chartbox">${lineChart(wpts,"#f3b73f"," kq")}</div></div>` : ""}
+
+  <div class="sect">Rekordlar</div>
+  <div class="card">${prs.length ? prs.map(p=>`
+    <div class="mrow"><div style="flex:1;font-size:13.5px">${esc(p.n)}</div>
+      <div class="num" style="font-weight:700">${p.kg>0?p.kg+" kq":""} × ${p.reps}</div>
+      <div class="tiny" style="width:56px;text-align:right">${fmtD(p.d)}</div></div>`).join("")
+    : `<div class="empty">Hələ yoxdur</div>`}</div>
+
+  <div class="sect">Tarixçə</div>
+  <div class="card tight">
+    ${state.sessions.slice(-8).reverse().map(s=>`
+      <div class="mrow"><div style="flex:1">
+        <div style="font-size:13.5px">${esc((state.plan[s.day]||{name:s.day}).name)}</div>
+        <div class="tiny">${(s.ex||[]).reduce((a,e)=>a+e.sets.length,0)} dövr${s.note?" · qeyd var":""}</div>
+      </div><div class="tiny">${fmtD(s.d)}</div></div>`).join("")}
+  </div>`;
+}
+
+/* ==================================================================
+   14. HƏRƏKƏT KİTABXANASI
+   ================================================================== */
+let libQ = "", libM = "";
+function renderLib(){
+  const box = $("#v-lib");
+  const groups = [...new Set(LIB.flatMap(e=>e.m))];
+  const list = LIB.filter(e => {
+    const q = libQ.toLowerCase();
+    const okQ = !q || e.n.toLowerCase().includes(q) || e.en.toLowerCase().includes(q);
+    const okM = !libM || (e.m||[]).includes(libM) || (e.s||[]).includes(libM);
+    return okQ && okM;
+  });
+  box.innerHTML = `
+    <input class="srch" id="libQ" placeholder="Hərəkət axtar (${LIB.length} hərəkət)" value="${esc(libQ)}"
+      oninput="libQ=this.value;renderLibList()">
+    <div class="row wrap" style="margin-bottom:12px">
+      <button class="pill ${libM===""?"on":""}" onclick="libM='';renderLib()">Hamısı</button>
+      ${groups.map(m=>`<button class="pill ${libM===m?"on":""}" onclick="libM='${m}';renderLib()">${MUSC[m].n}</button>`).join("")}
+    </div>
+    <div id="libList">${libList(list)}</div>`;
+  const inp = $("#libQ"); if(inp && libQ){ inp.focus(); inp.setSelectionRange(libQ.length, libQ.length); }
+}
+function libList(list){
+  if(!list.length) return `<div class="empty">Tapılmadı</div>`;
+  return list.map(e=>`<div class="libitem" onclick="openTech('${e.k}')">
+    <div style="min-width:0"><div class="nm">${esc(e.n)}</div>
+      <div class="mt">${EQ[e.eq].n} · ${(e.m||[]).map(m=>MUSC[m].n).join(", ")}</div></div>
+    <div class="go">›</div></div>`).join("");
+}
+function renderLibList(){
+  const q = libQ.toLowerCase();
+  const list = LIB.filter(e => {
+    const okQ = !q || e.n.toLowerCase().includes(q) || e.en.toLowerCase().includes(q);
+    const okM = !libM || (e.m||[]).includes(libM) || (e.s||[]).includes(libM);
+    return okQ && okM;
+  });
+  $("#libList").innerHTML = libList(list);
+}
+
+
+/* ==================================================================
+   15. TEXNİKA — video + göstərişlər
+   Şəkil əvəzinə video: YouTube axtarışına yönləndiririk, belə linklər
+   heç vaxt "ölmür" (konkret video ID silinə bilər, axtarış yox).
+   ================================================================== */
+function ytLink(e){ return "https://www.youtube.com/results?search_query=" + encodeURIComponent(e.en + " proper form technique"); }
+
+function openTech(k){
+  const e = EXBY[k]; if(!e) return;
+  const h = history(k).slice(-4).reverse();
+  const inPlan = Object.keys(state.plan).filter(d => state.plan[d].ex.includes(k));
+  openSheet(e.n, `
+    <a class="vidbtn" href="${ytLink(e)}" target="_blank" rel="noopener">
+      <span class="p">▶</span><span>Videoda bax — ${esc(e.en)}</span></a>
+
+    <div class="loadnote" style="margin:13px 0">${loadNote(k)}</div>
+
+    <div class="tsec"><h4>Necə edilir</h4>
+      <ol class="tlist">${e.cue.map(c=>`<li>${esc(c)}</li>`).join("")}</ol></div>
+
+    <div class="tsec"><h4>Tez-tez edilən səhvlər</h4>
+      <ul class="tlist err">${e.err.map(c=>`<li>${esc(c)}</li>`).join("")}</ul></div>
+
+    <div class="tsec"><h4>İşləyən əzələlər</h4>
+      <div class="row wrap">
+        ${(e.m||[]).map(m=>`<span class="pill on">${MUSC[m].n}</span>`).join("")}
+        ${(e.s||[]).map(m=>`<span class="pill">${MUSC[m].n}</span>`).join("")}
+      </div></div>
+
+    ${h.length ? `<div class="tsec"><h4>Son nəticələrin</h4>
+      ${h.map(x=>`<div class="mrow"><div class="tiny" style="width:56px">${fmtD(x.d)}</div>
+        <div style="flex:1;font-size:13px" class="num">${x.sets.map(s=>`${s.kg>0?s.kg:"BÇ"}×${s.reps}`).join("  ")}</div>
+        ${x.feel?`<span class="pill">${({easy:"Asan",ok:"Normal",hard:"Çətin"})[x.feel]||""}</span>`:""}</div>`).join("")}
+    </div>` : ""}
+
+    <div class="tsec"><h4>Plana əlavə et</h4>
+      <div class="row wrap">${Object.keys(state.plan).map(d=>`
+        <button class="pill ${inPlan.includes(d)?"on":""}" onclick="togglePlan('${d}','${k}')">${esc(state.plan[d].name)}</button>`).join("")}
       </div>
-      ${state.weights.length?`<div class="loglist">${state.weights.slice(-6).reverse().map(x=>{
-        const idx = state.weights.indexOf(x);
-        return `<div class="logrow"><span class="num"><b>${x.kg} kq</b></span><span class="d">${fmtD(x.d)}</span><button class="xdel" onclick="delWeight(${idx})">✕</button></div>`;
-      }).join("")}</div>`:""}
+      ${state.active ? `<button class="btn sm ghost" style="margin-top:9px" onclick="addToActive('${k}')">Bu məşqə indi əlavə et</button>` : ""}
+    </div>`);
+}
+function togglePlan(d,k){
+  const arr = state.plan[d].ex, i = arr.indexOf(k);
+  if(i >= 0) arr.splice(i,1); else arr.push(k);
+  save(); openTech(k); toast(i>=0 ? "Plandan çıxarıldı" : "Plana əlavə edildi");
+}
+function addToActive(k){
+  if(!state.active) return;
+  if(state.active.ex[k]){ toast("Onsuz da var"); return; }
+  const s = suggest(k), [rMin] = repRange(k);
+  state.active.ex[k] = Array.from({length:3}, () => ({ kg:s.kg===null?"":String(s.kg), reps:String(s.reps||rMin), done:false, pre:true }));
+  save(); closeSheet(); tab("train"); toast("Əlavə edildi");
+}
+function openAddEx(){
+  openSheet("Hərəkət əlavə et", `
+    <input class="srch" id="aeQ" placeholder="Axtar..." oninput="aeList(this.value)">
+    <div id="aeList">${LIB.slice(0,25).map(aeRow).join("")}</div>`);
+}
+function aeRow(e){
+  return `<div class="libitem" onclick="addToActive('${e.k}')">
+    <div style="min-width:0"><div class="nm">${esc(e.n)}</div>
+      <div class="mt">${EQ[e.eq].n} · ${(e.m||[]).map(m=>MUSC[m].n).join(", ")}</div></div>
+    <div class="go">+</div></div>`;
+}
+function aeList(q){
+  q = q.toLowerCase();
+  const l = LIB.filter(e => e.n.toLowerCase().includes(q) || e.en.toLowerCase().includes(q)).slice(0,40);
+  $("#aeList").innerHTML = l.length ? l.map(aeRow).join("") : `<div class="empty">Tapılmadı</div>`;
+}
+function openSwap(k){
+  const e = EXBY[k];
+  const alts = LIB.filter(x => x.k !== k && (x.m||[]).some(m => (e.m||[]).includes(m)));
+  openSheet("Əvəz et: " + e.n, `
+    <div class="small" style="margin-bottom:11px">Eyni əzələni işlədən hərəkətlər. Dəzgah məşğuldursa buradan seç — tarixçə yeni hərəkətin öz adı altında yığılır.</div>
+    ${alts.map(x=>`<div class="libitem" onclick="doSwap('${k}','${x.k}')">
+      <div style="min-width:0"><div class="nm">${esc(x.n)}</div><div class="mt">${EQ[x.eq].n}</div></div>
+      <div class="go">›</div></div>`).join("")}`);
+}
+function doSwap(from,to){
+  const a = state.active; if(!a) return;
+  const rebuilt = {};
+  Object.keys(a.ex).forEach(k => {
+    if(k === from){
+      const s = suggest(to), [rMin] = repRange(to);
+      rebuilt[to] = a.ex[from].map(() => ({ kg:s.kg===null?"":String(s.kg), reps:String(s.reps||rMin), done:false, pre:true }));
+    } else rebuilt[k] = a.ex[k];
+  });
+  a.ex = rebuilt; save(); closeSheet(); renderTrain();
+}
+
+/* ==================================================================
+   16. DİSK HESABLAYICI — "2.5 kq necə artırım?" sualının cavabı
+   ================================================================== */
+function openPlates(k){
+  const e = EXBY[k];
+  const cur = parseFloat((state.active && state.active.ex[k] && state.active.ex[k][0].kg)) || plates(0,e.eq).bar;
+  openSheet("Disk hesabı · " + e.n, plateBody(k, cur));
+}
+function plateBody(k, total){
+  const e = EXBY[k], inc = incOf(k), r = plates(total, e.eq);
+  const counts = {};
+  (r.list||[]).forEach(p => counts[p] = (counts[p]||0)+1);
+  return `<div class="card tight" style="text-align:center">
+      <div class="tiny">ÜMUMİ ÇƏKİ (ŞTANQ DAXİL)</div>
+      <div class="huge num acc" style="margin:6px 0">${total} kq</div>
+      <div class="row" style="justify-content:center;gap:8px">
+        <button class="mini" onclick="plateStep('${k}',${total},${-inc})">−${inc}</button>
+        <button class="mini" onclick="plateStep('${k}',${total},${inc})">+${inc}</button>
+      </div>
+    </div>
+    <div class="card tight">
+      <div class="small">Ştanq <b>${r.bar} kq</b> · hər tərəfə <b class="acc">${Math.round(r.side*100)/100} kq</b></div>
+      ${r.err ? `<div class="warn err" style="margin:9px 0 0">${r.err}</div>` : `
+        <div class="plate">${Object.keys(counts).sort((a,b)=>b-a).map(p=>`<span>${p} × ${counts[p]}</span>`).join("")}</div>
+        <div class="tiny" style="margin-top:8px">Hər tərəfə bu disklər. ${inc} kq artırmaq = hər tərəfə ${inc/2} kq.</div>`}
+    </div>
+    ${state.active && state.active.ex[k] ? `<button class="btn" onclick="applyKg('${k}',${total})">Bütün dövrlərə ${total} kq yaz</button>` : ""}`;
+}
+function plateStep(k, total, d){ $("#sheetBody").innerHTML = plateBody(k, Math.round((total+d)*100)/100); }
+function applyKg(k, total){
+  state.active.ex[k].forEach(s => { s.kg = String(total); s.pre = false; });
+  save(); closeSheet(); renderTrain(); toast(`${total} kq yazıldı`);
+}
+
+/* ==================================================================
+   17. ZAL SAATI
+   ================================================================== */
+function openClock(){
+  openSheet("Zal saatı", `
+    <div class="small" style="margin-bottom:12px">Zalın divar saatı real saatdan fərqlənirsə, divardakı vaxtı yaz — app bütün vaxtları ona uyğunlaşdıracaq.</div>
+    <div class="field"><label>Divardakı saat</label>
+      <input id="ckIn" type="time" value="${hhmm(gymNow())}"></div>
+    <div class="small">Telefonun saatı: <b class="num">${hhmm(new Date())}</b>${state.profile.clockOffset?` · hazırkı fərq: <b class="num">${state.profile.clockOffset>0?"+":""}${state.profile.clockOffset} dəq</b>`:""}</div>
+    <button class="btn" style="margin-top:14px" onclick="saveClock()">Yadda saxla</button>
+    <button class="btn ghost sm" style="margin-top:8px" onclick="state.profile.clockOffset=0;save();closeSheet();tickClock();toast('Sıfırlandı')">Fərqi sıfırla</button>`);
+}
+function saveClock(){
+  const v = $("#ckIn").value; if(!v) return;
+  const [h,m] = v.split(":").map(Number);
+  const now = new Date(), target = new Date(now); target.setHours(h,m,0,0);
+  let diff = Math.round((target - now)/60000);
+  if(diff > 720) diff -= 1440; if(diff < -720) diff += 1440;
+  state.profile.clockOffset = diff; save(); closeSheet(); tickClock();
+  toast(`Fərq ${diff>0?"+":""}${diff} dəqiqə`);
+}
+
+/* ==================================================================
+   18. AYARLAR
+   ================================================================== */
+function openSettings(){
+  const p = state.profile, s = state.settings;
+  openSheet("Ayarlar", `
+    <div class="sect" style="margin-top:0">Profil</div>
+    <div class="field"><label>Ad</label><input id="stN" value="${esc(p.name)}"></div>
+    <div class="grid3">
+      <div class="field"><label>Yaş</label><input id="stA" type="number" value="${esc(p.age)}"></div>
+      <div class="field"><label>Boy sm</label><input id="stH" type="number" value="${esc(p.h)}"></div>
+      <div class="field"><label>Həftədə</label><input id="stW" type="number" value="${p.weeklyTarget}"></div>
     </div>
 
-    <div class="sect">Güc · təxmini 1TM</div>
-    <div class="card">${liftBlock}</div>
+    <div class="sect">Təkrar aralığı</div>
+    <div class="small" style="margin-bottom:9px">Bütün hərəkətlər üçün standart hədəf. Kitabxanadakı hərəkətlərin öz aralığı da var — istəsən onu işlət.</div>
+    <div class="grid2">
+      <div class="field"><label>Minimum</label><input id="stRmin" type="number" value="${s.repMin}"></div>
+      <div class="field"><label>Maksimum</label><input id="stRmax" type="number" value="${s.repMax}"></div>
+    </div>
+    <label class="row" style="margin-bottom:12px"><input type="checkbox" id="stLibR" ${s.useLibRange?"checked":""} style="width:auto">
+      <span class="small">Hər hərəkət üçün kitabxanadakı öz aralığını işlət</span></label>
 
-    <div class="sect">Tarixçə</div>
-    <div class="card">${hist}</div>`;
+    <div class="sect">Çəki addımları</div>
+    <div class="small" style="margin-bottom:9px">App çəkini bu addımlarla artırır. Zalındakı ən kiçik diskə uyğun qur — səhv addım ən çox şikayət edilən problemdir.</div>
+    <div class="grid2">
+      ${["barbell","ez","dumbbell","machine","cable","bodyweight"].map(t=>`
+        <div class="field"><label>${EQ[t].n}</label>
+          <input id="inc-${t}" type="number" step="0.5" value="${s.inc[t]}"></div>`).join("")}
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Ştanq çəkisi</label><input id="stBar" type="number" step="0.5" value="${s.barWeight}"></div>
+      <div class="field"><label>EZ ştanq</label><input id="stEz" type="number" step="0.5" value="${s.ezWeight}"></div>
+    </div>
+    <div class="field"><label>Mövcud disklər (vergüllə)</label>
+      <input id="stPl" value="${(s.plates||[]).join(", ")}"></div>
+
+    <label class="row" style="margin-bottom:14px"><input type="checkbox" id="stRest" ${s.autoRest?"checked":""} style="width:auto">
+      <span class="small">Dövr işarələnəndə istirahət taymeri avtomatik başlasın</span></label>
+
+    <button class="btn" onclick="saveSettings()">Yadda saxla</button>
+
+    <div class="sect">Məşq planı</div>
+    <button class="btn ghost sm" onclick="openPlan()">Günləri redaktə et</button>
+
+    <div class="sect">Məlumat</div>
+    <div class="btnrow">
+      <button class="btn sm ghost" onclick="exportData()">İxrac</button>
+      <button class="btn sm ghost" onclick="$('#impF').click()">İdxal</button>
+    </div>
+    <input type="file" id="impF" accept="application/json,.json" style="display:none" onchange="importData(this)">
+    <div class="tiny" style="margin-top:8px">${state.sessions.length} məşq · ${state.weights.length} çəki qeydi</div>
+    <button class="btn sm danger" style="margin-top:12px" onclick="wipe()">Hər şeyi sil</button>`);
 }
-function pickLift(k){ selLift=k; renderProg(); }
-function delWeight(i){ if(!confirm("Bu çəki qeydini silmək istəyirsiniz?")) return; state.weights.splice(i,1); if(state.weights.length) state.profile.w = state.weights[state.weights.length-1].kg; save({cloud:true}); renderProg(); }
-function delSession(i){ if(!confirm("Bu məşqi tarixçədən silmək istəyirsiniz?")) return; state.sessions.splice(i,1); save({cloud:true}); renderProg(); }
-
-/* ================= boot ================= */
-(function(){
-  const d=new Date();
-  $("#dateChip").innerHTML = `<b>${d.toLocaleDateString("az",{weekday:"long"})}</b><br>${d.toLocaleDateString("az",{day:"numeric",month:"short",year:"numeric"})}`;
-})();
-loadState().then(()=>{ renderSaveNote(); renderNetNote(); renderToday(); });
-
-/* Service worker — zalın zirzəmisində siqnal olmayanda app yenə açılsın.
-   Nisbi yol: alt qovluqda (məs. /gym/) yerləşdirmə üçün vacibdir. */
-if("serviceWorker" in navigator){
-  window.addEventListener("load", ()=>{
-    navigator.serviceWorker.register("sw.js").catch(()=>{});
+function saveSettings(){
+  const p = state.profile, s = state.settings;
+  p.name = $("#stN").value.trim();
+  p.age = parseFloat($("#stA").value)||"";
+  p.h = parseFloat($("#stH").value)||p.h;
+  p.weeklyTarget = clamp(parseInt($("#stW").value)||3, 1, 7);
+  s.repMin = clamp(parseInt($("#stRmin").value)||8, 1, 50);
+  s.repMax = clamp(parseInt($("#stRmax").value)||12, s.repMin, 60);
+  s.useLibRange = $("#stLibR").checked;
+  ["barbell","ez","dumbbell","machine","cable","bodyweight"].forEach(t=>{
+    const v = parseFloat($("#inc-"+t).value); if(v>0) s.inc[t] = v;
   });
+  s.inc.smith = s.inc.barbell; s.inc.assisted = s.inc.machine;
+  s.barWeight = parseFloat($("#stBar").value)||20;
+  s.ezWeight = parseFloat($("#stEz").value)||10;
+  const pl = $("#stPl").value.split(",").map(x=>parseFloat(x.trim())).filter(x=>x>0);
+  if(pl.length) s.plates = pl.sort((a,b)=>b-a);
+  s.autoRest = $("#stRest").checked;
+  save(); closeSheet(); refresh(); toast("Yadda saxlanıldı");
 }
-window.addEventListener("load", ()=>{ sbBoot(); }); /* CDN skripti (defer) yükləndikdən sonra */
+function openPlan(){
+  openSheet("Məşq planı", Object.keys(state.plan).map(d=>`
+    <div class="card tight" style="margin-bottom:10px">
+      <div class="field" style="margin-bottom:8px"><label>Günün adı</label>
+        <input value="${esc(state.plan[d].name)}" oninput="state.plan['${d}'].name=this.value;save()"></div>
+      ${state.plan[d].ex.map((k,i)=>`<div class="mrow">
+        <div style="flex:1;font-size:13.5px">${esc(EXBY[k]?EXBY[k].n:k)}</div>
+        <button class="mini" onclick="planMove('${d}',${i},-1)">↑</button>
+        <button class="mini" onclick="planMove('${d}',${i},1)">↓</button>
+        <button class="mini" onclick="planDel('${d}',${i})">✕</button>
+      </div>`).join("")}
+      <button class="addset" style="margin-top:8px" onclick="tab('lib');closeSheet();toast('Hərəkət seç → Plana əlavə et')">+ hərəkət (kitabxanadan)</button>
+    </div>`).join("") +
+    `<div class="small">Kitabxanadan istənilən hərəkəti açıb «Plana əlavə et» düyməsi ilə istədiyin günə qoşa bilərsən.</div>`);
+}
+function planMove(d,i,dir){
+  const a = state.plan[d].ex, j = i+dir;
+  if(j<0||j>=a.length) return;
+  [a[i],a[j]] = [a[j],a[i]]; save(); openPlan();
+}
+function planDel(d,i){ state.plan[d].ex.splice(i,1); save(); openPlan(); }
+
+/* ==================================================================
+   19. İXRAC / İDXAL
+   ================================================================== */
+function exportData(){
+  try{
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `forge-${todayISO()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    toast("Fayl yükləndi");
+  }catch(e){ toast("İxrac alınmadı"); }
+}
+function importData(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let d; try{ d = JSON.parse(r.result); }catch(e){ toast("Fayl oxunmadı"); return; }
+    if(!d || !Array.isArray(d.sessions)){ toast("FORGE faylı deyil"); return; }
+    if(!confirm(`${d.sessions.length} məşq qeydi idxal olunacaq. Mövcud qeydlərlə birləşdirilsin?`)) return;
+    const inc = migrate(d);
+    const seen = new Set(state.sessions.map(s=>s.d+"|"+s.day));
+    inc.sessions.forEach(s => { if(!seen.has(s.d+"|"+s.day)) state.sessions.push(s); });
+    const wd = new Set(state.weights.map(w=>w.d));
+    inc.weights.forEach(w => { if(!wd.has(w.d)) state.weights.push(w); });
+    state.sessions.sort((a,b)=>a.d<b.d?-1:1);
+    state.weights.sort((a,b)=>a.d<b.d?-1:1);
+    save(); closeSheet(); refresh(); toast(`Birləşdirildi — ${state.sessions.length} məşq`);
+    input.value = "";
+  };
+  r.readAsText(f);
+}
+function wipe(){
+  if(!confirm("BÜTÜN məşq tarixçəsi silinəcək. Bu geri qaytarıla bilməz. Davam?")) return;
+  if(!confirm("Əminsən? Əvvəlcə İxrac etməyi tövsiyə edirəm.")) return;
+  state = JSON.parse(JSON.stringify(DEF)); save(); closeSheet(); tab("today");
+}
+
+/* ==================================================================
+   20. BAŞLANĞIC
+   ================================================================== */
+load();
+tickClock(); setInterval(tickClock, 20000);
+renderToday();
+if(!storageOK){
+  const w = document.createElement("div");
+  w.className = "warn err"; w.style.margin = "12px 16px";
+  w.textContent = "Bu brauzerdə yaddaş bağlıdır — qeydlər saxlanılmayacaq. Gizli rejimdən çıx.";
+  document.querySelector("main").prepend(w);
+}
+if("serviceWorker" in navigator)
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+
 </script>
 </body>
 </html>
