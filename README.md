@@ -55,6 +55,23 @@ Service worker yeniləyəndə `sw.js` içindəki `CACHE_VERSION` dəyərini art�
 | 15 | Hansı hərəkətin nəyi işlətdiyi yalnız mətn etiketi idi; həftə ərzində hansı əzələnin az işləndiyi görünmürdü | Ön/arxa əzələ xəritəsi: texnika vərəqində əsas/köməkçi əzələlər bədən üzərində rənglənir, Proqres tabında son 7 günün istilik xəritəsi + əzələ başına dövr | `MUSCLES`, `MMAP`, `bodyView`, `exerciseBody`, `heatShade`, `setsPerMuscle`, `volumeHTML` |
 | 16 | ⇄ Dəyiş yalnız həmin slot üçün əvvəlcədən seçilmiş 1-3 alternativi göstərirdi — kitabxananın qalanına çatmaq mümkün deyildi | Axtarış bütün hərəkətləri əhatə edir: ad, əzələ (“biseps”) və avadanlıq (“hantel”) üzrə. Seçilən hərəkət öz dövr sayını, təkrar aralığını və yük tipini gətirir; artıq qeyd edilmiş dövrlərə toxunulmur | `openSwap`, `renderSwapList`, `swapFilter`, `chooseEx` |
 
+| 17 | Proqram 3 günlük A/B/C idi, sən isə İtələmə / Çəkmə / Ayaq / Tam bədən işləyirsən | Günlər 4-ə bölündü. **Hərəkət tərifləri, dövr sayları və ALTS siyahıları toxunulmadan qaldı** — yalnız qruplaşma dəyişdi. 18 hərəkətin hər biri həftədə dəqiq bir dəfə işlənir; `PROGRAM` yenə də əvvəlki obyekt literalıdır | `PROGRAM` (yalnız qruplaşma), `ROT`, `nextDay`, `weeklyTarget` |
+
+### Gün quruluşu
+
+| Gün | Ad | Hərəkətlər | Set |
+|-----|-----|-----------|-----|
+| A | İtələmə | Bench · Overhead Press · Lateral Raise · Triceps Pushdown | 13 |
+| B | Çəkmə | Lat Pulldown · Cable Row · Face Pull · EZ Curl | 14 |
+| C | Ayaq | Squat · RDL · Leg Press · Leg Curl · Calf Raise | 17 |
+| D | Tam bədən | Bulgarian Split Squat · Incline DB Press · CS Row · Back Extension · Cable Crunch | 16 |
+
+Ümumi həftəlik set sayı əvvəlki kimi 60-dır — sadəcə 3 gün əvəzinə 4 günə paylanıb.
+`node smoke.js` [1] bölməsi həftəlik əzələ örtüyünü hesablayır və minimumdan aşağı
+qalan əzələləri **qeyd** kimi yazır (testi pozmur — bölgü sənin seçimindir):
+hazırda `chest 8/10 · side_delt 6/10 · lat 9.5/10 · rear_delt 8/10 · calf 4.5/8 · abs 4.5/8`.
+Bunları qaldırmaq istəsən, müvafiq hərəkətin `sets` dəyərini artırmaq kifayətdir.
+
 ## Data uyğunluğu
 
 Köhnə `forge-data` avtomatik miqrasiya olunur (`migrate()`): heç bir məşq, çəki və ya əlavə qeydi itmir. Hərəkət açarları (`sq`, `bp`, `lp` …) saxlanılıb, ona görə keçmiş tarixçə yeni proqramda da görünür. `llc` və `csmr` alternativlərdən əsas slota keçdi — eyni açarla, yəni onlarla əvvəl etdiyin məşqlər də sayılır. `ham` və `fly` alternativlərə keçdi, silinmədi.
