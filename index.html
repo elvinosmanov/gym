@@ -954,7 +954,7 @@ const TIPS = [
 const PROGRAM_VERSION = 3;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v21";
+const APP_VERSION = "forge-v22";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1256,8 +1256,10 @@ function mergeState(local, remote){
     out.userEx = {...(remote.userEx||{}), ...(local.userEx||{})};
     out.vid = {...(remote.vid||{}), ...(local.vid||{})};
   }
-  /* active is NEVER merged — an in-progress workout on this device must survive a sync */
-  out.active = local.active;
+  /* Bu cihazdakı yarımçıq məşq HƏR ZAMAN qorunur — sinxronizasiya onu silməməlidir.
+     Amma bu cihazda yarımçıq məşq yoxdursa, qarşı tərəfdəki götürülür: əks halda
+     yedəkdən bərpa edəndə (və ya başqa cihazda başlanmış məşq) bütöv bir məşq itirdi. */
+  out.active = local.active || remote.active || null;
   out.ts = Math.max(local.ts||0, remote.ts||0);
   return out;
 }
