@@ -185,7 +185,7 @@ a.btn{text-decoration:none}
 .chips .pick{font-size:12px;border:1px solid var(--line);background:var(--card2);border-radius:99px;padding:5px 11px;color:var(--mut);cursor:pointer}
 .chips .pick.on{color:var(--chalk-ink);background:var(--chalk);border-color:var(--chalk);font-weight:600}
 /* ---------- warm-up + session clock ---------- */
-.wulist{list-style:none;counter-reset:wu;margin-top:8px}
+.wulist{list-style:none;counter-reset:wu;margin-top:4px}
 .wulist li{counter-increment:wu;position:relative;padding:8px 0 8px 26px;border-bottom:1px solid var(--line)}
 .wulist li:last-child{border-bottom:0}
 .wulist li::before{content:counter(wu);position:absolute;left:0;top:8px;width:18px;height:18px;border-radius:6px;
@@ -193,8 +193,9 @@ a.btn{text-decoration:none}
   display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .wulist li b{display:block;font-size:13.5px;font-weight:600;line-height:1.3}
 .wulist li small{color:var(--mut);font-size:11.5px}
-.card.wu.done .wulist{opacity:.5}
-.card.wu.done .wulist li b{text-decoration:line-through}
+details.wu.done summary{color:var(--green)}
+details.wu.done .wulist{opacity:.5}
+details.wu.done .wulist li b{text-decoration:line-through}
 .clock{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
   border-radius:13px;padding:11px 14px;margin:10px 0 2px;cursor:pointer}
 .clock .cl-l{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
@@ -619,7 +620,7 @@ sdp:{name:"Seated Dumbbell Shoulder Press", tag:"Ön/yan delta · Triseps", g:"p
 idp:{name:"Incline Dumbbell Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"idp",
   cues:["Skamya ~30° bucaqda olsun. Hantelləri çiyin səviyyəsindən başladın.","Yuxarı və bir az bir-birinə doğru itələyin, toqquşdurmadan.","Yuxarı döşdə dərin gərilmə hiss edənə qədər yavaş-yavaş endirin.","Kürəkləri bütün dövr boyu bir-birinə sıxılmış saxlayın."],
   mist:["Skamyanın çox dik olması — hərəkəti çiyin presinə çevirir.","Aşağıda gərilməni tam etməmək.","Aşağı nöqtədən sıçrayışla qalxmaq."]},
-lat:{name:"Dumbbell Lateral Raise", tag:"Yan delta", g:"push", pri:["delts"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"lat",
+lat:{name:"Dumbbell Lateral Raise", tag:"Yan delta", g:"push", pri:["delts"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"lat",
   cues:["Bir az önə əyilin, dirsəklərdə yüngül bükülmə saxlayın.","Dirsəkləri önə çıxararaq yanlara, çiyin hündürlüyünə qədər qaldırın.","Yuxarı nöqtədə çeçələ barmaq baş barmaqdan bir az hündür olsun.","2 saniyə ərzində endirin — mənfi faza delta əzələsini inkişaf etdirir."],
   mist:["Çəkiləri ətalətlə yuxarı yellətmək.","Çiyinləri qaldırmaq — trapesiya əzələsinin işi öz üzərinə götürməsi.","Çox ağır çəki götürərək hərəkəti yarımçıq yellənməyə çevirmək."]},
 fly:{name:"Cable Chest Fly", tag:"Döş (iç hissə)", g:"push", pri:["chest"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"fly",
@@ -639,7 +640,7 @@ row:{name:"Seated Cable Row", tag:"Orta kürək", g:"pull", pri:["lats","traps"]
 tbr:{name:"T-Bar Row", tag:"Orta kürək · Enli kürək", g:"pull", pri:["lats","traps"], sec:["biceps"], load:"plate", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"tbr",
   cues:["Dizləri yüngül bükün, ombadan önə əyilin — gövdə ~45°, bel düz.","Tutacaqları iki əllə tutun, qollar tam açılsın.","Dirsəkləri bədənə yaxın saxlayaraq göbəyə doğru çəkin, kürəkləri sıxın.","Nəzarətlə tam gərilməyə buraxın — hər təkrarda kürəyin uzandığını hiss edin."],
   mist:["Gövdəni hər təkrarda qaldırıb-endirmək (belin işə düşməsi).","Belin yumrulanması — ağır çəkidə ən böyük risk.","Dirsəkləri geniş açıb hərəkəti arxa deltaya ötürmək."]},
-rdr:{name:"Dumbbell Rear Delt Row", tag:"Arxa delta · Duruş", g:"pull", pri:["rdelt"], sec:["traps"], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"rdr",
+rdr:{name:"Dumbbell Rear Delt Row", tag:"Arxa delta · Duruş", g:"pull", pri:["rdelt"], sec:["traps"], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"rdr",
   cues:["Ombadan önə əyilin, gövdə demək olar ki, yerə paralel, bel düz.","Dirsəkləri YUXARI və GENİŞ çəkin — bədənə yaxın yox.","Yuxarıda kürək arxasını bir saniyə sıxın, sonra tam açın.","Yüngül çəki: arxa delta kiçik əzələdir, texnika hər şeydir."],
   mist:["Ağır çəki — hərəkət adi eşməyə (row) çevrilir.","Dirsəklərin biləklərdən aşağı düşməsi.","Bədəni qaldırıb ətalətlə dartmaq."]},
 cur:{name:"EZ-Bar Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"cur",
@@ -665,7 +666,7 @@ llc:{name:"Lying Leg Curl", tag:"Arxa budun əzələsi", g:"legs", pri:["hams"],
 lex:{name:"Leg Extension", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"lex",
   cues:["Diz oynağı aparatın oxu ilə üst-üstə düşsün, yastıq ayaq biləyinin üstündə olsun.","Ombanı oturacağa basılı saxlayın, tutacaqlardan yapışın.","Ayaqları tam açın və yuxarıda 1 saniyə dördbaşlı əzələni sıxın.","Nəzarətlə endirin — çəki yığınına toxunmadan dayanın, gərginlik itməsin."],
   mist:["Ombanı qaldırıb ətalətlə təpik vurmaq.","Yuxarıda dayanmadan sürətli təkrarlar.","Diz ağrısı varsa çox ağır çəki — bu hərəkət yüngül çəki və yüksək təkrar sevir."]},
-calf:{name:"Standing Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"calf",
+calf:{name:"Standing Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"calf",
   cues:["Aşağıda tam gərilmə — orada bir saniyə dayanın.","Ayaq barmaqlarının ucuna qədər qalxın və 1-2 saniyə sıxın.","Yavaş enmə. Baldır əzələsi sıçramadan yox, tam amplitüddən böyüyür."],
   mist:["Gərilmə refleksindən istifadə edərək sıçramaq.","Sürətli, yarımçıq təkrarlar.","Çəkini hiylə ilə qaldırmaq üçün dizləri bükmək."]},
 
@@ -682,47 +683,47 @@ upd:{name:"Underhand Lat Pulldown", tag:"Enli kürək · Biseps", g:"pull", pri:
 msp:{name:"Machine Shoulder Press", tag:"Çiyinlər · Triseps", g:"push", pri:["delts"], sec:["triceps"], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"msp",
   cues:["Tutacaqlar çiyin səviyyəsində başlasın — oturacağı ona görə tənzimləyin.","Beli söykənəcəyə basılı saxlayın, qarını gərin.","Yuxarı itələyin, dirsəkləri tam kilidləməyin.","Nəzarətlə qulaq səviyyəsinə qədər endirin."],
   mist:["Beli qövsə salmaq.","Yarımçıq eniş.","Boynu önə uzatmaq."]},
-be:{name:"Back Extension", tag:"Bel · Sağrı · Arxa bud", g:"legs", pri:["lowback","glutes"], sec:["hams"], load:"bw", sets:3, rMin:12, rMax:15, rest:90, inc:2.5, bodyweight:true, im:"be",
+be:{name:"Back Extension", tag:"Bel · Sağrı · Arxa bud", g:"legs", pri:["lowback","glutes"], sec:["hams"], load:"bw", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, bodyweight:true, im:"be",
   cues:["Bədəni yastıqcığın üzərinə qoyun, ayaq biləkləri diyircəklərin altında sabitlənsin.","Başlanğıc üçün qolları döşün üzərində çarpazlayın — asan gəldikdə döşünüzə disk qoyun.","Arxa budun əzələlərində gərilmə hiss edənə qədər nəzarətlə enin.","Sağrı və arxa budu sıxaraq düz xəttə qalxın — daha da geri əyilməyin."],
   mist:["Hiperekstenziya — yuxarıda neytral vəziyyətdən çox geri əyilmək onurğaya zərər verir.","Aşağıda sıçramaq.","Enərkən belin yumrulanması.","Ətalətlə dartınmaq."]},
-abs:{name:"Cable Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"abs",
+abs:{name:"Cable Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"abs",
   cues:["Kanat başınızın yanında olacaq şəkildə diz üstə oturun.","Qabırğaları çanağa doğru bükün — onurğanı əyin, budları yox.","Aşağıda bərk nəfəs verin, nəzarətlə geri qalxın."],
   mist:["Qollarla dartınmaq.","Qarını bükmək əvəzinə budlardan əyilmək.","Tələsmək — bu hərəkətdə əsas olan sıxılmadır."]},
 
-idfl:{name:"Incline Dumbbell Fly", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"idfl",
+idfl:{name:"Incline Dumbbell Fly", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"idfl",
   cues:["Skamya ~30°, hantellər sinə üzərində, dirsəklər yüngül bükülü sabit qalır.","Qollar geniş qövslə açılır — yuxarı döşdə dərin gərilmə hiss edin.","Yuxarıda toqquşdurmayın, 5-10 sm məsafə saxlayın ki, gərginlik itməsin."]},
-dcfl:{name:"Decline Dumbbell Fly", tag:"Aşağı döş", g:"push", pri:["chest"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"dcfl",
+dcfl:{name:"Decline Dumbbell Fly", tag:"Aşağı döş", g:"push", pri:["chest"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"dcfl",
   cues:["Skamya aşağı maili — aşağı döş lifləri işləyir.","Dirsək bucağını sabit saxlayın, yalnız çiyin oynağından açın."]},
-fbcf:{name:"Flat-Bench Cable Fly", tag:"Döş (daimi gərginlik)", g:"push", pri:["chest"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"fbcf",
+fbcf:{name:"Flat-Bench Cable Fly", tag:"Döş (daimi gərginlik)", g:"push", pri:["chest"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"fbcf",
   cues:["Düz skamya iki kabelin arasında; kabel bütün amplitudada gərginlik verir.","Yuxarıda bir saniyə sıxın, aşağıda döşdə uzanma axtarın."]},
-lcfl:{name:"Low-to-High Cable Fly", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"lcfl",
+lcfl:{name:"Low-to-High Cable Fly", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"lcfl",
   cues:["Kabellər aşağıdan gəlir, qollar yuxarı-içəri qucaqlayır.","Yuxarı döşün iç hissəsini sıxın; çəki yox, bucaq vacibdir."]},
 mtri:{name:"Machine Triceps Extension", tag:"Triseps", g:"push", pri:["triceps"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"mtri",
   cues:["Oturacağı elə qurun ki, dirsək oxu aparatın oxu ilə üst-üstə düşsün.","Dirsəklər yastıqda sabit — yalnız said hərəkət edir.","Aşağıda tam açın, bir saniyə sıxın, nəzarətlə buraxın."],
   mist:["Çiyinləri işə qatmaq üçün bədəni önə atmaq.","Yarımçıq amplituda."]},
-ktri:{name:"Kneeling Overhead Cable Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"stack", sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"ktri",
+ktri:{name:"Kneeling Overhead Cable Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"ktri",
   cues:["Kabelə arxası çevrilib diz üstə durun, kəndiri başın arxasından aparın.","Dirsəklər qulaqların yanında kilidli; yalnız said açılır.","Uzun baş məhz bu uzanmada işləyir — amplitudanı qısaltmayın."]},
-ohdb:{name:"One-Arm DB Overhead Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"db", sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"ohdb",
+ohdb:{name:"One-Arm DB Overhead Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"ohdb",
   cues:["Hanteli bir əllə baş üzərinə qaldırın, boş əllə dirsəyi tutub sabitləyin.","Başın arxasına endirin — dirsək önə düşməsin."]},
-dbte:{name:"Two-Arm DB Overhead Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"db1", sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"dbte",
+dbte:{name:"Two-Arm DB Overhead Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"db1", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"dbte",
   cues:["Bir hanteli iki əllə diskindən tutun, baş üzərinə qaldırın.","Dirsəklər içəri baxır, sabit qalır; yalnız said açılır."]},
-kick:{name:"Triceps Kickback", tag:"Triseps", g:"push", pri:["triceps"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:45, inc:2.5, im:"kick",
+kick:{name:"Triceps Kickback", tag:"Triseps", g:"push", pri:["triceps"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:45, inc:2.5, im:"kick",
   cues:["Ombadan önə əyilin, üst qol bədənə paralel və sabit.","Yalnız dirsəkdən açın, yuxarıda bir saniyə sıxın.","Yüngül çəki — bu hərəkət sıxılma üçündür."]},
 ddbp:{name:"Decline Dumbbell Press", tag:"Aşağı döş · Triseps", g:"push", pri:["chest"], sec:["triceps"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"ddbp",
   cues:["Skamya aşağı maili; hantellər aşağı döş xəttinə enir.","Çiyinlərə düz bench-dən daha rahatdır — döşün aşağı hissəsini yaxşı yükləyir."]},
 oabp:{name:"One-Arm Dumbbell Press", tag:"Döş · Gövdə", g:"push", pri:["chest"], sec:["triceps","abs"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"oabp",
   cues:["Bir hantellə itələyin, boş qol yanda — gövdə fırlanmağa müqavimət göstərir.","Ombanı yerdən qaldırmayın."]},
-dpul:{name:"Dumbbell Pullover", tag:"Enli kürək · Döş", g:"pull", pri:["lats"], sec:["chest","triceps"], load:"db1", sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"dpul",
+dpul:{name:"Dumbbell Pullover", tag:"Enli kürək · Döş", g:"pull", pri:["lats"], sec:["chest","triceps"], load:"db1", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"dpul",
   cues:["Skamyada uzanın, bir hanteli iki əllə sinə üzərində tutun.","Dirsəklər yüngül bükülü, hanteli baş arxasına endirin — qabırğa qəfəsində uzanma hiss edin.","Kürəklə geri çəkin, bel qövsə düşməsin."]},
-dsh:{name:"Dumbbell Shrug", tag:"Trapesiya", g:"pull", pri:["traps"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"dsh",
+dsh:{name:"Dumbbell Shrug", tag:"Trapesiya", g:"pull", pri:["traps"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"dsh",
   cues:["Hantellər yanlarda, qollar düz — yalnız çiyinlər yuxarı qalxır.","Fırlatmayın; yuxarıda bir saniyə sıxın."]},
-dfr:{name:"Front Dumbbell Raise", tag:"Ön delta", g:"push", pri:["delts"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"dfr",
+dfr:{name:"Front Dumbbell Raise", tag:"Ön delta", g:"push", pri:["delts"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"dfr",
   cues:["Hanteli çiyin hündürlüyünə qədər düz önə qaldırın.","Yellənmə yoxdur; bədən sabit qalır."]},
-dbrf:{name:"Bent-Over Rear Delt Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"dbrf",
+dbrf:{name:"Bent-Over Rear Delt Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"dbrf",
   cues:["Döşü maili skamyaya dayayın — bel yüklənmir, ətalət mümkün deyil.","Qolları yana açın, dirsəklər yumşaq bükülü; yuxarıda sıxın."]},
 ddl:{name:"Dumbbell Romanian Deadlift", tag:"Arxa bud · Sağrı", g:"legs", pri:["hams","glutes"], sec:["lowback"], load:"db", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, im:"ddl",
   cues:["Hantellər ayaqların önündə, dizlər yüngül bükülü.","Ombanı arxaya itələyin, hantellər budlara sürtünərək enir.","Arxa budda gərilmə hiss edəndə sağrını sıxaraq qalxın."]},
-dcr:{name:"Single-Leg DB Calf Raise", tag:"Baldır", g:"legs", pri:["calves"], sec:[], load:"db1", sets:3, rMin:12, rMax:15, rest:45, inc:2.5, im:"dcr",
+dcr:{name:"Single-Leg DB Calf Raise", tag:"Baldır", g:"legs", pri:["calves"], sec:[], load:"db1", sets:3, rMin:8, rMax:12, rest:45, inc:2.5, im:"dcr",
   cues:["Bir ayaq üstə, hantel eyni tərəfdə; pəncə bir pillə/disk üzərində.","Aşağıda dabanı tam sallayın, yuxarıda 1 saniyə sıxın."]},
 
 /* ---------- ALTERNATİVLƏR (redaktorda da seçilə bilər) ---------- */
@@ -747,9 +748,9 @@ hgip:{name:"Hammer-Grip Incline Press", tag:"Yuxarı döş · Ön delta", g:"pus
   cues:["Neytral tutuş — ovuclar bir-birinə baxır, çiyinlərə daha rahatdır.","Dirsəklər bədənə yaxın gedir."]},
 smip:{name:"Smith Machine Incline Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], load:"smith", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"smip",
   cues:["Skamyanı 30° qurun, ştanq xətti yuxarı döşə düşsün.","Sabit trayektoriya — sıxılmaya fokuslanın."]},
-uprb:{name:"Upright Barbell Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], load:"bar", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"uprb",
+uprb:{name:"Upright Barbell Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"uprb",
   cues:["Tutuş çiyin enində, ştanq bədən boyunca yuxarı sürüşür.","Dirsəklər biləklərdən yuxarıda; çiyin ağrısı varsa döş səviyyəsindən yuxarı qaldırmayın."]},
-uprc:{name:"Upright Cable Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"uprc",
+uprc:{name:"Upright Cable Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"uprc",
   cues:["Kabel daimi gərginlik verir — aşağıda da işləyir.","Dirsəkləri yuxarı aparın, biləkləri yox."]},
 pdk:{name:"Pec Deck", tag:"Döş", pri:["chest"], sec:[], g:"push", load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"pdk",
   cues:["Dirsəklər bir az bükülü sabit qalır.","Öndə döşü sıxın, geriyə nəzarətlə açın."]},
@@ -780,11 +781,11 @@ rgr:{name:"Barbell Row (Bent-Over)", tag:"Enli kürək · Biseps", g:"pull", pri
   cues:["Ovuclar önə baxır, gövdə ~45°, bel düz.","Ştanqı göbəyə doğru çəkin, dirsəklər bədən boyunca arxaya gedir."]},
 brow:{name:"Inverted Body Row", tag:"Orta kürək", g:"pull", pri:["lats","traps"], sec:["biceps"], load:"bw", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, bodyweight:true, im:"brow",
   cues:["Bədən düz xətt — sağrı sallanmasın.","Ayaqlar nə qədər önə gedirsə, hərəkət bir o qədər çətinləşir."]},
-rdrb:{name:"Barbell Rear Delt Row", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:["traps"], load:"bar", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"rdrb",
+rdrb:{name:"Barbell Rear Delt Row", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:["traps"], load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"rdrb",
   cues:["Geniş tutuş, dirsəklər yuxarı-geniş çəkilir.","Çəkini yüngül saxlayın — hədəf arxa deltadır, kürək yox."]},
-bocl:{name:"Bent-Over Cable Lateral Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"bocl",
+bocl:{name:"Bent-Over Cable Lateral Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"bocl",
   cues:["Kabellər çarpaz, gövdə önə əyilmiş.","Qolları yana açın, dirsəklər yumşaq bükülü sabit qalsın."]},
-srlc:{name:"Lying Rear Delt Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"srlc",
+srlc:{name:"Lying Rear Delt Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"srlc",
   cues:["Oturub gövdəni dizlərə doğru əyin — beldən yük götürür.","Qolları yana açın, yuxarıda bir saniyə sıxın."]},
 dbcu:{name:"Dumbbell Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"dbcu",
   cues:["Dirsəklər böyürdə sabit, yellənmə yoxdur.","Yuxarıda bisepsi sıxın, nəzarətlə endirin."]},
@@ -820,11 +821,11 @@ stlc:{name:"Standing Leg Curl", tag:"Arxa budun əzələsi (tək ayaq)", g:"legs
   cues:["Bir ayaqla işləyin, omba sabit qalsın.","Zəif ayağı güclüsü ilə eyni təkrarda saxlayın."]},
 siss:{name:"Sissy Squat", tag:"Dördbaşlı əzələ (uzanma)", g:"legs", pri:["quads"], sec:[], load:"bw", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, bodyweight:true, im:"siss",
   cues:["Dizləri önə verib bədəni geri yatırın, omba düz xətdə qalsın.","Dizlərə həssassınızsa amplitudanı qısaldın."]},
-scr:{name:"Seated Calf Raise", tag:"Baldır (soleus)", g:"legs", pri:["calves"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"scr",
+scr:{name:"Seated Calf Raise", tag:"Baldır (soleus)", g:"legs", pri:["calves"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"scr",
   cues:["Aşağıda dabanı tam sallayın — uzanma vacibdir.","Yuxarıda 1 saniyə saxlayın."]},
-lpcr:{name:"Leg Press Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"plate", sets:3, rMin:12, rMax:15, rest:60, inc:5, im:"lpcr",
+lpcr:{name:"Leg Press Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"plate", sets:3, rMin:8, rMax:12, rest:60, inc:5, im:"lpcr",
   cues:["Pəncələr platformanın aşağı kənarında.","Tam amplituda — aşağı uzanma, yuxarı sıxma. Dizlər kilidlənməsin."]},
-don:{name:"Donkey Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"don",
+don:{name:"Donkey Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"don",
   cues:["Ombadan önə əyilin — baldır bu vəziyyətdə daha çox uzanır.","Yavaş enin, yuxarıda sıxın."]},
 wlg:{name:"Walking Lunge", tag:"Dördbaşlı · Sağrı (hər ayaq)", g:"legs", pri:["quads","glutes"], sec:["hams"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"wlg",
   cues:["Uzun addım — ön diz barmaq xəttini keçməsin.","Gövdə dik, arxa diz yerə yaxınlaşır.","Təkrarı BİR ayaq üçün sayın."]},
@@ -836,19 +837,19 @@ pshu:{name:"Push-Up", tag:"Döş · Triseps · Gövdə", g:"push", pri:["chest"]
   cues:["Bədən düz xətt — sağrı nə qalxsın, nə çöksün.","Asanlaşanda kürəyə disk qoyun və ya ayaqları yüksəldin."]},
 nchn:{name:"Mixed-Grip Chin-Up", tag:"Enli kürək · Biseps", g:"pull", pri:["lats","biceps"], sec:["forearm"], load:"bw", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, bodyweight:true, im:"nchn",
   cues:["Neytral tutuş — çiyinlərə ən rahat variant.","Döşü tutacağa doğru aparın."]},
-sbe:{name:"Stability Ball Back Extension", tag:"Bel · Sağrı", g:"legs", pri:["lowback","glutes"], sec:["hams"], load:"bw", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"sbe",
+sbe:{name:"Stability Ball Back Extension", tag:"Bel · Sağrı", g:"legs", pri:["lowback","glutes"], sec:["hams"], load:"bw", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, bodyweight:true, im:"sbe",
   cues:["Qarın topun üstündə, ayaqlar divara dayanır.","Yuxarıda neytral xətdə dayanın — geri əyilməyin."]},
-sup:{name:"Superman", tag:"Bel · Duruş", g:"core", pri:["lowback"], sec:["glutes"], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"sup",
+sup:{name:"Superman", tag:"Bel · Duruş", g:"core", pri:["lowback"], sec:["glutes"], load:"bw", sets:3, rMin:8, rMax:12, rest:45, inc:1, bodyweight:true, im:"sup",
   cues:["Üzüstə uzanın, qol və ayaqları eyni anda qaldırın.","Yuxarıda 2 saniyə saxlayın — sürət yox, saxlama vacibdir."]},
-crn:{name:"Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:2.5, bodyweight:true, im:"crn",
+crn:{name:"Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:8, rMax:12, rest:45, inc:2.5, bodyweight:true, im:"crn",
   cues:["Qabırğaları çanağa yaxınlaşdırın, boyun sərbəst qalsın.","Yuxarıda nəfəsi tam verin və bir saniyə sıxın."]},
-dcrn:{name:"Decline Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"dcrn",
+dcrn:{name:"Decline Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, bodyweight:true, im:"dcrn",
   cues:["Nəzarətlə enin — düşməyin.","Ağırlığı sinədə tutub çətinləşdirmək olar."]},
-hipr:{name:"Bent-Knee Hip Raise", tag:"Aşağı qarın", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"hipr",
+hipr:{name:"Bent-Knee Hip Raise", tag:"Aşağı qarın", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:8, rMax:12, rest:45, inc:1, bodyweight:true, im:"hipr",
   cues:["Çanağı tavana doğru burun — ayaqları yuxarı atmaqla eyni şey deyil.","Yellənmədən, yavaş."]},
 shr:{name:"Barbell Shrug", tag:"Trapesiya", pri:["traps"], sec:[], g:"pull", load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:5, im:"shr",
   cues:["Ştanq düz qollarda asılı qalır — qollar dartmır, yalnız çiyinlər qalxır.","Çiyinləri qulaqlara doğru düz yuxarı qaldırın, fırlatmayın.","Yuxarıda 1 saniyə sıxın, nəzarətlə endirin."]},
-abike:{name:"Air Bike", tag:"Qarın · Yan qarın", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"abike",
+abike:{name:"Air Bike", tag:"Qarın · Yan qarın", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:8, rMax:12, rest:45, inc:1, bodyweight:true, im:"abike",
   cues:["Dirsək və əks dizi bir-birinə yaxınlaşdırın, gövdəni burun.","Boynu əllə dartmayın."]}
 };
 
@@ -1834,25 +1835,31 @@ function warmupCard(D){
   const items = WARMUPS[D] || [];
   const act = !!(state.active && state.active.day===D);
   const done = act && !!state.active.warmDone;
-  return `<div class="card wu ${done?"done":""}" id="wuCard">
-    <div class="exhead" style="margin-bottom:6px">
-      <div><div class="name" style="font-family:var(--disp);font-weight:600;font-size:16.5px">Qızışma · 3-5 dəq</div>
-      <div class="small">${done ? "Bitdi — ilk hərəkətə keçin." : "Sıra ilə, tələsmədən"}</div></div>
-      <button class="techbtn" onclick="startTimer(240,'Qızışma')">⏱ 4 dəq</button>
+  /* yığılmış saxlanılır — hər məşqdə oxumağa ehtiyac yoxdur, lazım olanda açılır */
+  return `<details class="rules wu ${done?"done":""}" id="wuCard">
+    <summary><span>Qızışma · 3-5 dəq${done?" · bitdi ✓":""}</span></summary>
+    <div class="inner">
+      <ol class="wulist">${items.map(w=>`<li><b>${w.t}</b><small>${w.d}</small></li>`).join("")}</ol>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn sm ghost" onclick="startTimer(240,'Qızışma')">⏱ 4 dəq</button>
+        ${act ? `<button class="btn sm ${done?"ghost":""}" style="flex:1" onclick="toggleWarmDone()">${done?"✓ bitdi — geri al":"Qızışmanı bitdi kimi işarələ"}</button>` : ""}
+      </div>
+      <div class="small" style="margin-top:10px">Sonra ilk hərəkətə tədricən keçin: boş ştanqla ×10, ~50% ×6, ~70% ×3 — bu qızışma dövrləri iş dövrü sayılmır. İlk iş dövrünü işarələyəndə qızışma avtomatik bitmiş sayılır.</div>
     </div>
-    <ol class="wulist">${items.map(w=>`<li><b>${w.t}</b><small>${w.d}</small></li>`).join("")}</ol>
-    ${act ? `<button class="btn block ${done?"ghost":""}" style="margin-top:12px" onclick="toggleWarmDone()">${done?"✓ Qızışma bitdi — geri al":"Qızışmanı bitdi kimi işarələ"}</button>` : ""}
-    <div class="small" style="margin-top:10px">Sonra ilk hərəkətə tədricən keçin: boş ştanqla ×10, ~50% ×6, ~70% ×3 — bu qızışma dövrləri iş dövrü sayılmır və qeyd edilmir.</div>
-  </div>`;
+  </details>`;
 }
 function toggleWarmDone(){
   const a = state.active; if(!a) return;
   a.warmDone = !a.warmDone;
   save();
+  redrawWarm();
+  if(a.warmDone) toast("Qızışma bitdi — işə başlayın");
+}
+function redrawWarm(){
+  const a = state.active; if(!a) return;
   const el = document.getElementById("wuCard");
   /* yalnız bu kartı yenidən çəkirik — açıq “qaydalar” bölməsi və fokus itməsin */
   if(el) el.outerHTML = warmupCard(a.day); else renderTrain();
-  if(a.warmDone) toast("Qızışma bitdi — işə başlayın");
 }
 
 /* ================= MƏŞQ VAXTI =================
@@ -2105,6 +2112,9 @@ function toggleDone(key,i){
     const inp = document.getElementById(`in-${key}-${i}-kg`), inr = document.getElementById(`in-${key}-${i}-reps`);
     if(inp) inp.value = s.kg;
     if(inr) inr.value = s.reps;
+    /* qızışmanı bitdi kimi işarələməyi unutmaq adi haldır: iş dövrünə başladınsa
+       qızışma onsuz da bitib */
+    if(!state.active.warmDone){ state.active.warmDone = true; redrawWarm(); }
     /* sonuncu dövrdən sonra istirahət yoxdur — növbəti hərəkətə keçilir */
     if(i < state.active.ex[key].length - 1) startTimer(EXMAP[key].rest, effEx(key).name);
     else toast("Hərəkət bitdi — növbəti hərəkətə keç");
