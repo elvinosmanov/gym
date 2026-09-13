@@ -554,10 +554,17 @@ const IMG={
    vərəqində onlar avtomatik növbələşir — hərəkət canlı görünsün deyə. Hamısı eyni
    illüstrasiya dəstindəndir (Wikimedia Commons, CC BY-SA), ona görə üslub sabitdir. */
 const IMGU = "https://upload.wikimedia.org/wikipedia/commons/";
+/* İstifadəçidən (və ya idxal edilmiş yedəkdən / buluddan) gələn link yalnız
+   http(s) ola bilər və atribut kontekstinə HƏMİŞƏ esc ilə yazılır — əks halda
+   linkin içindəki dırnaq atributdan çıxıb hadisə (onerror və s.) əlavə edə bilər. */
+function safeURL(u){
+  try{ const x = new URL(String(u||"")); return (x.protocol==="http:" || x.protocol==="https:") ? x.href : ""; }
+  catch(e){ return ""; }
+}
 function frames(ex){
   if(!ex) return [];
   if(ex.im && IMG[ex.im]) return IMG[ex.im].map(p => IMGU + p);
-  if(ex.url) return [ex.url];                       /* öz hərəkəti: birbaşa link */
+  if(ex.url) return [safeURL(ex.url)].filter(Boolean);   /* öz hərəkəti: birbaşa link */
   if(ex.file) return ["https://commons.wikimedia.org/wiki/Special:FilePath/"
                       + encodeURIComponent(String(ex.file).replace(/ /g,"_")) + "?width=500"];
   return [];
@@ -567,7 +574,7 @@ function exImg(ex, cls){
   const f = frames(ex);
   if(!f.length) return `<div class="${cls} ph">🏋️</div>`;
   const alt = esc(ex.name||"");
-  return `<div class="${cls}"><img src="${f[0]}" alt="${alt}" loading="lazy" onerror="this.closest('.exanim').classList.add('ph')">${f[1]?`<img class="f2" src="${f[1]}" alt="" loading="lazy" onerror="this.remove()">`:""}</div>`;
+  return `<div class="${cls}"><img src="${esc(f[0])}" alt="${alt}" loading="lazy" onerror="this.closest('.exanim').classList.add('ph')">${f[1]?`<img class="f2" src="${esc(f[1])}" alt="" loading="lazy" onerror="this.remove()">`:""}</div>`;
 }
 
 /* ================= HƏRƏKƏT KİTABXANASI =================
@@ -1852,12 +1859,12 @@ function renderTrain(){
           <div class="idx num">${si+1}</div>
           <div class="stepper">
             <button onclick="stepVal('${ex.key}',${si},'kg',-1)" aria-label="minus kg">−</button>
-            <input id="in-${ex.key}-${si}-kg" type="number" inputmode="decimal" step="0.5" placeholder="${kgPh}" value="${s.kg}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
+            <input id="in-${ex.key}-${si}-kg" type="number" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
             <button onclick="stepVal('${ex.key}',${si},'kg',1)" aria-label="plus kg">+</button>
           </div>
           <div class="stepper">
             <button onclick="stepVal('${ex.key}',${si},'reps',-1)" aria-label="minus reps">−</button>
-            <input id="in-${ex.key}-${si}-reps" type="number" inputmode="numeric" placeholder="${prep}" value="${s.reps}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
+            <input id="in-${ex.key}-${si}-reps" type="number" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
             <button onclick="stepVal('${ex.key}',${si},'reps',1)" aria-label="plus reps">+</button>
           </div>
           <button id="ck-${ex.key}-${si}" class="check ${s.done?"done":""}" onclick="toggleDone('${ex.key}',${si})" aria-label="set done">✓</button>
@@ -2102,7 +2109,7 @@ function openTech(day,i){
     ${alts.length?`<hr class="split">
     <div class="small">Avadanlıq məşğuldursa, alternativlər: <b style="color:var(--ink)">${alts.map(a=>esc(a.name)).join(" · ")}</b> — məşq zamanı kartdakı “⇄ Dəyiş” düyməsi ilə keçin.</div>`:""}
     <div style="display:flex;gap:8px;margin-top:14px">
-      <a class="btn" style="flex:1" href="${vidURL(ex)}" target="_blank" rel="noopener noreferrer">▶ Video${(state.vid&&state.vid[ex.key])?"":" axtar"}</a>
+      <a class="btn" style="flex:1" href="${esc(vidURL(ex))}" target="_blank" rel="noopener noreferrer">▶ Video${(state.vid&&state.vid[ex.key])?"":" axtar"}</a>
       <button class="btn ghost" onclick="openVidSet('${ex.key}')" aria-label="video təyin et">⚙</button>
     </div>
     <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">Bağla</button>`;
@@ -2113,7 +2120,7 @@ function openTech(day,i){
    YouTube axtarışı açılır; bəyəndiyin videonu təyin etsən, birbaşa o açılır
    (state.vid-də saxlanılır, bulud sinxronizasiyasına düşür). */
 function vidURL(ex){
-  const own = state.vid && state.vid[ex.key];
+  const own = safeURL(state.vid && state.vid[ex.key]);
   if(own) return own;
   return "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " proper form technique");
 }
@@ -2130,7 +2137,8 @@ function openVidSet(key){
 function saveVid(key){
   const v = ($("#vd-url").value||"").trim();
   state.vid = state.vid || {};
-  if(v && /^https?:\/\//i.test(v)) state.vid[key] = v; else delete state.vid[key];
+  const u = safeURL(v);
+  if(u) state.vid[key] = u; else delete state.vid[key];
   save(); cloudPush(); closeSheet();
   toast(v ? "Video təyin edildi" : "Axtarışa qaytarıldı");
 }
@@ -2283,7 +2291,7 @@ function renderProg(){
     /* charts show every session, foundation included — only progression math skips it */
     const rows = [];
     state.sessions.forEach(s=>{ const f=s.ex.find(e=>e.key===selLift); if(f) rows.push({d:s.d, sets:f.sets}); });
-    const sel = `<select class="lift" onchange="pickLift(this.value)">${liftKeys.map(k=>`<option value="${k}" ${k===selLift?"selected":""}>${esc(exName(k))}</option>`).join("")}</select>`;
+    const sel = `<select class="lift" onchange="pickLift(this.value)">${liftKeys.map(k=>`<option value="${esc(k)}" ${k===selLift?"selected":""}>${esc(exName(k))}</option>`).join("")}</select>`;
     const loaded = rows.some(r=>r.sets.some(st=>st.kg>0));
     if(loaded){
       const pts=[]; let pr=null;
@@ -2637,12 +2645,12 @@ function openSlotEdit(D,i){
     ${exImg(ex,"exanim big")}
     <h3>${esc(ex.name)}</h3><div class="stag">${esc(ex.tag||"")}</div>
     <div class="grid2">
-      <div class="field"><label>Dövr sayı</label><input id="sl-sets" type="number" inputmode="numeric" min="1" max="10" value="${ex.sets}"></div>
-      <div class="field"><label>İstirahət (san)</label><input id="sl-rest" type="number" inputmode="numeric" min="15" max="300" step="15" value="${ex.rest}"></div>
+      <div class="field"><label>Dövr sayı</label><input id="sl-sets" type="number" inputmode="numeric" min="1" max="10" value="${esc(ex.sets)}"></div>
+      <div class="field"><label>İstirahət (san)</label><input id="sl-rest" type="number" inputmode="numeric" min="15" max="300" step="15" value="${esc(ex.rest)}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>Təkrar — min</label><input id="sl-rmin" type="number" inputmode="numeric" min="1" max="50" value="${ex.rMin}"></div>
-      <div class="field"><label>Təkrar — maks</label><input id="sl-rmax" type="number" inputmode="numeric" min="1" max="50" value="${ex.rMax}"></div>
+      <div class="field"><label>Təkrar — min</label><input id="sl-rmin" type="number" inputmode="numeric" min="1" max="50" value="${esc(ex.rMin)}"></div>
+      <div class="field"><label>Təkrar — maks</label><input id="sl-rmax" type="number" inputmode="numeric" min="1" max="50" value="${esc(ex.rMax)}"></div>
     </div>
     <div class="small">Maks təkrara bütün dövrlərdə çatdıqda tətbiq çəkini +${ex.inc} kq artırmağı təklif edir.</div>
     <button class="btn block" style="margin-top:12px" onclick="applySlot('${D}',${i})">Yadda saxla</button>
@@ -2674,13 +2682,13 @@ function openCustom(key){
       <div class="field"><label>İşləyən əzələ</label><input id="cx-tag" value="${esc(e.tag)}" placeholder="Döş · Triseps"></div>
     </div>
     <div class="grid3">
-      <div class="field"><label>Dövr</label><input id="cx-sets" type="number" inputmode="numeric" value="${e.sets}"></div>
-      <div class="field"><label>Təkrar min</label><input id="cx-rmin" type="number" inputmode="numeric" value="${e.rMin}"></div>
-      <div class="field"><label>Təkrar maks</label><input id="cx-rmax" type="number" inputmode="numeric" value="${e.rMax}"></div>
+      <div class="field"><label>Dövr</label><input id="cx-sets" type="number" inputmode="numeric" value="${esc(e.sets)}"></div>
+      <div class="field"><label>Təkrar min</label><input id="cx-rmin" type="number" inputmode="numeric" value="${esc(e.rMin)}"></div>
+      <div class="field"><label>Təkrar maks</label><input id="cx-rmax" type="number" inputmode="numeric" value="${esc(e.rMax)}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>İstirahət (san)</label><input id="cx-rest" type="number" inputmode="numeric" step="15" value="${e.rest}"></div>
-      <div class="field"><label>Çəki addımı (kq)</label><input id="cx-inc" type="number" inputmode="decimal" step="0.5" value="${e.inc}"></div>
+      <div class="field"><label>İstirahət (san)</label><input id="cx-rest" type="number" inputmode="numeric" step="15" value="${esc(e.rest)}"></div>
+      <div class="field"><label>Çəki addımı (kq)</label><input id="cx-inc" type="number" inputmode="decimal" step="0.5" value="${esc(e.inc)}"></div>
     </div>
     <div class="field"><label>Əsas işləyən əzələlər</label>
       <div class="chips fil" id="cx-pri">${Object.keys(MUSN).map(m=>`<span class="pick ${(e.pri||[]).includes(m)?"on":""}" data-m="${m}" onclick="this.classList.toggle('on')">${MUSN[m]}</span>`).join("")}</div></div>
@@ -2708,7 +2716,7 @@ function saveCustom(key){
     mist: prev.mist || [],
     pri: [...document.querySelectorAll("#cx-pri .pick.on")].map(el=>el.dataset.m),
     sec: [...document.querySelectorAll("#cx-sec .pick.on")].map(el=>el.dataset.m),
-    url: /^https?:\/\//i.test(img) ? img : "", file: /^https?:\/\//i.test(img) ? "" : img
+    url: safeURL(img), file: safeURL(img) ? "" : img.replace(/["'<>]/g,"")
   };
   if(state.userEx[k].rMin > state.userEx[k].rMax){
     const t = state.userEx[k].rMin; state.userEx[k].rMin = state.userEx[k].rMax; state.userEx[k].rMax = t;
