@@ -1029,7 +1029,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v33";
+const APP_VERSION = "forge-v34";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -3252,6 +3252,28 @@ function candFor(m, exclude){
                || ((a.e.pri||[]).length-(b.e.pri||[]).length))
     .map(x=>x.k);
 }
+/* ---- SIRA BALI ----
+   Zalda qəbul edilmiş sıra: ağır çoxoynaqlı hərəkətlər əvvəldə (ən təzə olduğun
+   anda), sonra yüngül çoxoynaqlılar, sonra böyük əzələ izolyasiyaları, ən sonda
+   kiçik əzələlər (baldır, qarın, said). Bal nə qədər yüksəkdirsə, hərəkət bir o
+   qədər əvvələ düşməlidir. */
+const MUS_SIZE = { quads:5, glutes:5, chest:5, lats:5, hams:4, traps:4, delts:3,
+  lowback:2, triceps:2, biceps:2, rdelt:2, calves:1, abs:1, forearm:1 };
+const LOAD_RANK = { bar:2, bw:1.8, db:1.5, db1:1.5, smith:1, plate:1, stack:0.5 };
+function exRank(e){
+  if(!e) return 0;
+  const pri = e.pri || [];
+  const size = pri.length ? Math.max(...pri.map(m => MUS_SIZE[m] || 1)) : 1;
+  return (isComp(e) ? 10 : 0) + size + (LOAD_RANK[e.load] || 0);
+}
+/* mövcud sıranı ideal sıra ilə müqayisə edir */
+function orderCheck(slots){
+  const cur = slots.map((sl,i)=>({ i, k:sl.k, r:exRank(libEx(sl.k)) }));
+  const ideal = cur.slice().sort((a,b)=> b.r - a.r || a.i - b.i);
+  let worst = 0;
+  cur.forEach((a,x)=> cur.forEach((b,y)=>{ if(y>x && b.r - a.r > worst) worst = b.r - a.r; }));
+  return { ideal, same: ideal.every((x,n)=> x.i === n), worst };
+}
 function planAdvice(D){
   const slots = daySlots(D), out = [];
   if(!slots.length) return out;
@@ -3265,15 +3287,22 @@ function planAdvice(D){
   const lo = m => MUS_GOAL[m] ? MUS_GOAL[m][0] : 0;
   const hi = m => MUS_GOAL[m] ? MUS_GOAL[m][1] : 99;
 
-  /* 1) SIRA — çoxoynaqlı hərəkət izolyasiyadan sonraya düşüb */
-  for(let i=1;i<slots.length;i++){
-    if(!isComp(libEx(slots[i].k))) continue;
-    const j = slots.findIndex((s,x)=> x<i && !isComp(libEx(s.k)));
-    if(j<0) continue;
-    out.push({ sev:1, ic:"↑", t:`<b>${exNm(slots[i].k)}</b> daha əvvələ`,
-      w:`Çoxoynaqlı hərəkətdir — ən ağır çəkini və ən təzə əzələni tələb edir. Hazırda ${j+1}-ci yerdəki <b>${exNm(slots[j].k)}</b> (izolyasiya) ondan əvvəl gəlir; izolyasiya əzələni qabaqcadan yorur və əsas hərəkətdə çəkin aşağı düşür.`,
-      a:[{l:`${j+1}-ci yerə keçir`, f:`advMove('${D}',${i},${j})`}] });
-    break;
+  /* 1) SIRA — hansı hərəkət əvvəl, hansı sonra */
+  const oc = orderCheck(slots);
+  /* Hədd 5-dir: çoxoynaqlı hərəkət izolyasiyanın arxasına düşəndə fərq 10-dan
+     böyük olur. İki ağır hərəkət arasındakı 1-2 ballıq fərq (məs. bench əvvəl,
+     çiyin sonra) zövq məsələsidir — onun üçün xəbərdarlıq vermirik. */
+  if(!oc.same && oc.worst >= 5){
+    const first = oc.ideal[0], last = oc.ideal[oc.ideal.length-1];
+    const list = oc.ideal.map((x,n)=>`${n+1}. ${exNm(x.k)}`).join(" · ");
+    const why = [];
+    if(first.i !== 0) why.push(`<b>${exNm(first.k)}</b> birinci olmalıdır — günün ən ağır çoxoynaqlı hərəkətidir, ən təzə olduğun anda edilməlidir`);
+    if(last.i !== slots.length-1) why.push(`<b>${exNm(last.k)}</b> sona qalmalıdır — kiçik əzələ işidir; əvvəldə etsən böyük hərəkətlərdə çəkin düşür`);
+    if(!why.length) why.push("ağır hərəkətlər əvvələ, izolyasiya sona toplanmalıdır");
+    out.push({ sev:1, ic:"↕", t:"Hərəkətlərin sırası optimal deyil",
+      w:`${why.join("; ")}. Təklif olunan sıra: <b>${list}</b>.`,
+      a:[{l:"Sıranı tətbiq et", f:`advReorder('${D}')`},
+         ...(first.i!==0 ? [{l:`${exNm(first.k)} birinci olsun`, f:`advMove('${D}',${first.i},0)`}] : [])] });
   }
 
   /* 2) BALANS — günün hədəf əzələsi bütün dövrdə azdır */
@@ -3405,6 +3434,18 @@ function advMove(D,from,to){
   const [x] = p.splice(from,1); p.splice(to,0,x);
   planTouch(); toast("Sıra dəyişdirildi");
 }
+function advReorder(D){
+  if(planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
+  const p = ensurePlan(D);
+  const oc = orderCheck(p);
+  if(oc.same){ toast("Sıra onsuz da düzgündür"); return; }
+  ask("Sıra dəyişdirilsin?",
+      "Hərəkətlər ağırdan yüngülə doğru düzüləcək:\n\n" + oc.ideal.map((x,n)=>`${n+1}. ${(libEx(x.k)||{}).name||x.k}`).join("\n"),
+      "Tətbiq et", ()=>{
+        state.plan[D] = oc.ideal.map(x => p[x.i]);
+        planTouch(); toast("Sıra yeniləndi");
+      });
+}
 function advRange(D,i,a,b){
   if(planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
   const p = ensurePlan(D); if(!p[i]) return;
@@ -3461,6 +3502,24 @@ function planLocked(D){ return !!(state.active && state.active.day===D); }
 function planTouch(){ buildProgram(); save(); cloudPush(); renderPlan(); }
 function selPlanDay(k){ planDay = k; renderPlan(); }
 
+/* Plan kartının altındakı sətir: sıra düzgündürmü, düz deyilsə necə olmalıdır.
+   Həmişə görünür — “mənə sıra haqqında heç nə demir” sualının cavabı budur. */
+function orderLine(D, slots){
+  if(!slots || slots.length < 2) return "";
+  const oc = orderCheck(slots);
+  if(oc.same) return `<div class="small" style="margin-top:10px;color:var(--green)">✓ Sıra düzgündür — ağır çoxoynaqlı hərəkətlər əvvəldə, izolyasiya sonda.</div>`;
+  const list = oc.ideal.map((x,n)=>`${n+1}. ${esc((libEx(x.k)||{}).name || x.k)}`).join(" · ");
+  /* Kiçik fərq (iki ağır hərəkətin yeri) zövq məsələsidir — onu qüsur kimi
+     göstərmirik, sadəcə alternativ sıra kimi yazırıq. */
+  const soft = oc.worst < 5;
+  return `<div class="small" style="margin-top:10px">
+    ${soft
+      ? `<span style="color:var(--green)">✓ Sıra qaydasındadır</span> — ağır hərəkətlər əvvəldədir. Tam “ağırdan yüngülə” variant belə olardı:`
+      : `<b style="color:var(--c)">Sıra optimal deyil</b> — izolyasiya ağır hərəkətin qabağına düşüb. Düzgün sıra:`}
+    <b style="color:var(--ink)">${list}</b>${soft ? " — fərq kiçikdir, istəsən indiki sıranı saxla." : ""}
+    <button class="techbtn" style="margin-top:8px" onclick="advReorder('${D}')">Bu sıranı tətbiq et</button>
+  </div>`;
+}
 function renderPlan(){
   if(!planDay || !DAY_META[planDay]) planDay = nextDay();
   const D = planDay, meta = DAY_META[D], slots = daySlots(D);
@@ -3495,7 +3554,8 @@ function renderPlan(){
       ${rows || `<div class="empty">Bu gün boşdur — aşağıdan hərəkət əlavə edin.</div>`}
       <button class="btn block ghost" style="margin-top:12px" onclick="openLibPick('${D}',null)">＋ Hərəkət əlavə et</button>
       ${custom ? `<button class="btn block danger" style="margin-top:10px" onclick="planReset('${D}')">↺ Standart plana qaytar</button>` : ""}
-      <div class="small" style="margin-top:10px">Sıra vacibdir: ağır çox oynaqlı hərəkətlər əvvəldə, izolyasiya sonda. ⚙ düyməsi ilə dövr, təkrar diapazonu və istirahəti dəyişin.</div>
+      ${orderLine(D, slots)}
+      <div class="small" style="margin-top:8px">⚙ düyməsi ilə dövr, təkrar diapazonu və istirahəti dəyişin.</div>
     </div>
 
     <div class="sect">Plan doktoru</div>
