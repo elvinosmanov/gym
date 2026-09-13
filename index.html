@@ -210,6 +210,7 @@ details.wu.done .wulist li b{text-decoration:line-through}
 /* ---------- muscle map ---------- */
 .bodywrap{display:flex;gap:6px;justify-content:center;align-items:flex-end}
 .bodyfig{flex:1;max-width:215px;text-align:center}
+.daymus .name{font-family:var(--disp);font-weight:600;font-size:15.5px;letter-spacing:.03em}
 .bodywrap.sm{align-items:flex-start;gap:10px}
 .bodywrap.sm .bodyfig{max-width:96px;flex:0 0 96px}
 .muslist{flex:1;min-width:0;padding-top:2px}
@@ -892,7 +893,7 @@ const ALT_OF = {
   cur:["dbcu","cbcu","prc","con"], ham:["chcu","xham"],
   sq:["hsq","fsq","smsq","wsq","gsq"], lpz:["nlp","smhs"], llc:["slc","stlc","gm"],
   lex:["siss"], calf:["scr","dcr","lpcr","don"],
-  wlg:["stpu","pls","gsq"], hsq:["smhs","smsq","gsq","pls"], mchp:["dbp","ddbp","oabp","pshu"], upd:["nchn"], msp:["sdp","arn","oasp","dfr","smil"],
+  wlg:["stpu","pls","gsq"], gsq:["wlg","stpu","pls"], hsq:["smhs","smsq","gsq","pls"], mchp:["dbp","ddbp","oabp","pshu"], upd:["nchn"], msp:["sdp","arn","oasp","dfr","smil"],
   be:["sbe","sup"], shr:["dsh"], abs:["crn","dcrn","hipr","abike"]
 };
 
@@ -910,7 +911,7 @@ const DAY_META = {
 const PROGRAM_DEF = {
   P:["bp","ohp","idp","cdip","lat","tri"],
   L:["pu","rgr","row","rdr","cur","ham"],
-  G:["sq","lpz","llc","lex","wlg","calf"],
+  G:["sq","lpz","llc","slc","lex","calf"],
   F:["hsq","mchp","chn","msp","be","abs"]
 };
 /* köhnə A/B/C məşqləri: yalnız tarixçəni düzgün göstərmək üçün saxlanılır */
@@ -948,10 +949,10 @@ const TIPS = [
 /* ================= state & persistence ================= */
 /* Bump when PROGRAM's day->exercise mapping changes. applyLoaded() uses it to
    retire an in-progress session whose exercise keys no longer match its day. */
-const PROGRAM_VERSION = 3;
+const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v23";
+const APP_VERSION = "forge-v24";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -974,6 +975,16 @@ const fmtD = iso => { const [y,m,d]=iso.split("-").map(Number); return new Date(
    Plan dəyişdikdə buildProgram() yenidən çağırılır — başqa heç nəyə toxunmadan. */
 let PROGRAM = {};
 const EXMAP = {};
+/* Kitabxanadan çıxarılmış, lakin tarixçədə qalan hərəkətlər. Statistika və
+   analiz bunları tanımalıdır — əks halda keçmiş dövrlər əzələ yükü hesabından
+   düşür və “bu əzələ az işlənib” xəbərdarlığı yalan verir. */
+const ARCHIVE = {
+  rdl:{ name:"Romanian Deadlift", pri:["hams","glutes"], sec:["lowback"], inc:2.5 },
+  ddl:{ name:"Dumbbell Romanian Deadlift", pri:["hams","glutes"], sec:["lowback"], inc:2 },
+  smdl:{ name:"Smith Machine Deadlift", pri:["hams","glutes"], sec:["lowback"], inc:2.5 },
+  dl:{ name:"Conventional Deadlift", pri:["hams","glutes","lowback"], sec:["traps","quads"], inc:5 }
+};
+function histEx(k){ return libEx(k) || ARCHIVE[k] || null; }
 function libEx(k){ return (state.userEx && state.userEx[k]) || LIB[k] || null; }
 function libKeys(){ return Object.keys(LIB).concat(Object.keys(state.userEx||{})); }
 function defSlot(k){ const e = libEx(k) || {}; return { k, sets:e.sets||3, rMin:e.rMin||10, rMax:e.rMax||12, rest:e.rest||90 }; }
@@ -1079,8 +1090,13 @@ function dayMinutes(D){
 }
 /* aktiv məşqdə slot üçün seçilmiş effektiv hərəkət (əsas və ya alternativ) */
 function effEx(slotKey){
+  const slot = EXMAP[slotKey];
   const ak = state.active && state.active.swap && state.active.swap[slotKey];
-  return (ak && EXMAP[ak]) ? EXMAP[ak] : EXMAP[slotKey];
+  if(!ak || !libEx(ak) || !slot) return slot;
+  /* Alternativ HƏMİŞƏ slotun dövr/təkrar/istirahətini götürür. Əvvəl bu, EXMAP-dən
+     oxunurdu; eyni hərəkət başqa gündə əsas slot olanda oradakı resept qalib gəlirdi
+     və dəyişdirdikdə səhv rəqəm görünürdü. */
+  return mkEx({ k:ak, sets:slot.sets, rMin:slot.rMin, rMax:slot.rMax, rest:slot.rest }, slot.day);
 }
 function openSwap(slotKey){
   const opts = [EXMAP[slotKey], ...(ALT_OF[slotKey]||[]).map(k=>EXMAP[k]).filter(Boolean)];
@@ -1119,6 +1135,11 @@ function migrate(s, fromPv){
   if(!s.vid || typeof s.vid !== "object") s.vid = {};
   /* köhnə qeydlərə determinist id — hər cihaz eyni id-ni hesablayır, dublikat olmur */
   (s.sessions||[]).forEach(x=>{ if(!x.id) x.id = x.d+"|"+x.day; });
+  /* Kitabxanadan silinmiş hərəkət özəl planda qalsa, daySlots onu süzür, mutasiyalar
+     isə süzülməmiş massivə indekslə girirdi — nəticədə ⚙ və ✕ başqa sətrə düşürdü. */
+  if(s.plan) Object.keys(s.plan).forEach(D=>{
+    if(Array.isArray(s.plan[D])) s.plan[D] = s.plan[D].filter(x => x && (LIB[x.k] || (s.userEx && s.userEx[x.k])));
+  });
   if(s.plan !== null && typeof s.plan !== "object") s.plan = null;
 
   /* bodyweight: profile.w was a second source of truth. Seed weights[] from it once. */
@@ -1131,7 +1152,12 @@ function migrate(s, fromPv){
      renderTrain() walks the NEW day's exercise list. Keys that moved days would
      read undefined and throw. Retire the unfinished session; history is untouched. */
   if(fromPv < PROGRAM_VERSION && s.active){
-    const dayKeys = (PROGRAM[s.active.day] ? PROGRAM[s.active.day].ex.map(e=>e.key) : null);
+    /* Açarlar YÜKLƏNƏN state-in planından götürülür. Əvvəl qlobal PROGRAM-a baxırdı —
+       o isə bu anda hələ ƏVVƏLKİ istifadəçi məlumatı ilə qurulmuş olur, ona görə
+       yoxlama yanlış gündən oxuyurdu və yarımçıq məşq ləğv edilmirdi. */
+    const dayKeys = (s.plan && Array.isArray(s.plan[s.active.day]))
+      ? s.plan[s.active.day].map(x => x && x.k).filter(Boolean)
+      : (PROGRAM_DEF[s.active.day] || null);
     /* dayKeys === null means the day itself no longer exists (A/B/C -> P/L/G/F) */
     const stale = dayKeys === null || dayKeys.some(k => !s.active.ex[k]);
     if(stale){
@@ -1504,7 +1530,9 @@ const r05 = v => Math.round(v*2)/2;
 function progressPlan(key){
   /* Kitabxanadan çıxarılmış hərəkət tarixçədə qala bilər (məsələn deadlift silindi).
      Belə açar üçün minimal təsvir qururuq — əks halda bütün Proqres səhifəsi çökürdü. */
-  const ex = EXMAP[key] || { key, name: exName(key), rMin:8, rMax:12, inc:2.5, load:"stack", bodyweight:false, sets:3 };
+  const ex = EXMAP[key] || { ...(ARCHIVE[key] || {}), key, name: exName(key),
+    rMin:8, rMax:12, sets:3, inc:(ARCHIVE[key] && ARCHIVE[key].inc) || 2.5, bodyweight:false };
+    /* load qəsdən verilmir: unitOf "kq", incFor isə yuxarıdakı inc-i götürsün */
   const H = exSessions(key, 8);
   const inc = incFor(ex), u = unitOf(ex);
   if(!H.length){
@@ -1614,7 +1642,7 @@ function liftTrend(key){
 }
 /* cari iş çəkisindən növbəti dəyirmi mərhələyə nə qədər qalıb */
 function projection(key){
-  const t = liftTrend(key), ex = EXMAP[key];
+  const t = liftTrend(key), ex = EXMAP[key] || ARCHIVE[key];
   if(!t || !ex || t.perWeek <= 0.15) return null;
   const inc = incFor(ex);
   const H = exSessions(key, 1);
@@ -1690,7 +1718,7 @@ function loggedVolume(days){
     const [y,m,d] = s.d.split("-").map(Number);
     if(new Date(y,m-1,d).getTime() < cut) return;
     s.ex.forEach(e=>{
-      const lib = libEx(e.key); if(!lib) return;
+      const lib = histEx(e.key); if(!lib) return;
       const n = e.sets.length;
       (lib.pri||[]).forEach(k=>vol[k] = (vol[k]||0) + n);
       (lib.sec||[]).forEach(k=>vol[k] = (vol[k]||0) + n/2);
@@ -1700,7 +1728,7 @@ function loggedVolume(days){
 }
 function tonnage(s){
   return s.ex.reduce((a,e)=>{
-    const f = unitOf(libEx(e.key)) === "lb" ? 0.4536 : 1;   /* tonajda hamısı kq-a çevrilir */
+    const f = unitOf(histEx(e.key)) === "lb" ? 0.4536 : 1;   /* tonajda hamısı kq-a çevrilir */
     return a + e.sets.reduce((b,st)=>b + (st.kg||0)*f*st.reps, 0);
   }, 0);
 }
@@ -2187,22 +2215,28 @@ setInterval(()=>{
 /* Məşqin əvvəlində: bu gün hansı əzələlər yüklənəcək — anatomik xəritə üstündə
    qırmızı, yanında ən çox işləyən əzələlərin siyahısı. */
 function dayMuscleCard(D){
-  const vol = muscleVolume(daySlots(D));
+  const slots = daySlots(D);
+  /* məşq gedirsə, ⇄ ilə dəyişdirilmiş hərəkət nəzərə alınır — kart altındakı
+     kartlarla ziddiyyət təşkil etməsin */
+  const live = (state.active && state.active.day===D)
+    ? slots.map(s => ({ ...s, k: (state.active.swap && state.active.swap[s.k]) || s.k }))
+    : slots;
+  const vol = muscleVolume(live);
   const top = Object.keys(MUSN).map(m=>({m, v:vol[m]||0})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
   if(!top.length) return "";
-  const sets = daySlots(D).reduce((a,s)=>a+(+s.sets||0),0);
-  return `<div class="card daymus">
+  const sets = slots.reduce((a,s)=>a+(+s.sets||0),0);
+  return `<div class="card daymus"><div class="dm-in">
     <div class="exhead" style="align-items:center;margin-bottom:4px">
-      <div><div class="name" style="font-family:var(--disp);font-weight:600;font-size:15.5px">Bu gün işləyən əzələlər</div>
+      <div><div class="name">Bu gün işləyən əzələlər</div>
       <div class="small">${sets} iş dövrü · ~${dayMinutes(D)} dəq</div></div>
     </div>
     <div class="bodywrap sm">
       <div class="bodyfig">${bodySVG("front",vol)}</div>
       <div class="bodyfig">${bodySVG("back",vol)}</div>
-      <div class="muslist">${top.map(r=>`<div class="musrow"><span class="md" style="opacity:${volOpacity(r.v).toFixed(2)}"></span>
+      <div class="muslist">${top.map(r=>`<div class="musrow"><span class="md" style="opacity:${Math.min(1, 0.45 + r.v*0.05).toFixed(2)}"></span>
         <span class="mnm">${MUSN[r.m]}</span><span class="mvv num">${Math.round(r.v*10)/10}</span></div>`).join("")}</div>
     </div>
-  </div>`;
+  </div></div>`;
 }
 /* ================= TRAIN ================= */
 function renderTrain(){
@@ -2223,6 +2257,9 @@ function renderTrain(){
   if(state.active && state.active.day===viewDay){
     body = D.ex.map((ex,i)=>{
       const eff = effEx(ex.key), swapped = eff.key!==ex.key;
+      /* plan məşq gedərkən dəyişdirilibsə açar əskik ola bilər — çökmək əvəzinə qururuq */
+      if(!Array.isArray(state.active.ex[ex.key]) || !state.active.ex[ex.key].length)
+        state.active.ex[ex.key] = Array.from({length:ex.sets}, ()=>({ kg:"", reps:"", done:false }));
       const p = lastPerf(eff.key), st = state.active.ex[ex.key];
       const rows = st.map((s,si)=>{
         const pkg = smartKg(ex.key,si), prep = smartReps(ex.key,si);
@@ -2243,7 +2280,7 @@ function renderTrain(){
         </div>`;
       }).join("");
       const h = hintFor(eff,p);
-      const wk = parseFloat(st[0].kg) || suggestKg(eff.key);
+      const wk = (st[0] && parseFloat(st[0].kg)) || suggestKg(eff.key);
       const ramp = (eff.rest>=120 && wk && wk>=30) ? `<div class="ramp">Qızışma dövrləri: <b class="num">${r25(wk*0.4)} × 8 → ${r25(wk*0.6)} × 5 → ${r25(wk*0.8)} × 3</b> — sonra iş dövrləri (sayılmır)</div>` : "";
       const pb = plateBreak(wk, eff);
       const plateLine = pb ? `<div class="ramp"><b class="num">${wk} kq</b> = ${pb}</div>` : "";
@@ -2288,7 +2325,7 @@ function renderTrain(){
     <div class="dayrow">${days}</div>
     ${state.active && state.active.day===viewDay ? clockChip() : ""}
     ${staleCard()}
-    ${dayMuscleCard(viewDay)}
+    ${(state.active && state.active.day===viewDay) ? "" : dayMuscleCard(viewDay)}
     ${rules}
     <div class="sect">${D.name} · ${D.sub}</div>
     ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote">${FOUNDATION_NOTE}</div>` : ""}
@@ -2391,7 +2428,7 @@ function buildRecord(a){
   let n = 0, skipped = 0;
   PROGRAM[a.day].ex.forEach(ex=>{
     const eff = effEx(ex.key);
-    const raw = a.ex[ex.key];
+    const raw = a.ex[ex.key] || [];
     /* a ticked set with no reps cannot be scored — count it so we can say so out loud */
     skipped += raw.filter(s=>s.done && !(parseFloat(s.reps)>0)).length;
     /* reps is the only requirement: kg 0 is legitimate (Back Extension, Assisted Pull-Up,
@@ -2399,6 +2436,15 @@ function buildRecord(a){
     const sets = raw.filter(s=>parseFloat(s.reps)>0)
       .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
     if(sets.length){ rec.ex.push({key:eff.key, name:eff.name, sets}); n += sets.length; }
+  });
+  /* Məşq gedərkən hərəkət plandan çıxarılsa (və ya kitabxanadan silinsə), onun
+     qeyd edilmiş dövrləri yuxarıdakı dövrədən kənarda qalır — burada yığılır ki,
+     yazılmış heç bir dövr itməsin. */
+  Object.keys(a.ex || {}).forEach(k=>{
+    if(rec.ex.some(e => e.key===k)) return;
+    const sets = (a.ex[k]||[]).filter(s=>parseFloat(s.reps)>0)
+      .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
+    if(sets.length){ rec.ex.push({ key:k, name: exName(k), sets }); n += sets.length; }
   });
   return { rec, n, skipped };
 }
@@ -2939,6 +2985,11 @@ let planDay = null, libFilter = "all", libQuery = "";
 function ensurePlan(D){
   state.plan = state.plan || {};
   if(!Array.isArray(state.plan[D])) state.plan[D] = daySlots(D).map(s => ({...s}));
+  else {
+    /* saxlanmış planı daySlots-un gördüyü ilə eyniləşdiririk ki, indekslər üst-üstə düşsün */
+    const clean = state.plan[D].filter(s => s && libEx(s.k));
+    if(clean.length !== state.plan[D].length) state.plan[D] = clean;
+  }
   return state.plan[D];
 }
 function planLocked(D){ return !!(state.active && state.active.day===D); }
