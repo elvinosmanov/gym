@@ -4,7 +4,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 
 ## Proqram
 
-`İtələmə → Çəkmə → Ayaq → Tam bədən`, sonra yenidən başdan. **Bir gün məşq, bir gün istirahət** — cədvəl təqvimə yox, son məşqə bağlıdır, ona görə bir gün gecikmək sıranı pozmur.
+`İtələmə → Çəkmə → Ayaq → Tam bədən`, sonra yenidən başdan. Məşq günlərini Ayarlardan seçirsən (standart: bazar ertəsi, çərşənbə axşamı, cümə axşamı, şənbə). Həftədə 4 məşq = tam bir dövr, yəni hər həftə eyni gün eyni məşq düşür. Hərəkət sırası təqvimdən asılı deyil — bir gün buraxsan, sıradakı məşq itmir.
 
 ## Nə var
 
@@ -38,7 +38,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v12` → `forge-v13`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v13` → `forge-v14`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 

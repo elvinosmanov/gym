@@ -422,7 +422,7 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
     <section class="view" id="view-prog"></section>
   </main>
 
-  <div class="footnote">İtələmə · Çəkmə · Ayaq · Tam bədən — bir gün var, bir gün yox.<br>İkiqat proqressiya · yüngül profisit · proqram tamamilə sizin nəzarətinizdə.<br>Tibbi məsləhət deyil — mümkün olanda texnikanı canlı yoxlatdırın.</div>
+  <div class="footnote">İtələmə · Çəkmə · Ayaq · Tam bədən<br>İkiqat proqressiya · yüngül profisit · proqram tamamilə sizin nəzarətinizdə.<br>Tibbi məsləhət deyil — mümkün olanda texnikanı canlı yoxlatdırın.</div>
 </div>
 
 <!-- rest timer -->
@@ -888,7 +888,7 @@ function dayMeta(k){ return DAY_META[k] || LEGACY_DAYS[k] || {name:k, cls:"a"}; 
 
 const RULES = [
   { t:"Bölgü: İtələmə → Çəkmə → Ayaq → Tam bədən", d:"Hər məşq bir işi görür: İTƏLƏMƏ günü döş, çiyin və triseps; ÇƏKMƏ günü kürək, arxa delta və biseps; AYAQ günü bütün alt bədən; TAM BƏDƏN günü isə hamısından orta yüklə bir dövr — beləliklə heç bir əzələ həftədə bir dəfədən az işlənmir. Sıra həmişə eynidir: İ → Ç → A → T → yenidən İ." },
-  { t:"Bir gün məşq, bir gün istirahət", d:"Təqvimə yox, sıraya baxın. Bu gün məşq etdinizsə, sabah istirahət, birisi gün növbəti məşq. Belə getdikdə həftədə 3-4 məşq alınır və hər əzələ ~4-5 gündən bir təkrar yüklənir — kütlə üçün ideal tezlik. Bir gün gecikdinizsə heç nə itmir: növbəti idman zalı günündə sıradakı məşqi edin." },
+  { t:"Həftəlik cədvəl", d:"Məşq günlərini Ayarlardan seçirsiniz (standart: bazar ertəsi, çərşənbə axşamı, cümə axşamı, şənbə). Həftədə 4 məşq tam bir dövrə bərabərdir — yəni hər həftə eyni gün eyni məşq düşür və hər əzələ həftədə bir dəfə tam yüklənir. Hərəkət sırası təqvimdən asılı deyil: bir gün buraxsanız, sıradakı məşq itmir, sadəcə növbəti məşq gününə sürüşür." },
   { t:"Proqram sizindir — dəyişdirin", d:"Aşağıdakı PLAN bölməsində istənilən günə hərəkət əlavə edə, silə, yerini dəyişə, dövr/təkrar/istirahət saylarını qura və hətta öz hərəkətinizi (şəkli ilə birlikdə) yarada bilərsiniz. Sevmədiyiniz hərəkəti saxlamağa məcbur deyilsiniz — əvəzinə eyni əzələni işlədən başqasını seçin." },
   { t:"1-ci həftə: çəkiləri müəyyənləşdirin", d:"Son təkrardan sonra təxminən 2 təkrar da edə biləcəyiniz çəki seçin. Hər şeyi qeyd edin — 2-ci həftədən tətbiq sizə çəkini nə vaxt artırmalı olduğunuzu dəqiq deyəcək." },
   { t:"İkiqat proqressiya", d:"Təkrar diapazonunda qalın. Bütün dövrlərdə diapazonun ƏN YUXARI həddinə düzgün texnika ilə çatdıqda, növbəti dəfə çəkini artırın (tətbiq bunu bildirir). Həmişə kiçik addımlar — bütün sirr budur." },
@@ -909,7 +909,7 @@ const TIPS = [
   "Hər yeməkdə 30-50 q zülal. Gündəlik ümumi miqdar hər hansı vaxtlama hiyləsindən daha vacibdir.",
   "Əksər dövrlərdə 1-2 təkrar ehtiyatda saxlayın. Hər dövrü tükənənə qədər aparmaq sadəcə növbəti məşqinizdən çalır.",
   "Yavaş enişlə edilən iki nəzarətli təkrar, beş səliqəsiz təkrardan daha yaxşıdır. Enmə fazasına sahib çıxın.",
-  "Sabitlik intensivlikdən üstündür: bir il ərzində hər ikinci gün dürüst məşq, bir ay ərzində altı mükəmməl məşqdən daha yaxşıdır."
+  "Sabitlik intensivlikdən üstündür: bir il boyu həftədə dörd dürüst məşq, bir ay ərzində altı mükəmməl məşqdən daha yaxşıdır."
 ];
 
 
@@ -921,7 +921,7 @@ const PROGRAM_VERSION = 3;
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
-const DEFAULTS = { profile:{name:"Elvin",w:"",weeklyTarget:4,
+const DEFAULTS = { profile:{name:"Elvin",w:"", days:[1,2,4,6],
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
     barKg:20, plate:1.25, dbStep:2, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
   weights:[], sessions:[], active:null, supps:[], deloadAt:null, plan:null, userEx:{}, vid:{}, pv:PROGRAM_VERSION };
@@ -1079,13 +1079,11 @@ let migrationNote = "";
 function migrate(s, fromPv){
   /* sex + weekly target: existing users keep the old hardcoded behaviour */
   if(!s.profile.sex) s.profile.sex = "m";
-  if(!s.profile.weeklyTarget) s.profile.weeklyTarget = 4;
+  if(!Array.isArray(s.profile.days) || !s.profile.days.length) s.profile.days = [1,2,4,6];
   if(s.deloadAt === undefined) s.deloadAt = null;
   if(!s.userEx || typeof s.userEx !== "object") s.userEx = {};
   if(!s.vid || typeof s.vid !== "object") s.vid = {};
   if(s.plan !== null && typeof s.plan !== "object") s.plan = null;
-  /* every-other-day split: 3 sessions/week was the A/B/C target, 3-4 is the PPL+full one */
-  if(fromPv < 3 && s.profile.weeklyTarget == 3) s.profile.weeklyTarget = 4;
 
   /* bodyweight: profile.w was a second source of truth. Seed weights[] from it once. */
   if(!s.weights.length && parseFloat(s.profile.w)){
@@ -1346,27 +1344,41 @@ function nextDay(){
   /* an A/B/C session from the old program gives indexOf === -1, which lands on DAYS[0] */
   return DAYS[(DAYS.indexOf(last)+1) % DAYS.length];
 }
-/* ---- bir gün məşq, bir gün istirahət ----
-   Cədvəl təqvimə yox, son məşqə bağlıdır: son məşqdən 2 gün sonra növbəti məşq.
-   Gecikmisinizsə növbəti məşq günü elə bu gündür — cərimə yoxdur, sıra pozulmur. */
+/* ---- həftəlik cədvəl ----
+   Məşq günləri təqvimə bağlıdır: istifadəçi hansı həftə günlərində zala getdiyini
+   Ayarlardan seçir (standart: bazar ertəsi, çərşənbə axşamı, cümə axsamı, şənbə).
+   Hərəkət sırası (İtələmə → Çəkmə → Ayaq → Tam bədən) cədvəldən asılı deyil —
+   bir gün buraxsan, sıradakı məşq itmir, sadəcə növbəti məşq gününə sürüşür. */
+const WD_SHORT = ["B.","B.e","Ç.a","Ç.","C.a","C.","Ş."];
+const WD_FULL  = ["Bazar","Bazar ertəsi","Çərşənbə axşamı","Çərşənbə","Cümə axşamı","Cümə","Şənbə"];
+function trainDays(){
+  const d = state.profile.days;
+  return (Array.isArray(d) && d.length) ? d : [1,2,4,6];
+}
 function addDaysISO(iso, n){
   const [y,m,d] = iso.split("-").map(Number);
   const dt = new Date(y, m-1, d); dt.setDate(dt.getDate()+n);
   return isoOf(dt);
 }
+function wdOf(iso){ const [y,m,d] = iso.split("-").map(Number); return new Date(y, m-1, d).getDay(); }
+function isTrainDay(iso){ return trainDays().includes(wdOf(iso)); }
 function nextTrainISO(){
-  if(state.active || !state.sessions.length) return todayISO();
-  const nxt = addDaysISO(state.sessions[state.sessions.length-1].d, 2);
-  return nxt < todayISO() ? todayISO() : nxt;
+  if(state.active) return todayISO();
+  const today = todayISO();
+  const doneToday = state.sessions.some(s => s.d === today);
+  for(let i = doneToday ? 1 : 0; i < 14; i++){
+    const iso = addDaysISO(today, i);
+    if(isTrainDay(iso)) return iso;
+  }
+  return today;
 }
 function isRestToday(){ return nextTrainISO() > todayISO(); }
-/* növbəti 7 gün: məşq günləri nextTrainISO()-dan başlayaraq bir gündən bir */
+/* növbəti 7 gün: seçilmiş həftə günləri işarələnir */
 function scheduleStrip(){
-  const start = nextTrainISO(), out = [];
+  const out = [];
   for(let i=0;i<7;i++){
     const iso = addDaysISO(todayISO(), i);
-    const diff = Math.round((new Date(iso) - new Date(start)) / 86400000);
-    out.push({ iso, on: diff>=0 && diff%2===0 });
+    out.push({ iso, on: isTrainDay(iso) });
   }
   return out;
 }
@@ -1416,7 +1428,7 @@ function weekCount(){
   const cut = new Date(); cut.setHours(0,0,0,0); cut.setDate(cut.getDate()-6);
   return state.sessions.filter(s=>{ const [y,m,d]=s.d.split("-").map(Number); return new Date(y,m-1,d)>=cut; }).length;
 }
-function weeklyTarget(){ return parseInt(state.profile.weeklyTarget) || 4; }
+function weeklyTarget(){ return trainDays().length || 4; }
 /* Deload: RULES advises a light week every 6-8 weeks. Every-other-day training is
    ~3.5 sessions/week, so 6-8 weeks is ~21-28; we prompt at 24 counting only real
    (non-foundation) sessions. */
@@ -1559,10 +1571,10 @@ function renderToday(){
           <div class="sub">${D.sub} · ${D.ex.length} hərəkət · ~${dayMinutes(nd)} dəq</div>
         </div>
       </div>
-      <div class="lastline" style="margin:8px 0 12px">${ state.active ? `<b>Məşq davam edir</b> — zalda ${hm(sessionMinutes(state.active, staleHours() ? 0 : GAP_CAP))}.` : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${dayMeta(last.day).name}` : `Birinci gün. Sıra: <b>İtələmə → Çəkmə → Ayaq → Tam bədən</b>, bir gün məşq, bir gün istirahət.` }</div>
+      <div class="lastline" style="margin:8px 0 12px">${ state.active ? `<b>Məşq davam edir</b> — zalda ${hm(sessionMinutes(state.active, staleHours() ? 0 : GAP_CAP))}.` : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${dayMeta(last.day).name}` : `Birinci gün. Sıra: <b>İtələmə → Çəkmə → Ayaq → Tam bədən</b>, sonra yenidən başdan.` }</div>
       ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}</div>` : ""}
       <button class="btn block" onclick="${state.active ? "switchTab('train')" : `startSession('${nd}')`}">${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
-      ${!state.active && rest ? `<div class="small" style="margin-top:10px;text-align:center">Cədvələ görə növbəti məşq <b style="color:var(--ink)">${fmtD(nt)}</b> — amma bu gün istəsən indi başla, sıra pozulmur.</div>` : ""}
+      ${!state.active && rest ? `<div class="small" style="margin-top:10px;text-align:center">Bu gün cədvəldə yoxdur — növbəti məşq <b style="color:var(--ink)">${WD_FULL[wdOf(nt)]}, ${fmtD(nt)}</b>. İstəsən bu gün də başlaya bilərsən.</div>` : ""}
     </div>
 
     <div class="sect">Bu gün nəyə diqqət</div>
@@ -1570,16 +1582,15 @@ function renderToday(){
       <div class="brief">${briefItems(nd).map(b=>`<div class="brow ${b.c}"><span class="bi">${b.i}</span><p>${b.t}</p></div>`).join("")}</div>
     </div>
 
-    <div class="sect">Cədvəl · bir gün var, bir gün yox</div>
+    <div class="sect">Həftəlik cədvəl</div>
     <div class="card tight">
       <div class="strip">${scheduleStrip().map((d,i)=>{
-        const dt = new Date(d.iso);
         return `<div class="sday ${d.on?"on":""} ${i===0?"today":""}">
-          <span class="wd">${dt.toLocaleDateString("az",{weekday:"short",timeZone:"UTC"}).slice(0,2)}</span>
+          <span class="wd">${WD_SHORT[wdOf(d.iso)]}</span>
           <span class="dn num">${d.iso.slice(-2)}</span>
           <span class="dot"></span></div>`;
       }).join("")}</div>
-      <div class="small" style="margin-top:10px">Sarı nöqtə = məşq günü, növbəti 7 gün üçün. Bir gün gecikdinizsə cədvəl özü sürüşür — sıradakı məşq (${D.name}) itmir.</div>
+      <div class="small" style="margin-top:10px">Sarı nöqtə = məşq günü. Sıradakı məşq <b style="color:var(--ink)">${D.name}</b> — bir gün buraxsan itmir, növbəti məşq gününə sürüşür.</div>
     </div>
 
     <div class="stats">
@@ -1620,7 +1631,7 @@ function renderSettings(){
     <div class="card">
       <div class="grid2">
         <div class="field"><label>Ad</label><input id="st-name" value="${esc(p.name)}" onchange="saveSet()"></div>
-        <div class="field"><label>Həftəlik hədəf (məşq)</label><input id="st-wt" type="number" inputmode="numeric" min="1" max="7" value="${weeklyTarget()}" onchange="saveSet()"></div>
+        <div class="field"><label>Həftədə məşq</label><input value="${weeklyTarget()} gün" disabled></div>
       </div>
       <div class="inline-log" style="margin-top:4px">
         <input id="st-w" type="number" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"bugünkü çəki (kq)"}">
@@ -1648,6 +1659,14 @@ function renderSettings(){
         <input id="st-stacklb" type="number" inputmode="decimal" step="1" value="${esc(+p.stackStepLb||10)}" onchange="saveSet()"></div>` : ""}
       <div class="hint" style="margin-top:6px">İndiki artımlar: ştanq <b>+${c.plate*2} kq</b> (hər tərəfə ${c.plate}) · hantel <b>+${c.db} kq</b> · aparat <b>+${p.stackUnit==="lb" ? (+p.stackStepLb||10)+" lb" : c.stack+" kq"}</b></div>
       ${p.stackUnit==="lb" ? `<div class="small" style="margin-top:8px">Aparatlarda rəqəmi <b style="color:var(--ink)">olduğu kimi lb ilə</b> yaz — çevirmə lazım deyil. Ştanq və hantellər kq olaraq qalır. Ümumi tonajda lb avtomatik kq-a çevrilir.</div>` : ""}
+    </div>
+
+    <div class="sect">Məşq günləri</div>
+    <div class="card">
+      <div class="small" style="margin-bottom:10px">Həftənin hansı günləri zala gedirsən? Cədvəl və “növbəti məşq” bildirişi buna görə qurulur.</div>
+      <div class="chips fil">${[1,2,3,4,5,6,0].map(d=>`<span class="pick ${trainDays().includes(d)?"on":""}" onclick="toggleDay(${d})">${WD_FULL[d]}</span>`).join("")}</div>
+      <div class="hint" style="margin-top:10px">Həftədə <b>${weeklyTarget()}</b> məşq · sıra: ${DAYS.map(k=>DAY_META[k].name.split(" · ")[0]).join(" → ")} → yenidən başdan.
+      ${weeklyTarget()===4 ? " Həftədə 4 məşq = tam bir dövr, yəni hər həftə eyni gün eyni məşq düşür." : ""}</div>
     </div>
 
     <div class="sect">Zalın saatı</div>
@@ -1697,6 +1716,14 @@ function renderSettings(){
 }
 /* Zalın saatı: istifadəçi divar saatındakı vaxtı olduğu kimi yazır, fərqi biz
    hesablayırıq. Gecəyarısını keçən fərqlər ±12 saat aralığına sıxılır. */
+function toggleDay(d){
+  const cur = trainDays().slice();
+  const i = cur.indexOf(d);
+  if(i >= 0){ if(cur.length === 1){ toast("Ən azı bir gün seçilməlidir"); return; } cur.splice(i,1); }
+  else cur.push(d);
+  state.profile.days = cur.sort((a,b)=>((a+6)%7)-((b+6)%7));   /* bazar ertəsindən başlasın */
+  save(); cloudPush(); renderSettings();
+}
 function setGymClock(){
   const v = ($("#st-clock").value || "").split(":");
   const hh = parseInt(v[0]), mm = parseInt(v[1]);
@@ -1718,7 +1745,6 @@ function toggleTimerScreen(){
 function saveSet(){
   const p = state.profile, n = (id,d) => { const v = parseFloat($("#"+id).value); return isNaN(v) ? d : v; };
   p.name = ($("#st-name").value || "").replace(/[<>]/g,"").trim() || "İdmançı";
-  p.weeklyTarget = Math.min(7, Math.max(1, parseInt($("#st-wt").value) || 4));
   p.barKg = Math.max(0, n("st-bar", 20));
   p.plate = Math.max(0.25, n("st-plate", 1.25));
   p.dbStep = Math.max(0.5, n("st-db", 2));
