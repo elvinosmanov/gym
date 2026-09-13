@@ -1757,10 +1757,11 @@ function saveSet(){
   toast("Ayarlar yadda saxlanıldı");
 }
 /* zalın divar saatı ilə uyğunlaşdırılmış vaxt */
-function fmtClock(ts, raw){
+function fmtClock(ts, raw, withSec){
   const off = raw ? 0 : (parseInt(state.profile.clockOffset)||0)*60000;
   const d = new Date(ts + off);
-  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  const p = n => String(n).padStart(2,"0");
+  return p(d.getHours()) + ":" + p(d.getMinutes()) + (withSec ? ":" + p(d.getSeconds()) : "");
 }
 function exportData(){
   const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
@@ -2098,7 +2099,7 @@ function restLineHTML(key){
   const at = sets[last].t + eff.rest*1000;
   const over = Date.now() > at;
   return `<div class="restline ${over?"over":""}">İstirahət <b>${Math.round(eff.rest/60*10)/10} dəq</b> — `
-    + `növbəti dövrü zal saatı ilə <b>${fmtClock(at)}</b>-də başla${over?" · vaxt gəlib":""}</div>`;
+    + `növbəti dövrü zal saatı ilə <b>${fmtClock(at, false, true)}</b>-də başla${over?" · vaxt gəlib":""}</div>`;
 }
 function toggleDone(key,i){
   const s = state.active.ex[key][i]; s.done = !s.done;
@@ -2311,7 +2312,7 @@ function startTimer(sec,label){
   if(state.profile.noTimer) return;          /* ekran taymeri söndürülüb — yalnız saat */
   const el=$("#timer"); el.classList.add("on"); el.classList.remove("done");
   $("#timerLab").textContent = String(label||"").toUpperCase();
-  $("#timerStart").textContent = "Başla: " + fmtClock(tEnd);
+  $("#timerStart").textContent = "Başla: " + fmtClock(tEnd, false, true);
   tickRender();
   acquireWakeLock();
   tInt = setInterval(tick,1000);
@@ -2337,7 +2338,7 @@ function timerAdd(){
   tTotal = Math.max(tTotal, Math.ceil((tEnd-Date.now())/1000));
   if(state.active && state.active.rest) { state.active.rest.end = tEnd; save(); }
   $("#timer").classList.remove("done");
-  $("#timerStart").textContent = "Başla: " + fmtClock(tEnd);
+  $("#timerStart").textContent = "Başla: " + fmtClock(tEnd, false, true);
   if(!tInt){ $("#timer").classList.add("on"); acquireWakeLock(); tInt=setInterval(tick,1000); }
   tickRender();
 }
@@ -2352,7 +2353,7 @@ function resumeTimer(){
   if(state.profile.noTimer) return;
   const el=$("#timer"); el.classList.add("on"); el.classList.remove("done");
   $("#timerLab").textContent = String(r.label||"").toUpperCase();
-  $("#timerStart").textContent = "Başla: " + fmtClock(tEnd);
+  $("#timerStart").textContent = "Başla: " + fmtClock(tEnd, false, true);
   tickRender(); acquireWakeLock(); tInt = setInterval(tick,1000);
 }
 
