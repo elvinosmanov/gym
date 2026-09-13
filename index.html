@@ -954,7 +954,7 @@ const TIPS = [
 const PROGRAM_VERSION = 3;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v20";
+const APP_VERSION = "forge-v21";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1120,6 +1120,8 @@ function migrate(s, fromPv){
   if(s.deloadAt === undefined) s.deloadAt = null;
   if(!s.userEx || typeof s.userEx !== "object") s.userEx = {};
   if(!s.vid || typeof s.vid !== "object") s.vid = {};
+  /* köhnə qeydlərə determinist id — hər cihaz eyni id-ni hesablayır, dublikat olmur */
+  (s.sessions||[]).forEach(x=>{ if(!x.id) x.id = x.d+"|"+x.day; });
   if(s.plan !== null && typeof s.plan !== "object") s.plan = null;
 
   /* bodyweight: profile.w was a second source of truth. Seed weights[] from it once. */
@@ -1205,7 +1207,7 @@ function renderNet(){ renderSaveNote(); }
 const SB_URL = "https://jcavlzmsnwaqbaduhtkj.supabase.co";  // Supabase Project URL
 const SB_KEY = "sb_publishable_Uoe0k2MtlM8gRcFo6T8sWA_jF1KNqpB";  // Supabase publishable (anon) key
 let sb = null, sbUser = null, sbStatus = "", sbWarn = "";
-let pushT = null, cloudDirty = false, pushing = false;
+let pushT = null, cloudDirty = false, pushing = false, lastSync = 0, lastHide = 0;
 function sbReady(){ return !!(SB_URL && SB_KEY && window.supabase); }
 
 /* ---- merge: union by natural key, never destructive ---- */
@@ -1216,9 +1218,10 @@ function mergeState(local, remote){
   /* sessions keyed on date+day; on collision keep the record with more logged sets */
   const setsOf = r => (r.ex||[]).reduce((a,e)=>a+(e.sets?e.sets.length:0), 0);
   const smap = new Map();
-  (local.sessions||[]).forEach(s=>smap.set(s.d+"|"+s.day, s));
+  const skey = s => s.id || (s.d+"|"+s.day);
+  (local.sessions||[]).forEach(s=>smap.set(skey(s), s));
   (remote.sessions||[]).forEach(s=>{
-    const k = s.d+"|"+s.day, cur = smap.get(k);
+    const k = skey(s), cur = smap.get(k);
     if(!cur || setsOf(s) > setsOf(cur)) smap.set(k, {...s, note:(s.note || (cur && cur.note) || undefined)});
   });
   out.sessions = [...smap.values()].sort((a,b)=>a.d<b.d?-1:1);
@@ -1292,7 +1295,7 @@ async function cloudSync(){
         try{ localStorage.setItem("forge-data", JSON.stringify(state)); }catch(e){}
       }
     }
-    sbStatus = "sinxrondur";
+    sbStatus = "sinxrondur"; lastSync = Date.now();
     await cloudPush(true);
   }catch(e){ sbStatus = "oflayn"; cloudDirty = true; }
 }
@@ -1308,11 +1311,26 @@ async function doPush(){
   if(!sb || !sbUser || pushing) return;
   pushing = true;
   try{
+    /* ƏN VACİB QAYDA: bulud sətri KOR-KORANƏ üzərinə yazılmır.
+       Köhnə kod birbaşa upsert edirdi — yəni telefonda bir neçə gün açılmamış
+       nüsxə açılan kimi buluda yazılsa, başqa cihazda qeyd edilmiş məşqlər
+       silinirdi. İndi əvvəlcə bulud oxunur, yerli ilə birləşdirilir, sonra
+       nəticə yazılır. Beləliklə heç bir tərəfin qeydi itmir. */
+    try{
+      const cur = await sb.from("forge_data").select("data").eq("user_id", sbUser.id).maybeSingle();
+      if(!cur.error && cur.data && cur.data.data){
+        const n0 = state.sessions.length + state.weights.length;
+        state = mergeState(state, cur.data.data);
+        if(state.sessions.length + state.weights.length !== n0){
+          try{ localStorage.setItem("forge-data", JSON.stringify(state)); }catch(e){}
+        }
+      }
+    }catch(e){ /* oxuya bilmədiksə yazmırıq — aşağıdakı yazı da baş tutmayacaq */ }
     const { error } = await sb.from("forge_data")
       .upsert({ user_id: sbUser.id, data: state, updated_at: new Date().toISOString() },
               { onConflict: "user_id" });   /* needs the unique constraint — see SQL */
     if(error){ cloudDirty = true; sbStatus = "gözləyir"; }
-    else { cloudDirty = false; sbStatus = "sinxrondur"; }
+    else { cloudDirty = false; sbStatus = "sinxrondur"; lastSync = Date.now(); }
   }catch(e){ cloudDirty = true; sbStatus = "oflayn"; }
   pushing = false;
 }
@@ -1333,6 +1351,15 @@ async function rlsProbe(){
   }catch(e){}
 }
 
+async function syncNow(){
+  if(!sbUser){ toast("Əvvəlcə daxil ol"); return; }
+  toast("Sinxronlaşdırılır…");
+  const before = state.sessions.length;
+  await cloudSync();
+  renderSettings();
+  const d = state.sessions.length - before;
+  toast(d > 0 ? `Buluddan ${d} məşq gətirildi` : "Hər şey sinxrondur");
+}
 async function sbSignIn(){
   const email = $("#sb-email").value.trim(), pass = $("#sb-pass").value;
   if(!email || !pass){ toast("E-poçt və şifrəni daxil edin"); return; }
@@ -1880,8 +1907,13 @@ function renderSettings(){
     </div>
     ${sbReady() ? `<div class="sect">Bulud yedəyi</div>
     <div class="card tight">${ sbUser
-      ? `<div class="small">☁️ Sinxronizasiya aktivdir — <b style="color:var(--ink)">${esc(sbUser.email)}</b>${sbStatus?` · ${sbStatus}`:""}. Hər dəyişiklik avtomatik buluda yazılır.</div>
-         <button class="btn sm ghost" style="margin-top:10px" onclick="sbSignOut()">Çıxış</button>`
+      ? `<div class="small">☁️ <b style="color:var(--ink)">${esc(sbUser.email)}</b>${sbStatus?` · ${sbStatus}`:""}${lastSync?` · sonuncu: ${fmtClock(lastSync, true)}`:""}</div>
+         <div class="hint" style="margin-top:8px">Bu cihazda: <b>${state.sessions.length}</b> məşq · <b>${state.weights.length}</b> çəki qeydi.
+           Bulud üzərinə kor-koranə yazılmır — əvvəlcə oxunur və birləşdirilir, ona görə başqa cihazdakı qeydlər silinmir.</div>
+         <div style="display:flex;gap:8px;margin-top:10px">
+           <button class="btn sm" style="flex:1" onclick="syncNow()">İndi sinxronla</button>
+           <button class="btn sm ghost" onclick="sbSignOut()">Çıxış</button>
+         </div>`
       : `<div class="small" style="margin-bottom:4px">Daxil olun — qeydləriniz buludda saxlansın, telefon dəyişəndə və ya Safari yaddaşı silinəndə itməsin.</div>
          <div class="field"><label>E-poçt</label><input id="sb-email" type="email" autocomplete="email" placeholder="ad@epoçt.com"></div>
          <div class="field"><label>Şifrə</label><input id="sb-pass" type="password" autocomplete="current-password" placeholder="••••••"></div>
@@ -2331,7 +2363,10 @@ function toggleDone(key,i){
 function buildRecord(a){
   /* d: məşqin BAŞLADIĞI gün — gecə yarısını keçən məşq dünənə yazılsın deyə */
   const startISO = a.startedAt ? isoOf(new Date(a.startedAt)) : (a.started || todayISO());
-  const rec = { d: startISO, day: a.day, ex: [], foundation: !!a.foundation, min: sessionMinutes(a, staleHours() ? 0 : TAIL_CAP) };
+  /* id olmadan açar “tarix|gün” idi: eyni gün eyni tipdə iki məşq etsən,
+     birləşdirmə onlardan yalnız birini saxlayırdı. */
+  const rec = { id: startISO+"|"+a.day+"|"+(a.startedAt||Date.now()), d: startISO, day: a.day, ex: [],
+    foundation: !!a.foundation, min: sessionMinutes(a, staleHours() ? 0 : TAIL_CAP) };
   let n = 0, skipped = 0;
   PROGRAM[a.day].ex.forEach(ex=>{
     const eff = effEx(ex.key);
@@ -2563,7 +2598,13 @@ async function acquireWakeLock(){
 }
 function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock=null; }
 document.addEventListener("visibilitychange", ()=>{
-  if(document.visibilityState!=="visible") return;
+  if(document.visibilityState !== "visible"){ lastHide = Date.now(); return; }
+  /* Köhnə kod yalnız açılışda bir dəfə oxuyurdu: tətbiq günlərlə açıq qalsa,
+     başqa cihazda edilən məşqi heç vaxt görmürdü. İndi 5 dəqiqədən uzun
+     fasilədən sonra qayıdanda bulud yenidən oxunur. */
+  if(sbUser && lastHide && Date.now()-lastHide > 5*60000){
+    cloudSync().then(()=>refresh());
+  }
   if(tInt){ acquireWakeLock(); tickRender(); if(tLeftNow()<=0) tick(); }   /* fonda keçən vaxt nəzərə alınır */
   const el = document.querySelector(".clock"); if(el) el.outerHTML = clockChip();
 });
