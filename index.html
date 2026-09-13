@@ -189,6 +189,7 @@ a.btn{text-decoration:none}
 .chips .pick{font-size:12px;border:1px solid var(--line);background:var(--card2);border-radius:99px;padding:5px 11px;color:var(--mut);cursor:pointer}
 .chips .pick.on{color:var(--chalk-ink);background:var(--chalk);border-color:var(--chalk);font-weight:600}
 /* ---------- warm-up + session clock ---------- */
+.wlog{margin-top:12px}
 .wulist{list-style:none;counter-reset:wu;margin-top:4px}
 .wulist li{counter-increment:wu;position:relative;padding:8px 0 8px 26px;border-bottom:1px solid var(--line)}
 .wulist li:last-child{border-bottom:0}
@@ -1332,6 +1333,7 @@ function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on
 function mondayOf(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; }
 /* state.weights[] is the ONLY source of truth. profile.w is seed-only and never read here
    — migrate() copies it into weights[] once for users created before this split. */
+function wLoggedToday(){ return state.weights.some(x => x.d === todayISO()); }
 function latestW(){ return state.weights.length ? state.weights[state.weights.length-1].kg : null; }
 /* single writer for bodyweight: Bugün, Qida and Proqres all funnel through this */
 function setWeight(v){
@@ -1600,8 +1602,16 @@ function renderToday(){
       <div class="small" style="margin-top:10px">Sarı nöqtə = məşq günü. Sıradakı məşq <b style="color:var(--ink)">${D.name}</b> — bir gün buraxsan itmir, növbəti məşq gününə sürüşür.</div>
     </div>
 
+    ${profileDone() && !wLoggedToday() ? `<div class="card tight wlog">
+      <div class="inline-log">
+        <input id="qw" type="number" inputmode="decimal" step="0.1" placeholder="Bugünkü çəki (kq)${w?" · son "+w.toFixed(1).replace(/\.0$/,""):""}">
+        <button class="btn sm" onclick="addWeight('qw')">Qeyd et</button>
+      </div>
+      <div class="small" style="margin-top:8px">Səhər, yeməkdən əvvəl çəkil. Qeyd etdikdən sonra bu sahə bu günlük yığılır.</div>
+    </div>` : ""}
+
     <div class="stats">
-      <div class="stat"><div class="v num">${w ? w.toFixed(1).replace(/\.0$/,"") : "—"}<small> kq</small></div><div class="l">Bədən çəkisi ${dlt!==null?`<span class="${dlt>=0?"delta-up":"delta-dn"}">${dlt>=0?"+":""}${dlt.toFixed(1)}</span>`:""}</div></div>
+      <div class="stat"><div class="v num">${w ? w.toFixed(1).replace(/\.0$/,"") : "—"}<small> kq</small></div><div class="l">Bədən çəkisi ${dlt!==null?`<span class="${dlt>=0?"delta-up":"delta-dn"}">${dlt>=0?"+":""}${dlt.toFixed(1)}</span>`:""}${wLoggedToday()?` <span style="color:var(--green)">✓</span>`:""}</div></div>
       <div class="stat"><div class="v num">${weekCount()}<small> / ${weeklyTarget()}</small></div><div class="l">Son 7 gün</div></div>
       <div class="stat"><div class="v num">${state.sessions.length}</div><div class="l">Ümumi məşq sayı</div></div>
     </div>
