@@ -167,6 +167,8 @@ a.btn{text-decoration:none}
 .swaplist{display:flex;flex-direction:column;gap:8px;margin:14px 0 4px}
 .swopt{display:flex;align-items:center;gap:11px;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:10px 12px;color:var(--ink);text-align:left}
 .swopt.on{border-color:var(--green)}
+.swopt.dis{opacity:.42}
+.swopt.dis .swck{color:var(--mut)}
 .swopt .swtxt{flex:1;min-width:0}
 .swopt .swtxt b{display:block;font-size:14px;line-height:1.25}
 .swopt .swtxt small{color:var(--mut);font-size:11.5px}
@@ -952,7 +954,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v24";
+const APP_VERSION = "forge-v25";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1098,8 +1100,25 @@ function effEx(slotKey){
      və dəyişdirdikdə səhv rəqəm görünürdü. */
   return mkEx({ k:ak, sets:slot.sets, rMin:slot.rMin, rMax:slot.rMax, rest:slot.rest }, slot.day);
 }
+/* günün sonunda faktiki ediləcək hərəkətlər (⇄ ilə dəyişdirilənlər nəzərə alınır) */
+function dayEffKeys(D){
+  const sw = (state.active && state.active.day===D && state.active.swap) || {};
+  return daySlots(D).map(s => sw[s.k] || s.k);
+}
+/* Bir slot üçün seçilə bilən hərəkətlər: əsas + günün BAŞQA slotlarında olmayan
+   alternativlər. Əvvəl siyahı xam ALT_OF idi və məsələn Tyaqın alternativi kimi
+   həmin gün onsuz da planda olan hərəkəti təklif edirdi — yəni eyni hərəkəti iki
+   dəfə. İndi belə variantlar siyahıdan düşür. */
+function swapOpts(slotKey){
+  const base = EXMAP[slotKey];
+  if(!base) return [];
+  const cur = effEx(slotKey).key;
+  const taken = new Set(dayEffKeys(base.day).filter(k => k!==cur && k!==slotKey));
+  return [base, ...(ALT_OF[slotKey]||[]).filter(k => !taken.has(k)).map(k=>EXMAP[k]).filter(Boolean)];
+}
 function openSwap(slotKey){
-  const opts = [EXMAP[slotKey], ...(ALT_OF[slotKey]||[]).map(k=>EXMAP[k]).filter(Boolean)];
+  const opts = swapOpts(slotKey);
+  const hid = (ALT_OF[slotKey]||[]).length - (opts.length-1);
   const cur = effEx(slotKey).key;
   $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>Hərəkəti seçin</h3><div class="stag">${esc(EXMAP[slotKey].tag)} — aparat doludursa hantel variantını seç</div>
@@ -1111,6 +1130,7 @@ function openSwap(slotKey){
         <span class="swck">${o.key===cur?"✓":""}</span>
       </button>`;
     }).join("")}</div>
+    ${hid>0?`<div class="small">${hid} alternativ göstərilmir — onlar bu gün onsuz da planındadır.</div>`:""}
     <div class="small">Daimi dəyişiklik istəyirsinizsə — <b style="color:var(--ink)">Plan</b> bölməsindən bu slotu tamamilə əvəz edin.</div>
     <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`;
   $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
@@ -2291,7 +2311,7 @@ function renderTrain(){
             <div class="name">${i+1}. ${esc(eff.name)}</div>
             <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${'$'}{eff.key}')">${loadTag(eff)}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}</div>
           </div>
-        </div><div class="exbtns"><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${(ALT_OF[ex.key]||[]).length?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}</div></div>
+        </div><div class="exbtns"><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${swapOpts(ex.key).length>1?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}</div></div>
         ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
         <div class="hint ${h.cls}">${h.txt}</div>
         ${plateLine}
@@ -2515,7 +2535,7 @@ function cancelSession(){ ask("Məşq ləğv edilsin?", "Bu məşqdə qeyd etdiy
 function openTech(day,i){
   const base = PROGRAM[day].ex[i];
   const ex = (state.active && state.active.day===day) ? effEx(base.key) : base;
-  const alts = (ALT_OF[base.key]||[]).map(k=>EXMAP[k]).filter(Boolean);
+  const alts = swapOpts(base.key).slice(1);   /* günün başqa slotlarında olanlar çıxarılıb */
   const nf = frames(ex).length;
   $("#sheet").innerHTML = `${SHEETHEAD}
     ${exImg(ex,"exanim big")}
@@ -3120,12 +3140,16 @@ function renderLibList(){
     return hay.includes(libQuery);
   });
   if(!keys.length){ box.innerHTML = `<div class="empty">Tapılmadı.</div>`; return; }
+  /* həmin gündə artıq olan hərəkətlər əlçatmaz göstərilir — əvvəl ＋ ilə təklif
+     edilir, basdıqda isə rədd edilirdi */
+  const inDay = new Set(daySlots(D).map((s,i)=> i===idx ? null : s.k).filter(Boolean));
   box.innerHTML = keys.map(k=>{
     const e = mkEx(defSlot(k), null);
-    return `<button class="swopt" onclick="planPick('${D}','${k}',${idx===null?"null":idx})">
+    const dup = inDay.has(k);
+    return `<button class="swopt${dup?" dis":""}" ${dup?`onclick="toast('Bu hərəkət artıq ${esc(DAY_META[D].name)} günündədir')"`:`onclick="planPick('${D}','${k}',${idx===null?"null":idx})"`}>
       ${exImg(e,"exanim sm still")}
-      <span class="swtxt"><b>${esc(e.name)}</b><small>${esc(e.tag||"")} · ${e.sets}×${e.rMin}-${e.rMax}</small></span>
-      <span class="swck">＋</span>
+      <span class="swtxt"><b>${esc(e.name)}</b><small>${dup?"bu gündə var":`${esc(e.tag||"")} · ${e.sets}×${e.rMin}-${e.rMax}`}</small></span>
+      <span class="swck">${dup?"✓":"＋"}</span>
     </button>`;
   }).join("");
 }
