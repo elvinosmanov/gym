@@ -974,7 +974,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v27";
+const APP_VERSION = "forge-v28";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1320,9 +1320,17 @@ function mergeState(local, remote){
     out.vid = {...(remote.vid||{}), ...(local.vid||{})};
   }
   /* Bu cihazdakı yarımçıq məşq HƏR ZAMAN qorunur — sinxronizasiya onu silməməlidir.
-     Amma bu cihazda yarımçıq məşq yoxdursa, qarşı tərəfdəki götürülür: əks halda
-     yedəkdən bərpa edəndə (və ya başqa cihazda başlanmış məşq) bütöv bir məşq itirdi. */
-  out.active = local.active || remote.active || null;
+     Qarşı tərəfdəki isə yalnız HƏQİQƏTƏN davam edirsə götürülür.
+     Əvvəl sadəcə “local.active || remote.active” idi və bu, aşağıdakı səhvi verirdi:
+     məşqi ləğv edirdin (yerli null olurdu), amma buludda hələ dururdu; planda bir
+     hərəkət dəyişdirmək — hətta sadəcə tətbiqi bağlamaq — sinxronu işə salırdı və
+     həmin məşq özü yenidən “başlayırdı”. İndi iki süzgəc var: bağlanma damğasından
+     köhnə məşq qaytarılmır, tarixçəyə onsuz da yazılmış məşq də qaytarılmır. */
+  const ended = Math.max(local.activeEnded||0, remote.activeEnded||0);
+  if(ended) out.activeEnded = ended;
+  const actKey = a => (a.startedAt ? isoOf(new Date(a.startedAt)) : (a.started||"")) + "|" + a.day + "|" + (a.startedAt||"");
+  const stillLive = a => !!a && (a.startedAt||0) > ended && !out.sessions.some(s => s.id === actKey(a));
+  out.active = local.active || (stillLive(remote.active) ? remote.active : null) || null;
   out.ts = Math.max(local.ts||0, remote.ts||0);
   return out;
 }
@@ -2604,6 +2612,10 @@ function lastNote(day){
   }
   return "";
 }
+/* Yarımçıq məşq bağlananda (bitirildi, ləğv edildi, avtomatik bağlandı) bu
+   damğa qoyulur. Birləşdirmə ondan köhnə “yarımçıq məşq”i geri qaytarmır —
+   əks halda buludda qalmış nüsxə növbəti sinxronda məşqi özü başladırdı. */
+function endActive(){ state.activeEnded = Date.now(); state.active = null; }
 /* “Bitir”i unutmaq daha məlumat itirmir: 3 saatdan çox toxunulmayan məşq
    tətbiq növbəti dəfə açılanda özü bağlanır, vaxt sonuncu qeydə qədər sayılır. */
 function autoFinishStale(){
@@ -2611,22 +2623,22 @@ function autoFinishStale(){
   if(!a || !staleMins()) return;
   const { rec, n } = buildRecord(a);
   if(n){
-    state.sessions.push(rec); state.active = null; save(); cloudPush(true);
+    state.sessions.push(rec); endActive(); save(); cloudPush(true);
     migrationNote = `“Bitir” basılmamışdı — <b>${dayMeta(rec.day).name}</b> məşqi avtomatik yadda saxlanıldı: `
       + `${n} dövr · ${hm(rec.min)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`;
   } else {
-    state.active = null; save();
+    endActive(); save(); cloudPush(true);
     migrationNote = "Yarımçıq qalmış məşq bağlandı — heç bir dövr qeyd edilmədiyi üçün tarixçəyə yazılmadı.";
   }
 }
 function saveSession(rec){
-  state.sessions.push(rec); state.active = null; timerSkip(); save(); cloudPush(true);
+  state.sessions.push(rec); endActive(); timerSkip(); save(); cloudPush(true);
   const nxt = DAYS[(DAYS.indexOf(rec.day)+1) % DAYS.length];
   toast(`${dayMeta(rec.day).name} · ${hm(rec.min)} · növbəti: ${DAY_META[nxt].name}`);
   viewDay = nxt;
   switchTab("today");
 }
-function cancelSession(){ ask("Məşq ləğv edilsin?", "Bu məşqdə qeyd etdiyiniz dövrlər itiriləcək. Tarixçəyə heç nə yazılmayacaq.", "Bəli, ləğv et", ()=>{ state.active=null; timerSkip(); save(); renderTrain(); toast("Məşq ləğv edildi"); }, true); }
+function cancelSession(){ ask("Məşq ləğv edilsin?", "Bu məşqdə qeyd etdiyiniz dövrlər itiriləcək. Tarixçəyə heç nə yazılmayacaq.", "Bəli, ləğv et", ()=>{ endActive(); timerSkip(); save(); cloudPush(true); renderTrain(); toast("Məşq ləğv edildi"); }, true); }
 
 /* ================= technique sheet ================= */
 function openTech(day,i){
