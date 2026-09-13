@@ -1029,14 +1029,14 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v34";
+const APP_VERSION = "forge-v35";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
 const DEFAULTS = { profile:{name:"Elvin",w:"", days:[1,2,4,6],
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
     barKg:20, plate:1.25, dbStep:2, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
-  weights:[], sessions:[], active:null, supps:[], plan:null, userEx:{}, vid:{}, pv:PROGRAM_VERSION };
+  weights:[], sessions:[], active:null, supps:[], plan:null, planTs:0, userEx:{}, vid:{}, pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -1369,10 +1369,21 @@ function mergeState(local, remote){
   });
   out.supps = [...pmap.values()].sort((a,b)=>a.d<b.d?-1:1);
 
-  /* profile + the user's own program: last-write-wins on ts is acceptable */
+  /* PLAN AYRICA DAMĞA İLƏ BİRLƏŞİR.
+     Əvvəl plan ümumi “ts” ilə həll olunurdu, ts isə HƏR yadda saxlamada yenilənir
+     (bir dövr qeyd etmək belə). Nəticədə: telefonda planı dəyişirsən, sonra başqa
+     nüsxə (Safari tabı ↔ ekrana əlavə edilmiş tətbiq — onların yaddaşı ayrıdır)
+     nəyisə yazır, onun ts-i daha yeni olur və HƏLƏ PLANI OLMAYAN nüsxə səninkini
+     üzərinə yazırdı. İndi planı yalnız daha yeni planTs üstələyir. */
+  const lpt = local.planTs||0, rpt = remote.planTs||0;
+  if(rpt > lpt)      out.plan = remote.plan || null;
+  else if(lpt > rpt) out.plan = local.plan || null;
+  else               out.plan = local.plan || remote.plan || null;   /* damğasız köhnə nüsxələr */
+  out.planTs = Math.max(lpt, rpt) || undefined;
+
+  /* profile: last-write-wins on ts is acceptable */
   if((remote.ts||0) > (local.ts||0)){
     out.profile = {...local.profile, ...(remote.profile||{})};
-    if(remote.plan !== undefined) out.plan = remote.plan;
     out.userEx = {...(local.userEx||{}), ...(remote.userEx||{})};
     out.vid = {...(local.vid||{}), ...(remote.vid||{})};
   } else {
@@ -2905,7 +2916,7 @@ document.addEventListener("visibilitychange", ()=>{
   /* Köhnə kod yalnız açılışda bir dəfə oxuyurdu: tətbiq günlərlə açıq qalsa,
      başqa cihazda edilən məşqi heç vaxt görmürdü. İndi 5 dəqiqədən uzun
      fasilədən sonra qayıdanda bulud yenidən oxunur. */
-  if(sbUser && lastHide && Date.now()-lastHide > 5*60000){
+  if(sbUser && lastHide && Date.now()-lastHide > 60000){
     cloudSync().then(()=>refresh());
   }
   if(tInt){ acquireWakeLock(); tickRender(); if(tLeftNow()<=0) tick(); }   /* fonda keçən vaxt nəzərə alınır */
@@ -3499,7 +3510,12 @@ function ensurePlan(D){
   return state.plan[D];
 }
 function planLocked(D){ return !!(state.active && state.active.day===D); }
-function planTouch(){ buildProgram(); save(); cloudPush(); renderPlan(); }
+function planTouch(){
+  state.planTs = Date.now();     /* planın öz vaxtı — birləşdirmə buna baxır */
+  buildProgram(); save();
+  cloudPush(true);               /* 10 saniyə gözləmir: plan dəyişikliyi dərhal gedir */
+  renderPlan();
+}
 function selPlanDay(k){ planDay = k; renderPlan(); }
 
 /* Plan kartının altındakı sətir: sıra düzgündürmü, düz deyilsə necə olmalıdır.
@@ -3582,7 +3598,8 @@ function renderPlan(){
     </div>
 
     <div class="sect">Qeyd</div>
-    <div class="card tight"><div class="small">Dəyişiklikləriniz yalnız gələcək məşqlərə təsir edir; tarixçə və qrafiklər olduğu kimi qalır. Bir hərəkəti plandan çıxarsanız belə, onun keçmiş qeydləri Proqres bölməsində saxlanılır.</div></div>`;
+    <div class="card tight"><div class="small">Dəyişiklikləriniz yalnız gələcək məşqlərə təsir edir; tarixçə və qrafiklər olduğu kimi qalır. Bir hərəkəti plandan çıxarsanız belə, onun keçmiş qeydləri Proqres bölməsində saxlanılır.
+      ${sbUser ? `<br><br>☁︎ Plan dəyişiklikləri <b style="color:var(--ink)">dərhal</b> buludda yadda saxlanılır — düymə basmağa ehtiyac yoxdur. Tətbiq yenilənəndə də plan qalır: buludda planın öz vaxt damğası var və yalnız daha yeni plan onu əvəz edə bilər.` : `<br><br>☁︎ Bulud hesabına daxil deyilsən — plan yalnız bu cihazda saxlanılır. Ayarlardan daxil olsan, plan da buludda qalar.`}</div></div>`;
 }
 
 function planMove(D,i,dir){

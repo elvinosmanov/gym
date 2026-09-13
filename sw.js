@@ -1,7 +1,7 @@
 /* FORGE service worker
    Bump CACHE_VERSION on every deploy — activate() deletes all other caches,
    which is what forces clients onto the new HTML instead of a stale shell. */
-const CACHE_VERSION = "forge-v34";
+const CACHE_VERSION = "forge-v35";
 
 /* Precached at install so a cold start with no signal still boots the app. */
 const SHELL = [
