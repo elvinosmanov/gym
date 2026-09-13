@@ -35,7 +35,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v5` → `forge-v6`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
-`test.js`, `smoke.js`, `check.js`, `shim.js` və `supabase.sql` yerləşdirmə üçün deyil.
+`supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 
 ## Şəkillər
 
