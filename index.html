@@ -952,6 +952,9 @@ const TIPS = [
 /* Bump when PROGRAM's day->exercise mapping changes. applyLoaded() uses it to
    retire an in-progress session whose exercise keys no longer match its day. */
 const PROGRAM_VERSION = 3;
+/* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
+   sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
+const APP_VERSION = "forge-v20";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1447,11 +1450,11 @@ function perfStr(p){ return p.sets.map(s=>`${s.kg>0?s.kg:"BÇ"}×${s.reps}`).joi
    Baxdığı şeylər: ən yaxşı dövrün 1TM-i, iş çəkisi, ümumi həcm (kq×təkrar) və
    son üç məşqin trendi. Nəticədə konkret göstəriş verir: çəki artır / təkrar
    artır / yüngülləşdir. */
-function exSessions(key, limit){
+function exSessions(key, limit, withFoundation){
   const out = [];
   for(let i=state.sessions.length-1; i>=0 && out.length<(limit||8); i--){
     const s = state.sessions[i];
-    if(s.foundation) continue;
+    if(s.foundation && !withFoundation) continue;
     const f = s.ex.find(e=>e.key===key);
     if(!f || !f.sets.length) continue;
     const sets = f.sets.filter(x=>x.reps>0);
@@ -1461,7 +1464,7 @@ function exSessions(key, limit){
     const bw = sets.every(x => !(x.kg > 0));                /* bədən çəkisi: 1TM mənasızdır */
     if(bw) sets.forEach(x=>{ if(x.reps > top.reps) top = x; });
     out.push({
-      d: s.d, sets, bw,
+      d: s.d, sets, bw, foundation: !!s.foundation,
       top,                                                   /* ən güclü dövr */
       e1: bw ? top.reps : e1rm(top.kg, top.reps),
       vol: sets.reduce((a,x)=>a + (x.kg||0)*x.reps, 0),      /* həcm: kq × təkrar */
@@ -1620,7 +1623,7 @@ function dismissDeload(){
   toast("Qeyd edildi — sayğac sıfırlandı");
 }
 function profileDone(){ const p=state.profile; return !!(p.name && (p.w || state.weights.length)); }
-function isFirstEver(){ return state.sessions.length===0; }
+function isFirstEver(){ return state.sessions.length===0 && !state.profile.skipFoundation; }
 function isoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function suppToday(kind){ const e=state.supps.find(x=>x.d===todayISO()); return !!(e && e[kind]); }
 function toggleSupp(kind){
@@ -1749,7 +1752,8 @@ function renderToday(){
         </div>
       </div>
       <div class="lastline" style="margin:8px 0 12px">${ state.active ? `<b>Məşq davam edir</b> — zalda ${hm(sessionMinutes(state.active, staleHours() ? 0 : GAP_CAP))}.` : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${dayMeta(last.day).name}` : `Birinci gün. Sıra: <b>İtələmə → Çəkmə → Ayaq → Tam bədən</b>, sonra yenidən başdan.` }</div>
-      ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}</div>` : ""}
+      ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}
+        ${!state.active ? `<button class="btn sm ghost" style="margin-top:10px" onclick="skipFoundation()">Bu mənim ilk məşqim deyil — tam həcmlə başla</button>` : ""}</div>` : ""}
       <button class="btn block" onclick="${state.active ? "switchTab('train')" : `startSession('${nd}')`}">${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
       ${!state.active && rest ? `<div class="small" style="margin-top:10px;text-align:center">Bu gün cədvəldə yoxdur — növbəti məşq <b style="color:var(--ink)">${WD_FULL[wdOf(nt)]}, ${fmtD(nt)}</b>. İstəsən bu gün də başlaya bilərsən.</div>` : ""}
     </div>
@@ -1886,6 +1890,10 @@ function renderSettings(){
            <button class="btn sm ghost" style="flex:1" onclick="sbSignUp()">Qeydiyyat</button>
          </div>` }</div>` : ""}
 
+    <div class="sect">Versiya</div>
+    <div class="card tight"><div class="small">Bu cihazda işləyən nüsxə: <b style="color:var(--ink)">${APP_VERSION}</b>.
+      Səhifəni yeniləsən və rəqəm dəyişməsə, köhnə nüsxə keşdən açılır — brauzeri tam bağlayıb yenidən aç.</div></div>
+
     <div class="sect">Yerli nüsxə</div>
     <div class="card tight">
       <div class="small" style="margin-bottom:10px">Bulud xarici xidmətdir. Vaxtaşırı öz nüsxənizi yükləyin — fayl sizdə qalır, heç bir hesab tələb olunmur.</div>
@@ -1976,6 +1984,13 @@ function importData(input){
     });
   };
   rd.readAsText(file);
+}
+/* Təməl günü yeni başlayanlar üçündür. Tarixçəsi itmiş (və ya onsuz da məşq edən)
+   istifadəçi onu keçib birbaşa tam həcmlə başlaya bilər. */
+function skipFoundation(){
+  state.profile.skipFoundation = true;
+  save(); cloudPush(); renderToday();
+  toast("Tam həcmlə başlayırsan — dövrlər yarıya endirilməyəcək");
 }
 function saveSetup(){
   const p = state.profile;
@@ -2633,7 +2648,7 @@ function renderProg(){
   /* ---- hərəkət analizi: əsas dəyər buradadır ---- */
   const keys = [...new Set(state.sessions.flatMap(s=>s.ex.map(e=>e.key)))];
   const rows = keys.map(k=>{
-    const H = exSessions(k, 10);
+    const H = exSessions(k, 10, true);   /* göstərmək üçün təməl məşq də daxildir */
     if(!H.length) return null;
     const t = liftTrend(k), pl = progressPlan(k), pj = projection(k);
     return { k, name: exName(k), H, t, pl, pj, last: H[0], u: unitOf(EXMAP[k]||{}) };
@@ -2646,7 +2661,7 @@ function renderProg(){
     return `<div class="lift">
       <div class="lhead">
         <div class="lname">${esc(r.name)}</div>
-        ${st ? `<span class="lbadge ${st.c}">${st.t}</span>` : `<span class="lbadge">yeni</span>`}
+        ${st ? `<span class="lbadge ${st.c}">${st.t}</span>` : `<span class="lbadge">${r.last.foundation?"təməl":"yeni"}</span>`}
       </div>
       <div class="lrow">
         <div class="lnum"><b class="num">${r.last.bw ? `${r.last.top.reps} təkrar` : `${r.last.top.kg}${r.u==="lb"?" lb":""} × ${r.last.top.reps}`}</b><small>son ən güclü dövr · ${fmtD(r.last.d)}</small></div>
@@ -2702,6 +2717,11 @@ function renderProg(){
       <div class="stat"><div class="v num">${adh.pct}<small>%</small></div><div class="l">Cədvəl · 4 həftə</div></div>
       <div class="stat"><div class="v num">${avgMin!=null?avgMin:"—"}<small> dəq</small></div><div class="l">Orta müddət</div></div>
     </div>
+
+    ${!state.sessions.length ? `<div class="card"><div class="h-big" style="font-size:19px">Analiz üçün məşq lazımdır</div>
+      <div class="small" style="margin-top:8px">Hesabında <b style="color:var(--ink)">bitmiş məşq yoxdur</b> — ona görə bu səhifə boşdur. Bədən çəkisi qeydlərin (${state.weights.length}) yerindədir, aşağıda qrafikdə görünür.
+      <br><br>Səbəb: köhnə versiyada “Bitir və yadda saxla” düyməsi dövrlərin təkrar xanası boş qaldıqda heç nə saxlamırdı və xəbərdarlıq pəncərəsi telefonda görünmürdü. Bu düzəldilib.
+      <br><br>Bir məşq bitir — analiz dərhal görünəcək, ikinci məşqdən sonra trend və proqnoz da qoşulacaq.</div></div>` : ""}
 
     ${warn.length ? `<div class="sect">Diqqət tələb edir</div>
     <div class="card"><div class="brief">${warn.slice(0,5).map(w=>`<div class="brow"><span class="bi">!</span><p>${w}</p></div>`).join("")}</div></div>` : ""}
