@@ -8,7 +8,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 
 ## Nə var
 
-- **102 hərəkətlik kitabxana** — hər birinin iki kadrlı (başlanğıc/bitiş) animasiyalı illüstrasiyası, texnika ipuçları və ümumi səhvləri
+- **102 hərəkətlik kitabxana** — hər birinin iki kadrlı (başlanğıc/bitiş) **real zal fotosu**, texnika ipuçları və ümumi səhvləri
 - **Plan redaktoru** — istənilən günə hərəkət əlavə et, sil, yerini dəyiş, dövr/təkrar/istirahəti qur, öz hərəkətini yarat (şəkli və işlədiyi əzələlərlə)
 - **Əzələ xəritəsi** — anatomik ön/arxa fiqur üzərində hansı əzələnin nə qədər işlədiyi (əsas dövr tam, köməkçi yarım sayılır), gün və tam dövr üzrə
 - **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
@@ -38,13 +38,13 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v10` → `forge-v11`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v11` → `forge-v12`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 
 ## Şəkillər
 
-Hərəkət illüstrasiyaları Wikimedia Commons-dandır (CC BY-SA 3.0) — birbaşa link verilir, repoda saxlanılmır.
+Hərəkət fotoları [free-exercise-db](https://github.com/yuhonas/free-exercise-db) layihəsindəndir (Unlicense — ictimai mülkiyyət). Hər hərəkətin iki kadrı var: başlanğıc və bitiş vəziyyəti. jsDelivr CDN-dən verilir, repoda saxlanılmır.
 
 ## Qeyd
 
