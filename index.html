@@ -184,6 +184,11 @@ a.btn{text-decoration:none}
 .sug .sact button{background:var(--card2);border:1px solid var(--line);color:var(--ink);
   border-radius:9px;padding:6px 11px;font-size:11.5px}
 .sug .sact button:active{border-color:var(--green)}
+.junkl{max-height:46vh;overflow-y:auto;margin:8px 0}
+.junkr{display:flex;gap:10px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid var(--line)}
+.junkr input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--red)}
+.junkr b{display:block;font-size:13px}
+.junkr small{display:block;color:var(--mut);font-size:11.5px;margin-top:2px}
 .stepper input.gh{color:var(--dim)}
 .swopt.dis{opacity:.42}
 .swopt.dis .swck{color:var(--mut)}
@@ -1029,14 +1034,15 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v35";
+const APP_VERSION = "forge-v36";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
 const DEFAULTS = { profile:{name:"Elvin",w:"", days:[1,2,4,6],
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
     barKg:20, plate:1.25, dbStep:2, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
-  weights:[], sessions:[], active:null, supps:[], plan:null, planTs:0, userEx:{}, vid:{}, pv:PROGRAM_VERSION };
+  weights:[], sessions:[], active:null, supps:[], plan:null, planTs:0, userEx:{}, vid:{},
+  gone:[], goneW:[], pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -1334,6 +1340,18 @@ let sb = null, sbUser = null, sbStatus = "", sbWarn = "";
 let pushT = null, cloudDirty = false, pushing = false, lastSync = 0, lastHide = 0;
 function sbReady(){ return !!(SB_URL && SB_KEY && window.supabase); }
 
+/* ---- SİLİNMƏ DAMĞALARI ----
+   Birləşdirmə iki tərəfin qeydlərini BİRLƏŞDİRİR. Damğa olmasa, silinən məşq
+   qarşı tərəfdə hələ durduğu üçün növbəti sinxronda geri qayıdırdı — yəni
+   “sil” düyməsi bulud açıq olanda heç vaxt işləmirdi. İndi silinən açar
+   yadda saxlanılır və hər iki tərəfdən süzülür. */
+const sesKey = s => s.id || (s.d+"|"+s.day);
+function tomb(field, key){
+  if(!key) return;
+  const a = state[field] = Array.isArray(state[field]) ? state[field] : [];
+  if(!a.includes(key)) a.push(key);
+  if(a.length > 1000) state[field] = a.slice(-1000);
+}
 /* ---- merge: union by natural key, never destructive ---- */
 function mergeState(local, remote){
   if(!remote) return local;
@@ -1348,7 +1366,9 @@ function mergeState(local, remote){
     const k = skey(s), cur = smap.get(k);
     if(!cur || setsOf(s) > setsOf(cur)) smap.set(k, {...s, note:(s.note || (cur && cur.note) || undefined)});
   });
-  out.sessions = [...smap.values()].sort((a,b)=>a.d<b.d?-1:1);
+  const goneS = new Set([...(local.gone||[]), ...(remote.gone||[])]);
+  out.gone = [...goneS].slice(-1000);
+  out.sessions = [...smap.values()].filter(x => !goneS.has(skey(x))).sort((a,b)=>a.d<b.d?-1:1);
 
   /* weights keyed on date; on collision keep the later ts */
   const wmap = new Map();
@@ -1357,7 +1377,11 @@ function mergeState(local, remote){
     const cur = wmap.get(w.d);
     if(!cur || (w.ts||0) > (cur.ts||0)) wmap.set(w.d, w);
   });
-  out.weights = [...wmap.values()].sort((a,b)=>a.d<b.d?-1:1);
+  const goneW = new Set([...(local.goneW||[]), ...(remote.goneW||[])]);
+  out.goneW = [...goneW].slice(-1000);
+  /* çəki damğası yalnız qarşı tərəfdəki KÖHNƏ qeydi süzür: eyni günə yeni çəki
+     yazılıbsa (ts damğadan sonra) o qalır */
+  out.weights = [...wmap.values()].filter(w => !goneW.has(w.d)).sort((a,b)=>a.d<b.d?-1:1);
 
   /* supps keyed on date; OR the booleans so a tick on either device survives */
   const pmap = new Map();
@@ -1539,6 +1563,7 @@ function latestW(){ return state.weights.length ? state.weights[state.weights.le
 function setWeight(v){
   if(!(v>=25 && v<=350)) return false;
   const t = todayISO(), ex = state.weights.find(x=>x.d===t);
+  if(Array.isArray(state.goneW)) state.goneW = state.goneW.filter(d => d!==t);   /* yenidən yazıldı */
   if(ex){ ex.kg = v; ex.ts = Date.now(); }
   else state.weights.push({ d:t, kg:v, ts:Date.now() });
   state.weights.sort((a,b)=>a.d<b.d?-1:1);
@@ -2031,6 +2056,54 @@ function renderToday(){
 }
 
 /* ================= AYARLAR ================= */
+/* ================= TARİXÇƏ TƏMİZLİYİ =================
+   Buluda səhvən düşmüş sınaq qeydləri real məşqlərin arasında itir. Bu bölmə
+   onları üç əlamətə görə tapır və birdəfəyə silməyə imkan verir. Heç nə
+   avtomatik silinmir — siyahını görüb özün seçirsən. */
+function junkReason(s){
+  if(!s) return null;
+  if(s.d > todayISO()) return "gələcək tarix";
+  if(/^(\d{4}-\d{2}-\d{2})\|[PLGF]\|(\1|1)$/.test(s.id||"")) return "sınaq id-si";
+  const all = (s.ex||[]).flatMap(e=>e.sets||[]);
+  if(all.length >= 9 && all.every(x => x.kg===all[0].kg && x.reps===all[0].reps))
+    return `bütün dövrlər eyni (${all[0].kg}×${all[0].reps})`;
+  return null;
+}
+function junkList(){
+  return state.sessions.map((s,i)=>({ s, i, why: junkReason(s) })).filter(x => x.why);
+}
+function openJunk(){
+  const list = junkList();
+  if(!list.length){ toast("Şübhəli qeyd yoxdur"); return; }
+  const n = list.reduce((a,x)=>a + x.s.ex.reduce((y,e)=>y+e.sets.length,0), 0);
+  $("#sheet").innerHTML = `${SHEETHEAD}
+    <h3>Şübhəli qeydlər</h3>
+    <div class="stag">${list.length} məşq · ${n} dövr — işarələnənlər silinəcək</div>
+    <div class="junkl">${list.map(x=>`<label class="junkr">
+      <input type="checkbox" checked data-i="${x.i}">
+      <span><b>${fmtD(x.s.d)} · ${esc(dayMeta(x.s.day).name)}</b>
+        <small>${x.s.ex.reduce((y,e)=>y+e.sets.length,0)} dövr · ${esc(x.why)}</small></span>
+    </label>`).join("")}</div>
+    <div class="small" style="margin:10px 0">Sənin real məşqlərin bu siyahıda görünmür. Əmin deyilsənsə həmin sətrin işarəsini götür.</div>
+    <button class="btn block danger" onclick="purgeJunk()">İşarələnənləri sil</button>
+    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
+  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+}
+function purgeJunk(){
+  const idx = [...document.querySelectorAll(".junkr input:checked")].map(el=>parseInt(el.dataset.i));
+  if(!idx.length){ toast("Heç nə seçilməyib"); return; }
+  const set = new Set(idx);
+  state.sessions.forEach((s,i)=>{ if(set.has(i)) tomb("gone", sesKey(s)); });
+  state.sessions = state.sessions.filter((_,i)=>!set.has(i));
+  save(); cloudPush(true); closeSheet(); refresh();
+  toast(`${idx.length} qeyd silindi`);
+}
+/* Planı bu cihazdakı variantla hər yerdə qalib et */
+function forcePlanPush(){
+  if(!state.plan || !Object.keys(state.plan).length){ toast("Bu cihazda özəl plan yoxdur"); return; }
+  state.planTs = Date.now(); save(); cloudPush(true);
+  toast("Bu cihazdakı plan buluda yazıldı");
+}
 function renderSettings(){
   const p = state.profile, c = gymCfg(), w = latestW();
   $("#view-set").innerHTML = `
@@ -2104,6 +2177,7 @@ function renderSettings(){
            Bulud üzərinə kor-koranə yazılmır — əvvəlcə oxunur və birləşdirilir, ona görə başqa cihazdakı qeydlər silinmir.</div>
          <div style="display:flex;gap:8px;margin-top:10px">
            <button class="btn sm" style="flex:1" onclick="syncNow()">İndi sinxronla</button>
+           <button class="btn sm ghost" onclick="forcePlanPush()" title="planı bu cihazdan yaz">Planı yaz</button>
            <button class="btn sm ghost" onclick="sbSignOut()">Çıxış</button>
          </div>`
       : `<div class="small" style="margin-bottom:4px">Daxil olun — qeydləriniz buludda saxlansın, telefon dəyişəndə və ya Safari yaddaşı silinəndə itməsin.</div>
@@ -2117,6 +2191,12 @@ function renderSettings(){
     <div class="sect">Versiya</div>
     <div class="card tight"><div class="small">Bu cihazda işləyən nüsxə: <b style="color:var(--ink)">${APP_VERSION}</b>.
       Səhifəni yeniləsən və rəqəm dəyişməsə, köhnə nüsxə keşdən açılır — brauzeri tam bağlayıb yenidən aç.</div></div>
+
+    ${junkList().length ? `<div class="sect">Tarixçə təmizliyi</div>
+    <div class="card tight">
+      <div class="small"><b style="color:var(--c)">${junkList().length} şübhəli məşq</b> tapıldı — gələcək tarixli, sınaq id-li və ya bütün dövrləri eyni olan qeydlər. Bunlar real məşqlərin arasına qarışıb və qrafikləri korlayır.</div>
+      <button class="btn sm" style="margin-top:10px;width:100%" onclick="openJunk()">Bax və sil</button>
+    </div>` : ""}
 
     <div class="sect">Yerli nüsxə</div>
     <div class="card tight">
@@ -3130,8 +3210,8 @@ function renderProg(){
     <div class="sect">Tarixçə</div>
     <div class="card">${hist}</div>`;
 }
-function delWeight(i){ ask("Çəki qeydi silinsin?", `${state.weights[i].kg} kq · ${fmtD(state.weights[i].d)}`, "Sil", ()=>{ state.weights.splice(i,1); if(state.weights.length) state.profile.w = state.weights[state.weights.length-1].kg; save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
-function delSession(i){ const s=state.sessions[i]; ask("Məşq tarixçədən silinsin?", `${dayMeta(s.day).name} · ${fmtD(s.d)}`, "Sil", ()=>{ state.sessions.splice(i,1); save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
+function delWeight(i){ ask("Çəki qeydi silinsin?", `${state.weights[i].kg} kq · ${fmtD(state.weights[i].d)}`, "Sil", ()=>{ tomb("goneW", state.weights[i].d); state.weights.splice(i,1); if(state.weights.length) state.profile.w = state.weights[state.weights.length-1].kg; save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
+function delSession(i){ const s=state.sessions[i]; ask("Məşq tarixçədən silinsin?", `${dayMeta(s.day).name} · ${fmtD(s.d)}`, "Sil", ()=>{ tomb("gone", sesKey(s)); state.sessions.splice(i,1); save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
 
 /* ================= ƏZƏLƏ XƏRİTƏSİ =================
    Hər hərəkət pri[] (əsas) və sec[] (köməkçi) əzələ siyahısı daşıyır. Həcm:
