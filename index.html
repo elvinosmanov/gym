@@ -202,9 +202,14 @@ a.btn{text-decoration:none}
 .clock .cl-r{margin-left:auto;font-size:11px;color:var(--dim);text-align:right}
 
 /* ---------- muscle map ---------- */
-.bodywrap{display:flex;gap:10px;justify-content:center;align-items:flex-end}
-.bodyfig{flex:1;max-width:150px;text-align:center}
-.bodyfig svg{width:100%;height:auto;display:block}
+.bodywrap{display:flex;gap:6px;justify-content:center;align-items:flex-end}
+.bodyfig{flex:1;max-width:215px;text-align:center}
+/* fon: anatomik illüstrasiya boz tonlanır; üstündə qırmızı əzələ örtükləri */
+.bodyimg{position:relative;width:100%;aspect-ratio:500/700}
+.bodyimg img{width:100%;height:100%;display:block;object-fit:contain;
+  filter:grayscale(1) brightness(1.55) contrast(.72) opacity(.92)}
+.bodyimg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.credit{font-size:10px;color:var(--dim);text-align:center;margin:8px 0 10px}
 .bodyfig span{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:4px}
 .mlist{margin-top:2px}
 .mrowv{display:grid;grid-template-columns:1fr 76px 34px;gap:8px;align-items:center;padding:5px 0;font-size:12.5px}
@@ -2493,38 +2498,33 @@ const MUSN = {
   forearm:"Said", abs:"Qarın", lats:"Enli kürək", traps:"Trapesiya · orta kürək", lowback:"Bel",
   glutes:"Sağrı", quads:"Dördbaşlı (bud ön)", hams:"Arxa bud", calves:"Baldır"
 };
-/* Anatomik fiqur: hər əzələ bədənin SOL yarısı üçün çəkilir və güzgü ilə sağa
-   köçürülür — simmetriya pozulmur, yol sayı yarıya düşür. Mərkəz xətti x=60;
-   qarın, trapesiya və bel mərkəzə toxunur ki, iki yarı bitişik görünsün. */
-const BODY_BASE = `<ellipse cx="60" cy="19" rx="11.5" ry="13.5"/>
-  <path d="M60 30 C56 30 54 32 54 36 L54 41 L60 43 Z"/>
-  <path d="M60 36 C52 37 42 41 36 48 C31 54 30 62 30 72 L32 104 C33 114 36 120 40 127 L60 127 Z"/>
-  <path d="M40 127 L60 127 L60 152 L45 152 C40 147 38 139 40 127 Z"/>
-  <path d="M30 50 C24 54 21 64 22 76 L25 101 C26 107 31 107 32 101 L34 74 C35 62 34 54 30 50 Z"/>
-  <path d="M24 101 C19 109 17 123 18 137 C19 144 25 144 26 137 L29 113 C30 107 28 102 24 101 Z"/>
-  <path d="M45 152 C41 162 41 182 43 198 L46 208 C48 213 55 213 56 207 L58 182 C59 168 58 158 56 152 Z"/>
-  <path d="M47 210 C44 220 44 236 46 248 C47 254 54 254 55 248 C56 236 56 222 55 210 Z"/>`;
+/* Anatomik xəritə: fon — real anatomik illüstrasiya (Wikimedia Commons,
+   CC BY-SA 3.0, Termininja), CSS ilə boz tonlanır. Üstündə hər əzələ qrupu
+   üçün qırmızı örtük; şəffaflıq həftəlik dövr sayından gəlir.
+   Koordinatlar 500x700 şəkil sahəsinə uyğundur. Hər forma sol yarı üçün
+   çəkilib və güzgülənir (mərkəz x=250). */
 const SHAPES = {
   front:{
-    traps:`M60 39 L55 40 C51 44 47 47 44 49 L47 54 C52 52 57 46 59.6 43 Z`,
-    delts:`M31 50 C25 55 22 64 24 73 C31 75 36 69 37 61 C37 55 35 51 31 50 Z`,
-    chest:`M45 52 C39 55 38 65 41 71 C47 75 55 75 59.6 73 L59.6 54 C54 51 50 50 45 52 Z`,
-    biceps:`M26 77 C23 83 23 93 25 100 C30 101 33 96 33 88 C33 82 30 78 26 77 Z`,
-    forearm:`M23 105 C20 113 19 125 21 134 C25 135 28 129 28 120 C28 113 26 107 23 105 Z`,
-    abs:`M51 79 L59.6 79 L59.6 121 L54 119 C51 113 50 97 51 79 Z`,
-    quads:`M46 154 C42 164 42 182 44 196 C48 200 54 197 56 188 C58 176 58 162 56 154 Z`
+    traps:`M249 114 C233 118 216 128 203 140 C209 147 222 145 233 138 C241 132 246 123 249 118 Z`,
+    delts:`M196 138 C174 144 158 160 152 180 C150 196 160 204 174 200 C188 195 196 176 200 158 C202 146 202 140 196 138 Z`,
+    chest:`M208 154 C196 165 193 187 200 199 C214 207 232 207 246 203 L246 152 C232 147 217 148 208 154 Z`,
+    biceps:`M160 190 C149 205 145 232 150 250 C160 258 172 249 176 230 C180 212 174 194 166 188 Z`,
+    forearm:`M143 262 C128 282 118 318 122 345 C132 356 146 345 150 322 C155 296 152 274 143 262 Z`,
+    abs:`M215 214 L247 214 L247 328 C234 325 223 313 218 295 C213 270 212 236 215 214 Z`,
+    quads:`M204 374 C192 404 190 452 198 492 C212 506 234 498 240 470 C247 436 246 398 240 374 Z`
   },
   back:{
-    traps:`M60 35 L51 42 C47 49 45 57 45 63 L59.6 79 L59.6 35 Z`,
-    rdelt:`M31 50 C25 55 22 64 24 73 C31 75 36 69 37 61 C37 55 35 51 31 50 Z`,
-    lats:`M43 61 C36 69 35 84 40 95 L58.5 101 L58.5 75 Z`,
-    lowback:`M53 103 L59.6 103 L59.6 125 L56 122 C53 116 52 110 53 103 Z`,
-    triceps:`M26 77 C22 84 22 94 24 101 C29 102 32 97 32 89 C32 83 29 78 26 77 Z`,
-    glutes:`M45 129 C39 134 39 145 46 150 C53 152 58 146 58 137 C58 130 52 127 45 129 Z`,
-    hams:`M46 154 C43 164 43 180 45 194 C49 198 55 195 56 186 C57 174 56 160 54 154 Z`,
-    calves:`M47 212 C44 220 44 232 46 242 C50 245 54 241 55 232 C55 224 53 215 50 212 Z`
+    traps:`M249 108 C229 114 209 127 194 142 C204 165 218 188 231 205 L247 214 L247 108 Z`,
+    rdelt:`M194 134 C172 142 158 160 153 180 C151 196 161 204 175 200 C189 195 197 176 200 157 C202 144 201 137 194 134 Z`,
+    lats:`M194 192 C173 214 170 252 186 284 L244 292 L244 222 Z`,
+    lowback:`M224 264 L248 264 L248 300 C238 298 229 288 225 276 Z`,
+    triceps:`M160 188 C148 204 143 232 149 252 C159 260 171 250 175 231 C179 212 173 193 165 186 Z`,
+    glutes:`M200 308 C184 322 183 350 199 366 C218 376 240 370 246 352 C250 332 244 312 226 304 C216 301 207 303 200 308 Z`,
+    hams:`M200 382 C188 410 186 452 196 486 C212 500 234 490 240 462 C247 428 245 400 238 382 Z`,
+    calves:`M204 512 C194 536 192 576 202 602 C216 614 234 604 238 580 C241 552 232 524 220 512 Z`
   }
 };
+const BODY_IMG = { front:"body-front.png", back:"body-back.png" };
 function muscleVolume(slots){
   const vol = {};
   slots.forEach(sl=>{
@@ -2538,13 +2538,14 @@ function muscleVolume(slots){
 function volOpacity(v){ return v>0 ? Math.min(0.18 + v*0.055, 0.95) : 0; }
 function bodySVG(view, vol){
   const parts = Object.entries(SHAPES[view]).map(([m,d])=>{
-    const op = volOpacity(vol[m]||0).toFixed(2);
-    return `<g fill="var(--red)" fill-opacity="${op}"><path d="${d}"/><path d="${d}" transform="translate(120,0) scale(-1,1)"/></g>`;
+    const v = vol[m]||0;
+    if(!v) return "";
+    return `<g fill="#e8332f" fill-opacity="${volOpacity(v).toFixed(2)}" stroke="#5e0c0e" stroke-opacity="0.55" stroke-width="1.6"><path d="${d}"/><path d="${d}" transform="translate(500,0) scale(-1,1)"/></g>`;
   }).join("");
-  return `<svg viewBox="0 0 120 262" role="img" aria-label="${view==="front"?"ön":"arxa"} görünüş">
-    <g fill="var(--card2)" stroke="var(--line)" stroke-width="0.9" stroke-linejoin="round">
-      ${BODY_BASE}<g transform="translate(120,0) scale(-1,1)">${BODY_BASE}</g>
-    </g>${parts}</svg>`;
+  return `<div class="bodyimg">
+    <img src="${BODY_IMG[view]}" alt="${view==="front"?"ön görünüş":"arxa görünüş"}" loading="lazy">
+    <svg viewBox="0 0 500 700" aria-hidden="true">${parts}</svg>
+  </div>`;
 }
 /* Plan bölməsindəki kart: gün / həftə seçimi ilə */
 let volMode = "day";
@@ -2567,6 +2568,7 @@ function volumeCard(D){
       <div class="bodyfig">${bodySVG("front",vol)}<span>Ön</span></div>
       <div class="bodyfig">${bodySVG("back",vol)}<span>Arxa</span></div>
     </div>
+    <div class="credit">Anatomik illüstrasiya: Termininja / Wikimedia Commons · CC BY-SA 3.0</div>
     <div class="kcalrow" style="margin-top:2px"><span>Cəmi <b class="num">${sets}</b> iş dövrü</span><span>~<b class="num">${mins}</b> dəqiqə</span></div>
     <hr class="split">
     <div class="mlist">${rows.map(r=>`<div class="mrowv ${r.v?"":"zero"}">
