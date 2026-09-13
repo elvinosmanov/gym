@@ -269,6 +269,16 @@ details.wu.done .wulist li b{text-decoration:line-through}
 .stepper input{flex:1;min-width:0;width:100%;background:transparent;border:0;
   color:var(--ink);padding:12px 0;font-size:16px;text-align:center;font-variant-numeric:tabular-nums}
 .stepper input:focus{outline:none}
+.peek{margin:0 0 12px;border-top:1px solid var(--line)}
+.prow{display:flex;align-items:baseline;gap:9px;padding:7px 1px;border-bottom:1px solid var(--line);font-size:12.5px}
+.prow .pn{flex:1;min-width:0;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .ps{flex:none;color:var(--mut);font-size:11px;font-variant-numeric:tabular-nums}
+.prow .pv{flex:none;min-width:80px;text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.prow .pv.up{color:var(--green)}
+.prow .pv.dn{color:var(--c)}
+.prow .pv.new{color:var(--mut);font-weight:500}
+.prow .pv i{font-style:normal;opacity:.8;margin-left:1px}
+.peekleg{font-size:10.5px;color:var(--dim);letter-spacing:.06em;margin:8px 0 12px;text-align:center}
 .stepper input.bad{color:var(--red);animation:badflash .9s ease}
 @keyframes badflash{0%,100%{background:transparent}35%{background:rgba(224,72,78,.18)}}
 .stepper input::placeholder{color:var(--dim)}
@@ -974,7 +984,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v28";
+const APP_VERSION = "forge-v29";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1074,7 +1084,10 @@ function mkEx(sl, D){
   return { ...e, key:sl.k, day:D,
     sets:Math.max(1, +sl.sets||1), rMin:Math.max(1, +sl.rMin||1), rMax:Math.max(1, +sl.rMax||1),
     rest:Math.max(15, +sl.rest||60), inc: e.load ? incFor(e) : (e.inc || 2.5), load: e.load || "stack",
-    cues:e.cues || [], mist:e.mist || [], bodyweight:!!e.bodyweight };
+    cues:e.cues || [], mist:e.mist || [],
+    /* load:"bw" özü bədən çəkisi deməkdir — ayrıca bayraq unudulsa da (Chest Dips
+       belə idi) çəkisiz dövr qadağası səhvən işə düşməsin */
+    bodyweight: !!(e.bodyweight || e.load==="bw") };
 }
 function buildProgram(){
   PROGRAM = {};
@@ -1529,7 +1542,7 @@ function scheduleStrip(){
    və “Son:” sətri onları saymır, əks halda bütün hesabı aşağı çəkir. */
 function bwEx(key){
   const e = EXMAP[key] || (typeof ARCHIVE!=="undefined" && ARCHIVE[key]) || libEx(key);
-  return !!(e && e.bodyweight);
+  return !!(e && (e.bodyweight || e.load==="bw"));
 }
 function realSets(key, sets){
   return (sets||[]).filter(s => s.reps>0 && (bwEx(key) || s.kg>0));
@@ -1844,6 +1857,34 @@ function briefItems(day){
   return items;
 }
 /* ================= TODAY ================= */
+/* “Bugün” kartındakı qısa siyahı: nə edəcəyəm və hansı çəki ilə — bir baxışda.
+   Çəkilər proqressiya alqoritmindən gəlir, yəni məşqi açanda görəcəyinin eynisidir. */
+const PEEK_MARK = { up:"↑", down:"↓", deload:"↓", reps:"→", hold:"→", first:"•" };
+function planPeek(D){
+  const list = PROGRAM[D] ? PROGRAM[D].ex : [];
+  if(!list.length) return "";
+  let anyNew = false;
+  const rows = list.map((e,i)=>{
+    const p = progressPlan(e.key), u = unitOf(e);
+    const eff = p && p.kg;
+    let val, cls;
+    if(eff > 0){
+      /* bədən çəkisi hərəkətində rəqəm ƏLAVƏ diskdir, hərəkətin öz çəkisi deyil */
+      val = e.bodyweight ? `BÇ +${p.kg} ${u}` : `${p.kg} ${u}`;
+      cls = p.action==="up" ? "up" : (p.action==="down"||p.action==="deload" ? "dn" : "");
+    }
+    else if(e.bodyweight){ val = "bədən çəkisi"; cls = ""; }
+    else { val = "çəki seç"; cls = "new"; anyNew = true; }
+    const reps = (p && p.reps) || e.rMax;
+    return `<div class="prow">
+      <span class="pn">${i+1}. ${esc(e.name)}</span>
+      <span class="ps">${e.sets}×${reps}</span>
+      <span class="pv ${cls}">${val}<i>${PEEK_MARK[p && p.action] || ""}</i></span>
+    </div>`;
+  }).join("");
+  return `<div class="peek">${rows}</div>
+    <div class="peekleg">↑ ÇƏKİ ARTIR · → EYNİ ÇƏKİ, TƏKRAR ARTIR · ↓ YÜNGÜLLƏŞDİR${anyNew?" · • İLK DƏFƏ":""}</div>`;
+}
 function renderToday(){
   const p = state.profile, nd = nextDay(), D = PROGRAM[nd];
   const last = state.sessions[state.sessions.length-1];
@@ -1886,6 +1927,7 @@ function renderToday(){
         </div>
       </div>
       <div class="lastline" style="margin:8px 0 12px">${ state.active ? `<b>Məşq davam edir</b> — zalda ${hm(sessionMinutes(state.active, staleHours() ? 0 : GAP_CAP))}.` : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${dayMeta(last.day).name}` : `Birinci gün. Sıra: <b>İtələmə → Çəkmə → Ayaq → Tam bədən</b>, sonra yenidən başdan.` }</div>
+      ${state.active ? "" : planPeek(nd)}
       ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}
         ${!state.active ? `<button class="btn sm ghost" style="margin-top:10px" onclick="skipFoundation()">Bu mənim ilk məşqim deyil — tam həcmlə başla</button>` : ""}</div>` : ""}
       <button class="btn block" onclick="${state.active ? "switchTab('train')" : `startSession('${nd}')`}">${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
