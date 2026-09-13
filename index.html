@@ -984,7 +984,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v30";
+const APP_VERSION = "forge-v31";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1756,7 +1756,7 @@ function weeklyTarget(){ return trainDays().length || 4; }
    Ayrı-ayrı hərəkətdə üç məşq irəliləmə olmayanda verilən yüngülləşdirmə
    təklifi (progressPlan → action:"deload") yerində qalır: o, həftə deyil,
    bir hərəkətin durğunluğunu qırmaq üçündür. */
-function profileDone(){ const p=state.profile; return !!(p.name && (p.w || state.weights.length)); }
+function profileDone(){ const p=state.profile; return !!(p.setupDone || (p.name && (p.w || state.weights.length))); }
 function isFirstEver(){ return state.sessions.length===0 && !state.profile.skipFoundation; }
 function isoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function suppToday(kind){ const e=state.supps.find(x=>x.d===todayISO()); return !!(e && e[kind]); }
@@ -1888,7 +1888,7 @@ function renderToday(){
       <div class="sub" style="margin-top:2px">İki xana — proqres izlənməsi bununla işə düşür.</div>
       <div class="grid2">
         <div class="field"><label>Ad</label><input id="su-name" value="${esc(p.name)}"></div>
-        <div class="field"><label>Çəki (kq)</label><input id="su-w" type="number" inputmode="decimal" step="0.1" value="${esc(p.w)}" placeholder="70"></div>
+        <div class="field"><label>Çəki (kq) — istəyə bağlı</label><input id="su-w" type="number" inputmode="decimal" step="0.1" value="${esc(p.w)}" placeholder="70"></div>
       </div>
       <button class="btn block" onclick="saveSetup()">Yadda saxla və başla</button>
     </div>`;
@@ -2159,9 +2159,13 @@ function skipFoundation(){
 function saveSetup(){
   const p = state.profile;
   p.name = ($("#su-name").value || "").replace(/[<>]/g,"").trim() || "İdmançı";
-  p.w = parseFloat($("#su-w").value)||"";
-  if(p.w && !state.weights.length) state.weights.push({d:todayISO(), kg:p.w, ts:Date.now()});
-  save(); toast("Hazırdır 💪"); renderToday();
+  const w = parseFloat($("#su-w").value);
+  if(w > 0 && !setWeight(w)){ toast("Çəki 25-350 kq arasında olmalıdır"); return; }
+  /* “Yadda saxla” basıldısa kart bir daha çıxmır — çəki xanası boş qalsa belə.
+     Əvvəl şərt “ad VƏ çəki” idi: çəkini yazmadan yadda saxlayan adam eyni kartı
+     hər açılışda yenidən görürdü. Çəkini aşağıdakı gündəlik xanadan yazmaq olar. */
+  p.setupDone = true;
+  save(); cloudPush(); toast("Hazırdır 💪"); renderToday();
 }
 function addWeight(inputId){
   const v = parseFloat($("#"+inputId).value);
