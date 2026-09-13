@@ -959,7 +959,7 @@ const RULES = [
   { t:"Səy: ehtiyatda 1-2 təkrar", d:"Əksər dövrləri hələ 1-2 təmiz təkrar edə biləcəyiniz halda bitirin. Hər dövrü tükənənə qədər aparmaq bərpanı korlayır və növbəti məşqinizdən çalır. İzolyasiya hərəkətlərinin son dövrünü tükənməyə daha yaxın apara bilərsiniz." },
   { t:"Texnika — çəki artırmağın açarıdır", d:"Əgər təkrarları bitirmək üçün texnika pozulubsa, həmin dövr proqressiyaya hesablanmır. Eyni çəkini təkrarlayın. Ən yüksək dövrlərinizi həftədə bir dəfə yan tərəfdən video çəkmək ən ucuz məşqçilik üsuludur." },
   { t:"Dövrlər arası istirahət", d:"Böyük hərəkətlər: 2.5-3 dəqiqə. Orta: ~2 dəqiqə. İzolyasiya: 60-90 saniyə. Az istirahət daha çox əzələ vermir — sadəcə növbəti dövrü zəiflədir. Dövrü işarələdikdə taymer avtomatik başlayır." },
-  { t:"Hər 6-8 həftədə bir yüngülləşdirmə həftəsi", d:"Ştanqın sürəti azaldıqda və oynaqlar bütün həftə yorğun hiss olunduqda bir yüngül həftə keçirin: eyni hərəkətlər, çəkilərinizin ~60%-i, hər birindən 2 dövr. Daha güclü qayıdacaqsınız." }
+  { t:"Bir hərəkət ilişəndə onu yüngülləşdir", d:"Bütün həftəni yüngülləşdirməyə ehtiyac yoxdur. Konkret bir hərəkətdə üç məşq üst-üstə irəliləmə yoxdursa, tətbiq özü xəbər verir: həmin hərəkətdə çəkini ~10% endir, təkrarları rahat vur, sonra yenidən qalx. Qalan hərəkətlər normal davam edir." }
 ];
 
 const WARMUP = "Hər məşqdə: 5 dəqiqə yüngül kardio → o günün əsas oynaqları üçün hərəkətli açılma (itələmə günü qol fırlatma, ayaq günü bədən çəkisi ilə çömbəlmə) → sonra ilk hərəkətə tədricən keçin: boş ştanqla ×10, ~50% ×6, ~70% ×3, sonra iş dövrləri.";
@@ -984,14 +984,14 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v29";
+const APP_VERSION = "forge-v30";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
 const DEFAULTS = { profile:{name:"Elvin",w:"", days:[1,2,4,6],
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
     barKg:20, plate:1.25, dbStep:2, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
-  weights:[], sessions:[], active:null, supps:[], deloadAt:null, plan:null, userEx:{}, vid:{}, pv:PROGRAM_VERSION };
+  weights:[], sessions:[], active:null, supps:[], plan:null, userEx:{}, vid:{}, pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -1183,7 +1183,6 @@ function migrate(s, fromPv){
   /* sex + weekly target: existing users keep the old hardcoded behaviour */
   if(!s.profile.sex) s.profile.sex = "m";
   if(!Array.isArray(s.profile.days) || !s.profile.days.length) s.profile.days = [1,2,4,6];
-  if(s.deloadAt === undefined) s.deloadAt = null;
   if(!s.userEx || typeof s.userEx !== "object") s.userEx = {};
   if(!s.vid || typeof s.vid !== "object") s.vid = {};
   /* köhnə qeydlərə determinist id — hər cihaz eyni id-ni hesablayır, dublikat olmur */
@@ -1256,7 +1255,7 @@ function save(){
   saveT = setTimeout(async () => {
     const json = JSON.stringify(state);
     /* LOCAL ONLY. The cloud is pushed at checkpoints (finishSession, addWeight,
-       delSession, delWeight, sign-in, import, deload) plus a 60 s idle retry — a
+       delSession, delWeight, sign-in, import) plus a 60 s idle retry — a
        per-keystroke network write drains the battery on weak gym signal. */
     try{
       if(typeof window.storage !== "undefined"){ await window.storage.set("forge-data", json); return; }
@@ -1321,10 +1320,9 @@ function mergeState(local, remote){
   });
   out.supps = [...pmap.values()].sort((a,b)=>a.d<b.d?-1:1);
 
-  /* profile + deload marker + the user's own program: last-write-wins on ts is acceptable */
+  /* profile + the user's own program: last-write-wins on ts is acceptable */
   if((remote.ts||0) > (local.ts||0)){
     out.profile = {...local.profile, ...(remote.profile||{})};
-    if(remote.deloadAt && (!local.deloadAt || remote.deloadAt > local.deloadAt)) out.deloadAt = remote.deloadAt;
     if(remote.plan !== undefined) out.plan = remote.plan;
     out.userEx = {...(local.userEx||{}), ...(remote.userEx||{})};
     out.vid = {...(local.vid||{}), ...(remote.vid||{})};
@@ -1754,21 +1752,10 @@ function weekCount(){
   return state.sessions.filter(s=>{ const [y,m,d]=s.d.split("-").map(Number); return new Date(y,m-1,d)>=cut; }).length;
 }
 function weeklyTarget(){ return trainDays().length || 4; }
-/* Deload: RULES advises a light week every 6-8 weeks. Every-other-day training is
-   ~3.5 sessions/week, so 6-8 weeks is ~21-28; we prompt at 24 counting only real
-   (non-foundation) sessions. */
-const DELOAD_EVERY = 24;
-function sinceDeload(){
-  const real = state.sessions.filter(s=>!s.foundation);
-  if(!state.deloadAt) return real.length;
-  return real.filter(s=>s.d > state.deloadAt).length;
-}
-function deloadDue(){ return sinceDeload() >= DELOAD_EVERY; }
-function dismissDeload(){
-  state.deloadAt = todayISO();
-  save(); cloudPush(); renderToday();
-  toast("Qeyd edildi — sayğac sıfırlandı");
-}
+/* “Yüngül həftə” xatırlatması silindi — istifadəçi belə həftə keçirmir.
+   Ayrı-ayrı hərəkətdə üç məşq irəliləmə olmayanda verilən yüngülləşdirmə
+   təklifi (progressPlan → action:"deload") yerində qalır: o, həftə deyil,
+   bir hərəkətin durğunluğunu qırmaq üçündür. */
 function profileDone(){ const p=state.profile; return !!(p.name && (p.w || state.weights.length)); }
 function isFirstEver(){ return state.sessions.length===0 && !state.profile.skipFoundation; }
 function isoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -1911,11 +1898,6 @@ function renderToday(){
     ${migrationNote ? `<div class="warnnote" style="margin-top:12px">${migrationNote}
       <button class="btn sm ghost" style="margin-top:10px" onclick="migrationNote='';renderToday()">Başa düşdüm</button></div>` : ""}
     ${staleCard()}
-    ${!migrationNote && deloadDue() ? `<div class="warnnote" style="margin-top:12px">
-      <b>Yüngülləşdirmə həftəsi vaxtıdır.</b> Sonuncu yüngül həftədən bəri ${sinceDeload()} məşq etmisiniz.
-      Bu həftə eyni hərəkətləri saxlayın, ancaq çəkilərin ~60%-i ilə və hər hərəkətdən 2 dövr edin.
-      Oynaqlar dincələcək, növbəti həftə daha güclü qayıdacaqsınız.
-      <button class="btn sm ghost" style="margin-top:10px" onclick="dismissDeload()">Yüngül həftəni qeyd et</button></div>` : ""}
     ${p.name && profileDone() ? `<div class="h-big" style="margin:8px 2px 0">Hazırsınız, ${esc(p.name)}.</div>` : ""}
     ${setup}
     <div class="sect">Növbəti məşq</div>
