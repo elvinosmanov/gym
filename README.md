@@ -8,7 +8,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 
 ## Nə var
 
-- **102 hərəkətlik kitabxana** — hər birinin iki kadrlı (başlanğıc/bitiş) **real zal fotosu**, texnika ipuçları və ümumi səhvləri
+- **99 hərəkətlik kitabxana** — hər birinin iki kadrlı (başlanğıc/bitiş) **real zal fotosu**, texnika ipuçları və ümumi səhvləri
 - **Plan redaktoru** — istənilən günə hərəkət əlavə et, sil, yerini dəyiş, dövr/təkrar/istirahəti qur, öz hərəkətini yarat (şəkli və işlədiyi əzələlərlə)
 - **Əzələ xəritəsi** — real anatomik ön/arxa illüstrasiya üzərində hansı əzələnin nə qədər işlədiyi (əsas dövr tam, köməkçi yarım sayılır), gün və tam dövr üzrə
 - **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
@@ -39,7 +39,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v21` → `forge-v22`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v22` → `forge-v23`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 

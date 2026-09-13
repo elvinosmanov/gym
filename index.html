@@ -210,6 +210,13 @@ details.wu.done .wulist li b{text-decoration:line-through}
 /* ---------- muscle map ---------- */
 .bodywrap{display:flex;gap:6px;justify-content:center;align-items:flex-end}
 .bodyfig{flex:1;max-width:215px;text-align:center}
+.bodywrap.sm{align-items:flex-start;gap:10px}
+.bodywrap.sm .bodyfig{max-width:96px;flex:0 0 96px}
+.muslist{flex:1;min-width:0;padding-top:2px}
+.musrow{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:3.5px 0}
+.musrow .md{width:9px;height:9px;border-radius:50%;background:#e8332f;flex:none}
+.musrow .mnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.musrow .mvv{color:var(--mut);font-weight:600;font-size:11.5px}
 /* fon: anatomik illüstrasiya boz tonlanır; üstündə qırmızı əzələ örtükləri */
 .bodyimg{position:relative;width:100%;aspect-ratio:500/700}
 .bodyimg img{width:100%;height:100%;display:block;object-fit:contain;
@@ -515,7 +522,6 @@ const IMG={
   cur:["EZ-Bar_Curl/0.jpg","EZ-Bar_Curl/1.jpg"],
   ham:["Hammer_Curls/0.jpg","Hammer_Curls/1.jpg"],
   sq:["Barbell_Squat/0.jpg","Barbell_Squat/1.jpg"],
-  rdl:["Romanian_Deadlift/0.jpg","Romanian_Deadlift/1.jpg"],
   lpz:["Leg_Press/0.jpg","Leg_Press/1.jpg"],
   llc:["Lying_Leg_Curls/0.jpg","Lying_Leg_Curls/1.jpg"],
   lex:["Leg_Extensions/0.jpg","Leg_Extensions/1.jpg"],
@@ -541,7 +547,6 @@ const IMG={
   dsh:["Dumbbell_Shrug/0.jpg","Dumbbell_Shrug/1.jpg"],
   dfr:["Front_Dumbbell_Raise/0.jpg","Front_Dumbbell_Raise/1.jpg"],
   dbrf:["Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench/0.jpg","Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench/1.jpg"],
-  ddl:["Stiff-Legged_Dumbbell_Deadlift/0.jpg","Stiff-Legged_Dumbbell_Deadlift/1.jpg"],
   dcr:["Dumbbell_Seated_One-Leg_Calf_Raise/0.jpg","Dumbbell_Seated_One-Leg_Calf_Raise/1.jpg"],
   dbp:["Dumbbell_Bench_Press/0.jpg","Dumbbell_Bench_Press/1.jpg"],
   wbp:["Wide-Grip_Barbell_Bench_Press/0.jpg","Wide-Grip_Barbell_Bench_Press/1.jpg"],
@@ -583,7 +588,6 @@ const IMG={
   smsq:["Smith_Machine_Squat/0.jpg","Smith_Machine_Squat/1.jpg"],
   wsq:["Wide_Stance_Barbell_Squat/0.jpg","Wide_Stance_Barbell_Squat/1.jpg"],
   gm:["Good_Morning/0.jpg","Good_Morning/1.jpg"],
-  smdl:["Smith_Machine_Stiff-Legged_Deadlift/0.jpg","Smith_Machine_Stiff-Legged_Deadlift/1.jpg"],
   nlp:["Narrow_Stance_Leg_Press/0.jpg","Narrow_Stance_Leg_Press/1.jpg"],
   smhs:["Narrow_Stance_Hack_Squats/0.jpg","Narrow_Stance_Hack_Squats/1.jpg"],
   slc:["Seated_Leg_Curl/0.jpg","Seated_Leg_Curl/1.jpg"],
@@ -687,9 +691,6 @@ ham:{name:"Hammer Curl", tag:"Biseps · Brachialis · Said", g:"pull", pri:["bic
 sq:{name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:["hams","lowback"], load:"bar", sets:3, rMin:5, rMax:8, rest:180, inc:5, im:"sq",
   cues:["Ştanqı trapesiya əzələlərinə sıx basın, onu bərk sıxın, dirsəklər aşağıda olsun.","Dərin nəfəs alın, qarnınızı zərbə alacaqmış kimi bərkidin — sonra enməyə başlayın.","Dabanlarınızın arasına oturun; dizlər ayaq barmaqları istiqamətində hərəkət etsin.","Paralel səviyyəyə və ya bir az aşağısına enin, sonra döşəməni bərk itələyərək qalxın."],
   mist:["Dabanların qalxması / çəkinin barmaqlara keçməsi.","Qalxarkən dizlərin içəri düşməsi.","Çəki ağırlaşdıqca dərinliyin azaldılması.","Qarın bərkiliyinin itirilməsi — döşün önə çökməsi."]},
-rdl:{name:"Romanian Deadlift", tag:"Arxa budun əzələsi · Sağrı əzələsi", g:"legs", pri:["hams","glutes"], sec:["lowback"], load:"bar", sets:3, rMin:8, rMax:12, rest:150, inc:2.5, im:"rdl",
-  cues:["Dizləri yüngül bükülü saxlayın; bədəni aşağı yox, düz arxaya itələyin.","Ştanqı budların üzərindən sürüşdürərək endirin, bel düz qalsın.","Baldırın ortası səviyyəsində arxa budun gərilməsini hiss edin, sonra ombanı önə itələyin.","Yuxarıda sağrı əzələlərini sıxın — arxaya əyilməyin."],
-  mist:["Dizləri həddən artıq bükmək (hərəkəti çömbəlməyə çevirmək).","Belin alt hissəsinin əyilməsi.","Ştanqın ayaqlardan uzaqlaşmasına icazə vermək."]},
 lpz:{name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:[], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"lpz",
   cues:["Ayaqları platformanın ortasında, çiyin enində yerləşdirin.","Dizlər ~90°-yə çatana və ya bel yastıqdan ayrılmayana qədər enin.","Bütün ayaq altını işlədərək itələyin; dizləri tam kilidləmədən dayanın."],
   mist:["O qədər dərin enmək ki, bel yastıqdan ayrılsın.","Ego üçün ağır çəki ilə yarımçıq təkrarlar etmək.","Dizlərin içəri düşməsi."]},
@@ -754,8 +755,6 @@ dfr:{name:"Front Dumbbell Raise", tag:"Ön delta", g:"push", pri:["delts"], sec:
   cues:["Hanteli çiyin hündürlüyünə qədər düz önə qaldırın.","Yellənmə yoxdur; bədən sabit qalır."]},
 dbrf:{name:"Bent-Over Rear Delt Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"dbrf",
   cues:["Döşü maili skamyaya dayayın — bel yüklənmir, ətalət mümkün deyil.","Qolları yana açın, dirsəklər yumşaq bükülü; yuxarıda sıxın."]},
-ddl:{name:"Dumbbell Romanian Deadlift", tag:"Arxa bud · Sağrı", g:"legs", pri:["hams","glutes"], sec:["lowback"], load:"db", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, im:"ddl",
-  cues:["Hantellər ayaqların önündə, dizlər yüngül bükülü.","Ombanı arxaya itələyin, hantellər budlara sürtünərək enir.","Arxa budda gərilmə hiss edəndə sağrını sıxaraq qalxın."]},
 dcr:{name:"Single-Leg DB Calf Raise", tag:"Baldır", g:"legs", pri:["calves"], sec:[], load:"db1", sets:3, rMin:8, rMax:12, rest:45, inc:2.5, im:"dcr",
   cues:["Bir ayaq üstə, hantel eyni tərəfdə; pəncə bir pillə/disk üzərində.","Aşağıda dabanı tam sallayın, yuxarıda 1 saniyə sıxın."]},
 
@@ -842,8 +841,6 @@ wsq:{name:"Wide-Stance Squat", tag:"Sağrı · Bud içi", g:"legs", pri:["glutes
   cues:["Ayaqlar çiyindən geniş, barmaqlar bayıra baxır.","Dizləri barmaqlar istiqamətində açın, sağrını sıxaraq qalxın."]},
 gm:{name:"Good Morning", tag:"Arxa bud · Bel", g:"legs", pri:["hams"], sec:["lowback","glutes"], load:"bar", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, im:"gm",
   cues:["Ştanq trapesiya üzərində, dizlər yüngül bükülü.","Ombanı geriyə itələyin, bel düz qalsın — çox yüngül başlayın."]},
-smdl:{name:"Smith Machine Deadlift", tag:"Arxa bud · Sağrı", g:"legs", pri:["hams","glutes"], sec:["lowback"], load:"smith", sets:3, rMin:8, rMax:12, rest:150, inc:5, im:"smdl",
-  cues:["Sabit trayektoriya — texnikanı öyrənmək üçün yaxşıdır.","Omba hərəkətini unutmayın: bel yox, omba işləyir."]},
 nlp:{name:"Narrow-Stance Leg Press", tag:"Dördbaşlı əzələ (xarici)", g:"legs", pri:["quads"], sec:["glutes"], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"nlp",
   cues:["Ayaqlar platformanın ortasında, bir-birinə yaxın.","Dizlər içəri düşməsin — bayıra doğru itələyin."]},
 smhs:{name:"Smith Machine Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], load:"smith", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"smhs",
@@ -893,9 +890,9 @@ const ALT_OF = {
   lat:["uprb","uprc","dfr"], fly:["pdk","dbfl","idfl","icf","fbcf","lcfl","dcfl"], tri:["vbar","mtri","ktri","ohdb","dbte","skc","kick","dip","ohte"],
   lp:["pu","chn","vbpd","cgpd","dpul"], row:["rgr","brow","dpul"], tbr:["brow"], rdr:["dbrf","rdrb","bocl","srlc"],
   cur:["dbcu","cbcu","prc","con"], ham:["chcu","xham"],
-  sq:["hsq","fsq","smsq","wsq"], rdl:["ddl","gm","smdl"], lpz:["nlp","smhs"],
-  llc:["slc","stlc"], lex:["siss"], calf:["scr","dcr","lpcr","don"],
-  gsq:["wlg","stpu","pls"], mchp:["dbp","ddbp","oabp","pshu"], upd:["nchn"], msp:["sdp","arn","oasp","dfr","smil"],
+  sq:["hsq","fsq","smsq","wsq","gsq"], lpz:["nlp","smhs"], llc:["slc","stlc","gm"],
+  lex:["siss"], calf:["scr","dcr","lpcr","don"],
+  wlg:["stpu","pls","gsq"], hsq:["smhs","smsq","gsq","pls"], mchp:["dbp","ddbp","oabp","pshu"], upd:["nchn"], msp:["sdp","arn","oasp","dfr","smil"],
   be:["sbe","sup"], shr:["dsh"], abs:["crn","dcrn","hipr","abike"]
 };
 
@@ -913,8 +910,8 @@ const DAY_META = {
 const PROGRAM_DEF = {
   P:["bp","ohp","idp","cdip","lat","tri"],
   L:["pu","rgr","row","rdr","cur","ham"],
-  G:["sq","rdl","lpz","llc","lex","calf"],
-  F:["gsq","mchp","chn","msp","be","abs"]
+  G:["sq","lpz","llc","lex","wlg","calf"],
+  F:["hsq","mchp","chn","msp","be","abs"]
 };
 /* köhnə A/B/C məşqləri: yalnız tarixçəni düzgün göstərmək üçün saxlanılır */
 const LEGACY_DAYS = { A:{name:"A Məşqi (köhnə)",cls:"a"}, B:{name:"B Məşqi (köhnə)",cls:"b"}, C:{name:"C Məşqi (köhnə)",cls:"c"} };
@@ -954,7 +951,7 @@ const TIPS = [
 const PROGRAM_VERSION = 3;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v22";
+const APP_VERSION = "forge-v23";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1505,8 +1502,9 @@ function exSessions(key, limit, withFoundation){
 const r05 = v => Math.round(v*2)/2;
 /* əsas qərar funksiyası — bütün təkliflər buradan çıxır */
 function progressPlan(key){
-  const ex = EXMAP[key];
-  if(!ex) return null;
+  /* Kitabxanadan çıxarılmış hərəkət tarixçədə qala bilər (məsələn deadlift silindi).
+     Belə açar üçün minimal təsvir qururuq — əks halda bütün Proqres səhifəsi çökürdü. */
+  const ex = EXMAP[key] || { key, name: exName(key), rMin:8, rMax:12, inc:2.5, load:"stack", bodyweight:false, sets:3 };
   const H = exSessions(key, 8);
   const inc = incFor(ex), u = unitOf(ex);
   if(!H.length){
@@ -1617,7 +1615,7 @@ function liftTrend(key){
 /* cari iş çəkisindən növbəti dəyirmi mərhələyə nə qədər qalıb */
 function projection(key){
   const t = liftTrend(key), ex = EXMAP[key];
-  if(!t || t.perWeek <= 0.15) return null;
+  if(!t || !ex || t.perWeek <= 0.15) return null;
   const inc = incFor(ex);
   const H = exSessions(key, 1);
   const cur = H.length ? H[0].top.kg : 0;
@@ -2186,6 +2184,26 @@ setInterval(()=>{
   if(el) el.outerHTML = clockChip();
 }, 30000);
 
+/* Məşqin əvvəlində: bu gün hansı əzələlər yüklənəcək — anatomik xəritə üstündə
+   qırmızı, yanında ən çox işləyən əzələlərin siyahısı. */
+function dayMuscleCard(D){
+  const vol = muscleVolume(daySlots(D));
+  const top = Object.keys(MUSN).map(m=>({m, v:vol[m]||0})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
+  if(!top.length) return "";
+  const sets = daySlots(D).reduce((a,s)=>a+(+s.sets||0),0);
+  return `<div class="card daymus">
+    <div class="exhead" style="align-items:center;margin-bottom:4px">
+      <div><div class="name" style="font-family:var(--disp);font-weight:600;font-size:15.5px">Bu gün işləyən əzələlər</div>
+      <div class="small">${sets} iş dövrü · ~${dayMinutes(D)} dəq</div></div>
+    </div>
+    <div class="bodywrap sm">
+      <div class="bodyfig">${bodySVG("front",vol)}</div>
+      <div class="bodyfig">${bodySVG("back",vol)}</div>
+      <div class="muslist">${top.map(r=>`<div class="musrow"><span class="md" style="opacity:${volOpacity(r.v).toFixed(2)}"></span>
+        <span class="mnm">${MUSN[r.m]}</span><span class="mvv num">${Math.round(r.v*10)/10}</span></div>`).join("")}</div>
+    </div>
+  </div>`;
+}
 /* ================= TRAIN ================= */
 function renderTrain(){
   if(viewDay===null) viewDay = nextDay();
@@ -2270,6 +2288,7 @@ function renderTrain(){
     <div class="dayrow">${days}</div>
     ${state.active && state.active.day===viewDay ? clockChip() : ""}
     ${staleCard()}
+    ${dayMuscleCard(viewDay)}
     ${rules}
     <div class="sect">${D.name} · ${D.sub}</div>
     ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote">${FOUNDATION_NOTE}</div>` : ""}
@@ -2693,7 +2712,7 @@ function renderProg(){
   const rows = keys.map(k=>{
     const H = exSessions(k, 10, true);   /* göstərmək üçün təməl məşq də daxildir */
     if(!H.length) return null;
-    const t = liftTrend(k), pl = progressPlan(k), pj = projection(k);
+    const t = liftTrend(k), pl = progressPlan(k) || {action:"first", kg:null, reps:0, cls:"", txt:""}, pj = projection(k);
     return { k, name: exName(k), H, t, pl, pj, last: H[0], u: unitOf(EXMAP[k]||{}) };
   }).filter(Boolean).sort((a,b)=> a.last.d < b.last.d ? 1 : -1);
 
