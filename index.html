@@ -150,6 +150,7 @@ hr.split{border:0;border-top:1px solid var(--line);margin:12px 0}
   font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;white-space:nowrap}
 .techbtn:hover{color:var(--ink)}
 .exbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch;flex:none}
+.tag.lt{color:var(--c);border-color:rgba(243,183,63,.35);cursor:pointer}
 .tag.swp{color:#f3b73f;border-color:rgba(243,183,63,.4)}
 .swaplist{display:flex;flex-direction:column;gap:8px;margin:14px 0 4px}
 .swopt{display:flex;align-items:center;gap:11px;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:10px 12px;color:var(--ink);text-align:left}
@@ -338,7 +339,16 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
   background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;
   padding:18px 18px calc(22px + env(safe-area-inset-bottom));display:none;max-height:82vh;overflow-y:auto}
 .sheet.on{display:block}
-.sheet .grab{width:40px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}
+.shead{position:sticky;top:-18px;z-index:3;margin:-18px -18px 8px;padding:14px 14px 10px;background:var(--card);
+  display:flex;align-items:center;justify-content:center}
+.shead .grab{width:40px;height:4px;border-radius:99px;background:var(--line)}
+.xbtn{position:absolute;right:10px;top:9px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card2);color:var(--mut);font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center}
+.xbtn:hover{color:var(--ink)}
+@media (min-width:560px){
+  .sheet{bottom:auto;top:50%;transform:translate(-50%,-50%);border-radius:20px;border-bottom:1px solid var(--line);
+    max-height:min(84vh,780px)}
+}
 .sheet h3{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.03em}
 .sheet .stag{font-size:12px;color:var(--mut);margin:2px 0 10px}
 .cuelist{margin:8px 0 4px}
@@ -379,7 +389,7 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
     <section class="view on" id="view-today"></section>
     <section class="view" id="view-train"></section>
     <section class="view" id="view-plan"></section>
-    <section class="view" id="view-fuel"></section>
+    <section class="view" id="view-set"></section>
     <section class="view" id="view-prog"></section>
   </main>
 
@@ -419,8 +429,8 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
     <svg viewBox="0 0 24 24"><path d="M7.5 12h9"/><rect x="4.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="17.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="1.4" y="9.9" width="2" height="4.2" rx="1"/><rect x="20.6" y="9.9" width="2" height="4.2" rx="1"/></svg>Məşq</button>
   <button data-tab="plan" onclick="switchTab('plan')">
     <svg viewBox="0 0 24 24"><path d="M4 7h10"/><path d="M4 12h7"/><path d="M4 17h13"/><circle cx="17.5" cy="7" r="2.2"/><circle cx="13.5" cy="12" r="2.2"/><circle cx="19.5" cy="17" r="2.2"/></svg>Plan</button>
-  <button data-tab="fuel" onclick="switchTab('fuel')">
-    <svg viewBox="0 0 24 24"><path d="M12 3c1.8 2.6 5.6 5.3 5.6 9.4A5.6 5.6 0 0 1 12 18a5.6 5.6 0 0 1-5.6-5.6c0-2.3 1.2-3.9 2.4-5.5C10 5.4 11.2 4.4 12 3Z"/><path d="M12 18v3"/></svg>Qida</button>
+  <button data-tab="set" onclick="switchTab('set')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 15a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.1-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.8 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1Z"/></svg>Ayarlar</button>
   <button data-tab="prog" onclick="switchTab('prog')">
     <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M4 16.5 9.5 11l3.5 3.5L20 8"/><path d="M16.5 8H20v3.5"/></svg>Proqres</button>
 </nav>
@@ -428,6 +438,7 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer onerror="this.remove()"></script>
 <script>
 const IMG={
+  chestdip:["thumb/7/77/Chest_dips_1.svg/500px-Chest_dips_1.svg.png","thumb/5/5e/Chest_dips_2.svg/500px-Chest_dips_2.svg.png"],
   airbike:["thumb/a/ae/Air_bike_1.svg/500px-Air_bike_1.svg.png","thumb/e/ed/Air_bike_2.svg/500px-Air_bike_2.svg.png"],
   arnold:["thumb/9/96/Arnold_press_1.svg/500px-Arnold_press_1.svg.png","thumb/a/a7/Arnold_press_2.svg/500px-Arnold_press_2.svg.png"],
   bbshp:["thumb/9/99/Barbell_shoulder_press_1.svg/500px-Barbell_shoulder_press_1.svg.png","thumb/f/fb/Barbell_shoulder_press_2.svg/500px-Barbell_shoulder_press_2.svg.png"],
@@ -543,209 +554,209 @@ function exImg(ex, cls){
    Açarlar (bp, sq, lp...) tarixçə ilə bağlıdır — dəyişdirilməməlidir. */
 const LIB = {
 /* ---------- İTƏLƏMƏ ---------- */
-bp:{name:"Barbell Bench Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], sets:4, rMin:6, rMax:8, rest:180, inc:2.5, im:"bench",
+bp:{name:"Barbell Bench Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], load:"bar", sets:4, rMin:5, rMax:8, rest:180, inc:2.5, im:"bench",
   cues:["Kürək sümüklərini arxaya və aşağı sıxın, yüngül qövs verin, ayaqlar yerə möhkəm basılsın.","Çiyinlərdən bir az geniş tutun; biləklər dirsəklərin düz üzərində olsun.","Ştanqı döşün alt hissəsinə endirin, dirsəklər bədəndən ~45° bucaq altında olsun.","Yuxarı və bir az arxaya itələyin ki, ştanq çiyinlərin düz üzərində bitsin."],
   mist:["Ştanqı döşdən sıçratmaq.","Dirsəklərin 90°-yə qədər açılması — çiyinlər üçün təhlükəlidir.","Bədənin skamyadan qalxması.","Döşə toxunmayan yarımçıq təkrarlar."]},
-sdp:{name:"Seated Dumbbell Shoulder Press", tag:"Ön/yan delta · Triseps", g:"push", pri:["delts"], sec:["triceps"], sets:3, rMin:8, rMax:10, rest:120, inc:2, im:"dbshp",
+sdp:{name:"Seated Dumbbell Shoulder Press", tag:"Ön/yan delta · Triseps", g:"push", pri:["delts"], sec:["triceps"], load:"db", sets:3, rMin:8, rMax:12, rest:120, inc:2, im:"dbshp",
   cues:["Söykənəcəyi 80-85° qurun — tam dik yox, bir az geriyə. Bel söykənəcəyə yapışsın.","Hantelləri çiyin səviyyəsində saxlayın, ovuclar önə baxsın, biləklər düz olsun.","Yuxarı itələyin — hantellər baş üzərində bir-birinə yaxınlaşsın, dirsəklər tam kilidlənməsin.","Qulaq səviyyəsindən bir az aşağı, 2 saniyə ərzində nəzarətlə endirin."],
   mist:["Beli söykənəcəkdən qoparmaq — hərəkət maili prese çevrilir.","Dirsəkləri tam yana açmaq; onları 30-45° önə saxlayın.","Hantelləri yuxarıda toqquşdurub gərginliyi itirmək.","Çox ağır çəki ilə yarımçıq amplituda işləmək."]},
-idp:{name:"Incline Dumbbell Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2, im:"incdb",
+idp:{name:"Incline Dumbbell Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"incdb",
   cues:["Skamya ~30° bucaqda olsun. Hantelləri çiyin səviyyəsindən başladın.","Yuxarı və bir az bir-birinə doğru itələyin, toqquşdurmadan.","Yuxarı döşdə dərin gərilmə hiss edənə qədər yavaş-yavaş endirin.","Kürəkləri bütün dövr boyu bir-birinə sıxılmış saxlayın."],
   mist:["Skamyanın çox dik olması — hərəkəti çiyin presinə çevirir.","Aşağıda gərilməni tam etməmək.","Aşağı nöqtədən sıçrayışla qalxmaq."]},
-lat:{name:"Dumbbell Lateral Raise", tag:"Yan delta", g:"push", pri:["delts"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"latr",
+lat:{name:"Dumbbell Lateral Raise", tag:"Yan delta", g:"push", pri:["delts"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"latr",
   cues:["Bir az önə əyilin, dirsəklərdə yüngül bükülmə saxlayın.","Dirsəkləri önə çıxararaq yanlara, çiyin hündürlüyünə qədər qaldırın.","Yuxarı nöqtədə çeçələ barmaq baş barmaqdan bir az hündür olsun.","2 saniyə ərzində endirin — mənfi faza delta əzələsini inkişaf etdirir."],
   mist:["Çəkiləri ətalətlə yuxarı yellətmək.","Çiyinləri qaldırmaq — trapesiya əzələsinin işi öz üzərinə götürməsi.","Çox ağır çəki götürərək hərəkəti yarımçıq yellənməyə çevirmək."]},
-fly:{name:"Cable Chest Fly", tag:"Döş (iç hissə)", g:"push", pri:["chest"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"cross",
+fly:{name:"Cable Chest Fly", tag:"Döş (iç hissə)", g:"push", pri:["chest"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"cross",
   cues:["Bir az önə əyilin, dirsəkləri yüngül bükülü saxlayıb bu qövsdə sabitləyin.","Kabelləri bir-birinə doğru qucaqlayın; döşün iç hissəsini bir saniyə sıxın.","Yavaş-yavaş dərin gərilməyə qədər geri açın.","Bu bitirici hərəkətdir — çəkini yox, sıxılmanı qovun."],
   mist:["Çətinləşdikcə dirsəkləri daha çox bükmək (presə çevirmək).","Gərilmə zamanı çiyinlərin önə düşməsi.","Press kimi ağır çəki ilə yükləmək."]},
-tri:{name:"Rope Triceps Pushdown", tag:"Triseps", pri:["triceps"], sec:[], g:"push", sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"ropepd",
+tri:{name:"Rope Triceps Pushdown", tag:"Triseps", pri:["triceps"], sec:[], g:"push", load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"ropepd",
   cues:["Bütün dövr ərzində dirsəkləri bədənə sıx saxlayın.","Aşağı itələyin və aşağı nöqtədə kanatı iki yana ayırın.","Aşağıda bir saniyə tam sıxın, sonra nəzarətlə yuxarı qayıdın."],
   mist:["Dirsəklərin önə çıxması — kürək əzələsinin işə qarışması.","Bədən çəkisini kabelin üzərinə atmaq.","Yuxarıda hərəkət amplitüdünün yarımçıq qalması."]},
 
 /* ---------- ÇƏKMƏ ---------- */
-lp:{name:"Wide-Grip Lat Pulldown", tag:"Enli kürək əzələsi", g:"pull", pri:["lats"], sec:["biceps","forearm"], sets:4, rMin:8, rMax:10, rest:120, inc:2.5, im:"latpd",
+lp:{name:"Wide-Grip Lat Pulldown", tag:"Enli kürək əzələsi", g:"pull", pri:["lats"], sec:["biceps","forearm"], load:"stack", sets:4, rMin:8, rMax:12, rest:120, inc:2.5, im:"latpd",
   cues:["Çiyinlərdən bir az geniş tutun; döşü qabağa çıxarın, bir az arxaya əyilin.","Dirsəkləri aşağı endirərək çubuğu döşün yuxarı hissəsinə çəkin.","Kürək əzələlərini bir saniyə sıxın, sonra nəzarətlə tam gərilməyə qədər buraxın.","3×8 dartılma edə bildikdə bu hərəkəti dartılma (Pull-Up) ilə əvəz edin."],
   mist:["Çəkini qaldırmaq üçün bədəni yırğalamaq.","Çubuğu boynun arxasına çəkmək.","Yuxarıda tam gərilməyə çatmamaq."]},
-row:{name:"Seated Cable Row", tag:"Orta kürək", g:"pull", pri:["lats","traps"], sec:["biceps","rdelt"], sets:4, rMin:8, rMax:10, rest:120, inc:2.5, im:"cablerow",
+row:{name:"Seated Cable Row", tag:"Orta kürək", g:"pull", pri:["lats","traps"], sec:["biceps","rdelt"], load:"stack", sets:4, rMin:8, rMax:12, rest:120, inc:2.5, im:"cablerow",
   cues:["Döşü dik saxlayın; kürəyi gərmək üçün bir az önə uzanın.","Qulpu göbəyinizə doğru çəkin, dirsəklər bədənə sıx olsun.","Kürək sümüklərini bir saniyə bir-birinə sıxın.","Nəzarətlə geri qayıdın — çəkinin sizi dartmasına icazə verməyin."],
   mist:["Ətalət yaratmaq üçün irəli-geri yırğalanmaq.","Çiyinləri yuxarı qaldırmaq.","Ağır çəki ilə gərilmə zamanı kürəyin əyilməsi."]},
-tbr:{name:"T-Bar Row", tag:"Orta kürək · Enli kürək", g:"pull", pri:["lats","traps"], sec:["biceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"tbar",
+tbr:{name:"T-Bar Row", tag:"Orta kürək · Enli kürək", g:"pull", pri:["lats","traps"], sec:["biceps"], load:"plate", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"tbar",
   cues:["Dizləri yüngül bükün, ombadan önə əyilin — gövdə ~45°, bel düz.","Tutacaqları iki əllə tutun, qollar tam açılsın.","Dirsəkləri bədənə yaxın saxlayaraq göbəyə doğru çəkin, kürəkləri sıxın.","Nəzarətlə tam gərilməyə buraxın — hər təkrarda kürəyin uzandığını hiss edin."],
   mist:["Gövdəni hər təkrarda qaldırıb-endirmək (belin işə düşməsi).","Belin yumrulanması — ağır çəkidə ən böyük risk.","Dirsəkləri geniş açıb hərəkəti arxa deltaya ötürmək."]},
-rdr:{name:"Dumbbell Rear Delt Row", tag:"Arxa delta · Duruş", g:"pull", pri:["rdelt"], sec:["traps"], sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"reardb",
+rdr:{name:"Dumbbell Rear Delt Row", tag:"Arxa delta · Duruş", g:"pull", pri:["rdelt"], sec:["traps"], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"reardb",
   cues:["Ombadan önə əyilin, gövdə demək olar ki, yerə paralel, bel düz.","Dirsəkləri YUXARI və GENİŞ çəkin — bədənə yaxın yox.","Yuxarıda kürək arxasını bir saniyə sıxın, sonra tam açın.","Yüngül çəki: arxa delta kiçik əzələdir, texnika hər şeydir."],
   mist:["Ağır çəki — hərəkət adi eşməyə (row) çevrilir.","Dirsəklərin biləklərdən aşağı düşməsi.","Bədəni qaldırıb ətalətlə dartmaq."]},
-cur:{name:"EZ-Bar Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"ezcurl",
+cur:{name:"EZ-Bar Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"ezcurl",
   cues:["Dirsəkləri bədənə yapışdırılmış kimi saxlayın.","Nəzarətlə qaldırın və yuxarıda bərk sıxın.","2-3 saniyə ərzində tam gərilməyə qədər endirin."],
   mist:["Təkrara başlamaq üçün bədəni yellətmək.","Dirsəklərin önə çıxması — ön delta əzələsinin işə qarışması.","Aşağıda qolları tam açmadan dayanmaq."]},
-ham:{name:"Hammer Curl", tag:"Biseps · Brachialis · Said", g:"pull", pri:["biceps","forearm"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"hammer",
+ham:{name:"Hammer Curl", tag:"Biseps · Brachialis · Said", g:"pull", pri:["biceps","forearm"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"hammer",
   cues:["Neytral tutuş — ovuclar bir-birinə baxsın.","Dirsəklər böyürdə sabit; bədən boyunca yüngül qövs cızaraq qaldırın.","Brachialis əzələsini inkişaf etdirir — qolun qalın görünməsini təmin edən məhz budur.","Yavaş endirin, aşağıda qolu tam açın."],
   mist:["Çiyinlərdən ətalət yaratmaq.","Yuxarıda biləklərin içəri bükülməsi.","İki qolu eyni anda yellətmək — növbə ilə də edə bilərsiniz."]},
 
 /* ---------- AYAQ ---------- */
-sq:{name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:["hams","lowback"], sets:4, rMin:6, rMax:8, rest:180, inc:5, im:"squat",
+sq:{name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:["hams","lowback"], load:"bar", sets:4, rMin:5, rMax:8, rest:180, inc:5, im:"squat",
   cues:["Ştanqı trapesiya əzələlərinə sıx basın, onu bərk sıxın, dirsəklər aşağıda olsun.","Dərin nəfəs alın, qarnınızı zərbə alacaqmış kimi bərkidin — sonra enməyə başlayın.","Dabanlarınızın arasına oturun; dizlər ayaq barmaqları istiqamətində hərəkət etsin.","Paralel səviyyəyə və ya bir az aşağısına enin, sonra döşəməni bərk itələyərək qalxın."],
   mist:["Dabanların qalxması / çəkinin barmaqlara keçməsi.","Qalxarkən dizlərin içəri düşməsi.","Çəki ağırlaşdıqca dərinliyin azaldılması.","Qarın bərkiliyinin itirilməsi — döşün önə çökməsi."]},
-rdl:{name:"Romanian Deadlift", tag:"Arxa budun əzələsi · Sağrı əzələsi", g:"legs", pri:["hams","glutes"], sec:["lowback"], sets:3, rMin:8, rMax:10, rest:150, inc:2.5, im:"rdl",
+rdl:{name:"Romanian Deadlift", tag:"Arxa budun əzələsi · Sağrı əzələsi", g:"legs", pri:["hams","glutes"], sec:["lowback"], load:"bar", sets:3, rMin:8, rMax:12, rest:150, inc:2.5, im:"rdl",
   cues:["Dizləri yüngül bükülü saxlayın; bədəni aşağı yox, düz arxaya itələyin.","Ştanqı budların üzərindən sürüşdürərək endirin, bel düz qalsın.","Baldırın ortası səviyyəsində arxa budun gərilməsini hiss edin, sonra ombanı önə itələyin.","Yuxarıda sağrı əzələlərini sıxın — arxaya əyilməyin."],
   mist:["Dizləri həddən artıq bükmək (hərəkəti çömbəlməyə çevirmək).","Belin alt hissəsinin əyilməsi.","Ştanqın ayaqlardan uzaqlaşmasına icazə vermək."]},
-lpz:{name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:[], sets:3, rMin:10, rMax:12, rest:120, inc:5, im:"legpress",
+lpz:{name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:[], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"legpress",
   cues:["Ayaqları platformanın ortasında, çiyin enində yerləşdirin.","Dizlər ~90°-yə çatana və ya bel yastıqdan ayrılmayana qədər enin.","Bütün ayaq altını işlədərək itələyin; dizləri tam kilidləmədən dayanın."],
   mist:["O qədər dərin enmək ki, bel yastıqdan ayrılsın.","Ego üçün ağır çəki ilə yarımçıq təkrarlar etmək.","Dizlərin içəri düşməsi."]},
-llc:{name:"Lying Leg Curl", tag:"Arxa budun əzələsi", g:"legs", pri:["hams"], sec:[], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"lyingcurl",
+llc:{name:"Lying Leg Curl", tag:"Arxa budun əzələsi", g:"legs", pri:["hams"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"lyingcurl",
   cues:["Üzüstə uzanın; diz oynağı aparatın fırlanma oxu ilə üst-üstə düşsün.","Yastıq Axilles vətərinin bir az yuxarısında, baldırın altında dayansın.","Ombanı yastığa basılı saxlayın — dabanları sağrıya doğru bükün.","Yuxarıda bir saniyə sıxın, sonra 2-3 saniyə ərzində nəzarətlə açın."],
   mist:["Ombanın yastıqdan qalxması — yükü beldən ötürür.","Ağır çəki ilə yarımçıq amplituda işləmək.","Enmə fazasını buraxıb çəkinin sərbəst düşməsinə icazə vermək."]},
-lex:{name:"Leg Extension", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"legext",
+lex:{name:"Leg Extension", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"legext",
   cues:["Diz oynağı aparatın oxu ilə üst-üstə düşsün, yastıq ayaq biləyinin üstündə olsun.","Ombanı oturacağa basılı saxlayın, tutacaqlardan yapışın.","Ayaqları tam açın və yuxarıda 1 saniyə dördbaşlı əzələni sıxın.","Nəzarətlə endirin — çəki yığınına toxunmadan dayanın, gərginlik itməsin."],
   mist:["Ombanı qaldırıb ətalətlə təpik vurmaq.","Yuxarıda dayanmadan sürətli təkrarlar.","Diz ağrısı varsa çox ağır çəki — bu hərəkət yüngül çəki və yüksək təkrar sevir."]},
-calf:{name:"Standing Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], sets:4, rMin:12, rMax:15, rest:60, inc:2.5, im:"calfm",
+calf:{name:"Standing Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"stack", sets:4, rMin:12, rMax:15, rest:60, inc:2.5, im:"calfm",
   cues:["Aşağıda tam gərilmə — orada bir saniyə dayanın.","Ayaq barmaqlarının ucuna qədər qalxın və 1-2 saniyə sıxın.","Yavaş enmə. Baldır əzələsi sıçramadan yox, tam amplitüddən böyüyür."],
   mist:["Gərilmə refleksindən istifadə edərək sıçramaq.","Sürətli, yarımçıq təkrarlar.","Çəkini hiylə ilə qaldırmaq üçün dizləri bükmək."]},
 
 /* ---------- TAM BƏDƏN ---------- */
-gsq:{name:"Goblet / Dumbbell Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:["hams"], sets:3, rMin:10, rMax:12, rest:120, inc:2, im:"dbsquat",
+gsq:{name:"Goblet / Dumbbell Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:["hams"], load:"db1", sets:3, rMin:8, rMax:12, rest:120, inc:2, im:"dbsquat",
   cues:["Hanteli sinəyə sıxın (və ya iki hanteli böyürdə saxlayın), gövdəni dik tutun.","Dabanların arasına oturun, dizlər barmaqlar istiqamətində açılsın.","Rahat gedən ən dərin nöqtəyə enin, sonra dabanlarla itələyin.","Ayaq günündən sonra gəldiyi üçün burada çəki yox, texnika və amplituda əsasdır."],
   mist:["Gövdənin önə çökməsi.","Dabanların qalxması.","Aşağıda sıçrayış — nəzarətli enin."]},
-mchp:{name:"Machine Chest Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"machbp",
+mchp:{name:"Machine Chest Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"machbp",
   cues:["Oturacağı elə qurun ki, tutacaqlar döşün orta xəttində olsun.","Kürəkləri arxaya sıxın, döşü qabağa çıxarın.","Tam itələyin, dirsəkləri kilidləmədən dayanın.","Nəzarətlə geri buraxın, döşdə gərilmə hiss edin."],
   mist:["Oturacağın çox aşağı/yuxarı qalması — çiyinlərə yük düşür.","Yarımçıq amplituda.","Çiyinlərin önə düşməsi."]},
-upd:{name:"Underhand Lat Pulldown", tag:"Enli kürək · Biseps", g:"pull", pri:["lats"], sec:["biceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"underpd",
+upd:{name:"Underhand Lat Pulldown", tag:"Enli kürək · Biseps", g:"pull", pri:["lats"], sec:["biceps"], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"underpd",
   cues:["Ovuclar özünüzə baxsın, tutuş çiyin enində olsun.","Döşü çubuğa doğru qaldırın, dirsəkləri aşağı-arxaya çəkin.","Çubuq döşün yuxarısına toxunanda kürəkləri sıxın.","Yuxarıda qolları tam açın — hər təkrar tam gərilmədən başlasın."],
   mist:["Yalnız qollarla dartmaq — əvvəl dirsəkləri düşünün.","Bədəni həddindən artıq arxaya yatırmaq.","Yarımçıq amplituda sürətli təkrarlar."]},
-msp:{name:"Machine Shoulder Press", tag:"Çiyinlər · Triseps", g:"push", pri:["delts"], sec:["triceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"machshp",
+msp:{name:"Machine Shoulder Press", tag:"Çiyinlər · Triseps", g:"push", pri:["delts"], sec:["triceps"], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"machshp",
   cues:["Tutacaqlar çiyin səviyyəsində başlasın — oturacağı ona görə tənzimləyin.","Beli söykənəcəyə basılı saxlayın, qarını gərin.","Yuxarı itələyin, dirsəkləri tam kilidləməyin.","Nəzarətlə qulaq səviyyəsinə qədər endirin."],
   mist:["Beli qövsə salmaq.","Yarımçıq eniş.","Boynu önə uzatmaq."]},
-be:{name:"Back Extension", tag:"Bel · Sağrı · Arxa bud", g:"legs", pri:["lowback","glutes"], sec:["hams"], sets:3, rMin:12, rMax:15, rest:90, inc:2.5, bodyweight:true, im:"hyper",
+be:{name:"Back Extension", tag:"Bel · Sağrı · Arxa bud", g:"legs", pri:["lowback","glutes"], sec:["hams"], load:"bw", sets:3, rMin:12, rMax:15, rest:90, inc:2.5, bodyweight:true, im:"hyper",
   cues:["Bədəni yastıqcığın üzərinə qoyun, ayaq biləkləri diyircəklərin altında sabitlənsin.","Başlanğıc üçün qolları döşün üzərində çarpazlayın — asan gəldikdə döşünüzə disk qoyun.","Arxa budun əzələlərində gərilmə hiss edənə qədər nəzarətlə enin.","Sağrı və arxa budu sıxaraq düz xəttə qalxın — daha da geri əyilməyin."],
   mist:["Hiperekstenziya — yuxarıda neytral vəziyyətdən çox geri əyilmək onurğaya zərər verir.","Aşağıda sıçramaq.","Enərkən belin yumrulanması.","Ətalətlə dartınmaq."]},
-abs:{name:"Cable Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"cablecr",
+abs:{name:"Cable Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"cablecr",
   cues:["Kanat başınızın yanında olacaq şəkildə diz üstə oturun.","Qabırğaları çanağa doğru bükün — onurğanı əyin, budları yox.","Aşağıda bərk nəfəs verin, nəzarətlə geri qalxın."],
   mist:["Qollarla dartınmaq.","Qarını bükmək əvəzinə budlardan əyilmək.","Tələsmək — bu hərəkətdə əsas olan sıxılmadır."]},
 
 /* ---------- ALTERNATİVLƏR (redaktorda da seçilə bilər) ---------- */
-dbp:{name:"Dumbbell Bench Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], sets:4, rMin:8, rMax:10, rest:150, inc:2, im:"dbbench",
+dbp:{name:"Dumbbell Bench Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], load:"db", sets:4, rMin:8, rMax:12, rest:150, inc:2, im:"dbbench",
   cues:["Hantellər sinə xəttində, biləklər düz.","Aşağı nöqtədə kürəkləri sıxılmış saxlayın, dərin gərilmə axtarın."]},
-wbp:{name:"Wide-Grip Bench Press", tag:"Döş (xarici hissə)", g:"push", pri:["chest"], sec:["triceps","delts"], sets:3, rMin:8, rMax:10, rest:150, inc:2.5, im:"widebp",
+wbp:{name:"Wide-Grip Bench Press", tag:"Döş (xarici hissə)", g:"push", pri:["chest"], sec:["triceps","delts"], load:"bar", sets:3, rMin:5, rMax:8, rest:150, inc:2.5, im:"widebp",
   cues:["Tutuş adi bench-dən 5-8 sm geniş.","Amplituda qısalır — çəkini artırmayın, döşdə sıxılmanı hiss edin."]},
-smbp:{name:"Smith Machine Bench Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], sets:4, rMin:8, rMax:10, rest:150, inc:2.5, im:"smithbp",
+smbp:{name:"Smith Machine Bench Press", tag:"Döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], load:"smith", sets:4, rMin:5, rMax:8, rest:150, inc:2.5, im:"smithbp",
   cues:["Skamyanı elə qoyun ki, ştanq döşün altına düşsün.","Tək başına işləyəndə təhlükəsizdir — son dövrü tükənməyə yaxın apara bilərsiniz."]},
-ohp:{name:"Standing Barbell Overhead Press", tag:"Çiyinlər · Gövdə", g:"push", pri:["delts"], sec:["triceps","abs"], sets:3, rMin:8, rMax:10, rest:120, inc:2.5, im:"bbshp",
+ohp:{name:"Standing Barbell Overhead Press", tag:"Çiyinlər · Gövdə", g:"push", pri:["delts"], sec:["triceps","abs"], load:"bar", sets:3, rMin:5, rMax:8, rest:120, inc:2.5, im:"bbshp",
   cues:["Çiyinlərdən bir az geniş tutun, dirsəklər ştanqın bir az önündə.","Sağrı və qarını sıxın ki, bədən vahid bərk sütuna çevrilsin.","Ştanq alnı keçən kimi başı önə verin, qolları tam açın."],
   mist:["Çox arxaya əyilmək — maili presə çevirir.","Sağrı sıxılmadıqda yük belin altına düşür."]},
-arn:{name:"Arnold Press", tag:"Ön/yan delta", g:"push", pri:["delts"], sec:["triceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2, im:"arnold",
+arn:{name:"Arnold Press", tag:"Ön/yan delta", g:"push", pri:["delts"], sec:["triceps"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"arnold",
   cues:["Ovuclar özünüzə baxaraq başlayın, qaldırarkən çölə çevirin.","Yavaş və nəzarətli — bu hərəkət ağır çəki sevmir."]},
-oasp:{name:"One-Arm Dumbbell Shoulder Press", tag:"Çiyin · Gövdə", g:"push", pri:["delts"], sec:["triceps","abs"], sets:3, rMin:10, rMax:12, rest:90, inc:2, im:"oadbshp",
+oasp:{name:"One-Arm Dumbbell Shoulder Press", tag:"Çiyin · Gövdə", g:"push", pri:["delts"], sec:["triceps","abs"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"oadbshp",
   cues:["Bir qolla itələyin, boş əl ilə tarazlığı saxlayın.","Gövdəni yana əyməyin — qarın gərgin qalsın."]},
-smil:{name:"Seated Military Press", tag:"Çiyinlər", pri:["delts"], sec:["triceps"], g:"push", sets:3, rMin:8, rMax:10, rest:120, inc:2.5, im:"military",
+smil:{name:"Seated Military Press", tag:"Çiyinlər", pri:["delts"], sec:["triceps"], g:"push", load:"bar", sets:3, rMin:5, rMax:8, rest:120, inc:2.5, im:"military",
   cues:["Oturaq vəziyyət beli qoruyur, ətalət mümkün deyil.","Ştanq çənə xəttindən yuxarı düz gedir."]},
-incm:{name:"Incline Machine Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"incmach",
+incm:{name:"Incline Machine Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"incmach",
   cues:["Oturacağı elə qurun ki, tutacaqlar yuxarı döş xəttində olsun.","Nəzarətli enin, partlayışla itələyin."]},
-hgip:{name:"Hammer-Grip Incline Press", tag:"Yuxarı döş · Ön delta", g:"push", pri:["chest"], sec:["delts","triceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2, im:"hgincl",
+hgip:{name:"Hammer-Grip Incline Press", tag:"Yuxarı döş · Ön delta", g:"push", pri:["chest"], sec:["delts","triceps"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"hgincl",
   cues:["Neytral tutuş — ovuclar bir-birinə baxır, çiyinlərə daha rahatdır.","Dirsəklər bədənə yaxın gedir."]},
-smip:{name:"Smith Machine Incline Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"smithinc",
+smip:{name:"Smith Machine Incline Press", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:["delts","triceps"], load:"smith", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"smithinc",
   cues:["Skamyanı 30° qurun, ştanq xətti yuxarı döşə düşsün.","Sabit trayektoriya — sıxılmaya fokuslanın."]},
-uprb:{name:"Upright Barbell Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"uprightbb",
+uprb:{name:"Upright Barbell Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], load:"bar", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"uprightbb",
   cues:["Tutuş çiyin enində, ştanq bədən boyunca yuxarı sürüşür.","Dirsəklər biləklərdən yuxarıda; çiyin ağrısı varsa döş səviyyəsindən yuxarı qaldırmayın."]},
-uprc:{name:"Upright Cable Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"uprightc",
+uprc:{name:"Upright Cable Row", tag:"Yan delta · Trapesiya", g:"push", pri:["delts","traps"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"uprightc",
   cues:["Kabel daimi gərginlik verir — aşağıda da işləyir.","Dirsəkləri yuxarı aparın, biləkləri yox."]},
-pdk:{name:"Pec Deck", tag:"Döş", pri:["chest"], sec:[], g:"push", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"pecdeck",
+pdk:{name:"Pec Deck", tag:"Döş", pri:["chest"], sec:[], g:"push", load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"pecdeck",
   cues:["Dirsəklər bir az bükülü sabit qalır.","Öndə döşü sıxın, geriyə nəzarətlə açın."]},
-dbfl:{name:"Dumbbell Fly", tag:"Döş", pri:["chest"], sec:[], g:"push", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"dbfly",
+dbfl:{name:"Dumbbell Fly", tag:"Döş", pri:["chest"], sec:[], g:"push", load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"dbfly",
   cues:["Qollar geniş qövslə açılır, dirsəklər yumşaq bükülü sabit qalır.","Aşağıda döşdə uzanma hiss edin — çəki yox, gərilmə vacibdir."]},
-icf:{name:"Incline Cable Fly", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"inccfly",
+icf:{name:"Incline Cable Fly", tag:"Yuxarı döş", g:"push", pri:["chest"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"inccfly",
   cues:["Skamya 30°, kabellər aşağıdan yuxarı gəlir.","Yuxarıda qolları bir-birinə yaxınlaşdırıb bir saniyə sıxın."]},
-skc:{name:"EZ-Bar Skull Crusher", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"skull",
+skc:{name:"EZ-Bar Skull Crusher", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"skull",
   cues:["Dirsəklər tavana baxır, ştanq alına və ya başın arxasına doğru enir.","Çiyinləri tərpətmədən yalnız dirsəkdən açın."]},
-vbar:{name:"V-Bar Pushdown", tag:"Triseps", pri:["triceps"], sec:[], g:"push", sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"vbarpd",
+vbar:{name:"V-Bar Pushdown", tag:"Triseps", pri:["triceps"], sec:[], g:"push", load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"vbarpd",
   cues:["Dirsəklər böyürdə kilidli, yalnız said hərəkət edir.","Aşağıda tam açın və bir saniyə sıxın."]},
-ohte:{name:"Overhead Triceps Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"ohtri",
+ohte:{name:"Overhead Triceps Extension", tag:"Triseps (uzun baş)", g:"push", pri:["triceps"], sec:[], load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"ohtri",
   cues:["Dirsəklər başın yanında sabit, yalnız said hərəkət edir.","Aşağıda tam uzanma hiss edin — uzun baş məhz burada işləyir."]},
-dip:{name:"Bench Dips", tag:"Triseps", pri:["triceps"], sec:["chest"], g:"push", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"benchdip",
+dip:{name:"Bench Dips", tag:"Triseps", pri:["triceps"], sec:["chest"], g:"push", load:"bw", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, bodyweight:true, im:"benchdip",
   cues:["Ombanı skamyaya yaxın saxlayın, dirsəklər arxaya baxsın.","Asanlaşanda dizlərinizin üstünə disk qoyun — kq xanasına həmin diski yazın."]},
-pu:{name:"Pull-Up", tag:"Enli kürək · Biseps", g:"pull", pri:["lats"], sec:["biceps","forearm"], sets:4, rMin:6, rMax:10, rest:120, inc:2.5, bodyweight:true, im:"pullup",
+cdip:{name:"Chest Dips", tag:"Aşağı döş · Triseps", g:"push", pri:["chest"], sec:["triceps","delts"], load:"bw", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, im:"chestdip",
+  cues:["Paralel barmaqlıqda qollar tam açıq başlayın, çiyinlər qulaqlardan uzaq.","Gövdəni bir az önə əyin — bu, yükü döşə keçirir; dik qalsanız triseps işləyir.","Çiyin bucağı ~90° olana qədər enin, sonra itələyib qalxın.","Asanlaşanda kəmərlə disk asın — kq xanasına həmin diski yazın."],
+  mist:["Çiyinlərin qulaqlara qalxması.","Həddən artıq dərin enmək — çiyin oynağını zorlayır.","Yellənmə ilə ətalət yaratmaq."]},
+pu:{name:"Pull-Up", tag:"Enli kürək · Biseps", g:"pull", pri:["lats"], sec:["biceps","forearm"], load:"bw", sets:4, rMin:8, rMax:12, rest:120, inc:2.5, bodyweight:true, im:"pullup",
   cues:["Çiyinlərdən geniş tutuş, ovuclar önə baxır.","Döşü turnikə doğru aparın, aşağıda qolları tam açın.","Asanlaşanda kəmərlə disk əlavə edin — kq xanasına əlavə diski yazın."]},
-chn:{name:"Chin-Up", tag:"Enli kürək · Biseps", g:"pull", pri:["lats","biceps"], sec:["forearm"], sets:4, rMin:6, rMax:10, rest:120, inc:2.5, bodyweight:true, im:"chinup",
+chn:{name:"Chin-Up", tag:"Enli kürək · Biseps", g:"pull", pri:["lats","biceps"], sec:["forearm"], load:"bw", sets:4, rMin:8, rMax:12, rest:120, inc:2.5, bodyweight:true, im:"chinup",
   cues:["Ovuclar özünüzə baxır, tutuş çiyin enində — biseps daha çox işləyir.","Yellənmədən, nəzarətli qalxın və enin."]},
-vbpd:{name:"V-Bar Lat Pulldown", tag:"Enli kürək (qalınlıq)", g:"pull", pri:["lats"], sec:["biceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"vbarpull",
+vbpd:{name:"V-Bar Lat Pulldown", tag:"Enli kürək (qalınlıq)", g:"pull", pri:["lats"], sec:["biceps"], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"vbarpull",
   cues:["Neytral tutuş, dirsəklər bədənə yaxın aşağı gəlir.","Döşü qabağa çıxarın, çubuğu sinəyə yaxın çəkin."]},
-cgpd:{name:"Close-Grip Lat Pulldown", tag:"Enli kürək", g:"pull", pri:["lats"], sec:["biceps"], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"closepd",
+cgpd:{name:"Close-Grip Lat Pulldown", tag:"Enli kürək", g:"pull", pri:["lats"], sec:["biceps"], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"closepd",
   cues:["Dar tutuş amplitudanı uzadır — aşağıda kürəyi tam sıxın.","Yuxarıda çiyinlərin qalxmasına icazə verin (tam gərilmə)."]},
-rgr:{name:"Reverse-Grip Barbell Row", tag:"Enli kürək · Biseps", g:"pull", pri:["lats","traps"], sec:["biceps"], sets:4, rMin:8, rMax:10, rest:150, inc:2.5, im:"revrow",
+rgr:{name:"Reverse-Grip Barbell Row", tag:"Enli kürək · Biseps", g:"pull", pri:["lats","traps"], sec:["biceps"], load:"bar", sets:4, rMin:5, rMax:8, rest:150, inc:2.5, im:"revrow",
   cues:["Ovuclar önə baxır, gövdə ~45°, bel düz.","Ştanqı göbəyə doğru çəkin, dirsəklər bədən boyunca arxaya gedir."]},
-brow:{name:"Inverted Body Row", tag:"Orta kürək", g:"pull", pri:["lats","traps"], sec:["biceps"], sets:3, rMin:10, rMax:15, rest:90, inc:2.5, bodyweight:true, im:"bodyrow",
+brow:{name:"Inverted Body Row", tag:"Orta kürək", g:"pull", pri:["lats","traps"], sec:["biceps"], load:"bw", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, bodyweight:true, im:"bodyrow",
   cues:["Bədən düz xətt — sağrı sallanmasın.","Ayaqlar nə qədər önə gedirsə, hərəkət bir o qədər çətinləşir."]},
-rdrb:{name:"Barbell Rear Delt Row", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:["traps"], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"rearbb",
+rdrb:{name:"Barbell Rear Delt Row", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:["traps"], load:"bar", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"rearbb",
   cues:["Geniş tutuş, dirsəklər yuxarı-geniş çəkilir.","Çəkini yüngül saxlayın — hədəf arxa deltadır, kürək yox."]},
-bocl:{name:"Bent-Over Cable Lateral Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"bentcable",
+bocl:{name:"Bent-Over Cable Lateral Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"stack", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"bentcable",
   cues:["Kabellər çarpaz, gövdə önə əyilmiş.","Qolları yana açın, dirsəklər yumşaq bükülü sabit qalsın."]},
-srlc:{name:"Seated Rear Lateral Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"seatrear",
+srlc:{name:"Seated Rear Lateral Raise", tag:"Arxa delta", g:"pull", pri:["rdelt"], sec:[], load:"db", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"seatrear",
   cues:["Oturub gövdəni dizlərə doğru əyin — beldən yük götürür.","Qolları yana açın, yuxarıda bir saniyə sıxın."]},
-dbcu:{name:"Dumbbell Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", sets:3, rMin:10, rMax:12, rest:60, inc:1, im:"dbcurl",
+dbcu:{name:"Dumbbell Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"dbcurl",
   cues:["Dirsəklər böyürdə sabit, yellənmə yoxdur.","Yuxarıda bisepsi sıxın, nəzarətlə endirin."]},
-cbcu:{name:"Cable Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"cablecurl",
+cbcu:{name:"Cable Curl", tag:"Biseps", pri:["biceps"], sec:["forearm"], g:"pull", load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"cablecurl",
   cues:["Kabel daimi gərginlik verir — aşağıda da işləyir.","Dirsəkləri önə çıxarmadan bükün."]},
-prc:{name:"Preacher Curl", tag:"Biseps (aşağı hissə)", g:"pull", pri:["biceps"], sec:[], sets:3, rMin:10, rMax:12, rest:60, inc:2.5, im:"preacher",
+prc:{name:"Preacher Curl", tag:"Biseps (aşağı hissə)", g:"pull", pri:["biceps"], sec:[], load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"preacher",
   cues:["Qoltuqaltı yastığa yapışsın — ətalət mümkün deyil.","Aşağıda qolu tam açın, ancaq oynağı zorla dartmayın."]},
-con:{name:"Concentration Curl", tag:"Biseps (zirvə)", g:"pull", pri:["biceps"], sec:[], sets:3, rMin:10, rMax:12, rest:60, inc:1, im:"conc",
+con:{name:"Concentration Curl", tag:"Biseps (zirvə)", g:"pull", pri:["biceps"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"conc",
   cues:["Dirsəyi budun içinə dayayın.","Yuxarıda bir saniyə sıxın — bu hərəkət ağır çəki yox, sıxılma üçündür."]},
-chcu:{name:"Cable Hammer Curl (rope)", tag:"Brachialis · Said", g:"pull", pri:["biceps","forearm"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"ropeham",
+chcu:{name:"Cable Hammer Curl (rope)", tag:"Brachialis · Said", g:"pull", pri:["biceps","forearm"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"ropeham",
   cues:["Kəndir tutuşu — baş barmaqlar yuxarı.","Dirsəklər sabit, yalnız said qalxır."]},
-xham:{name:"Cross-Body Hammer Curl", tag:"Brachialis", pri:["biceps","forearm"], sec:[], g:"pull", sets:3, rMin:12, rMax:15, rest:60, inc:1, im:"xham",
+xham:{name:"Cross-Body Hammer Curl", tag:"Brachialis", pri:["biceps","forearm"], sec:[], g:"pull", load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"xham",
   cues:["Hanteli əks çiyinə doğru aparın.","Növbə ilə, dirsək böyürdə sabit."]},
-hsq:{name:"Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], sets:4, rMin:8, rMax:10, rest:150, inc:5, im:"hacksq",
+hsq:{name:"Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], load:"plate", sets:4, rMin:8, rMax:12, rest:150, inc:5, im:"hacksq",
   cues:["Kürəyinizi yastığa sıx basın, dabanlar platformada qalsın.","Dizlər barmaqlar istiqamətində, rahat gedən dərinliyə enin."]},
-fsq:{name:"Front Squat", tag:"Dördbaşlı əzələ · Gövdə", g:"legs", pri:["quads"], sec:["glutes","abs"], sets:4, rMin:6, rMax:8, rest:180, inc:2.5, im:"frontsq",
+fsq:{name:"Front Squat", tag:"Dördbaşlı əzələ · Gövdə", g:"legs", pri:["quads"], sec:["glutes","abs"], load:"bar", sets:4, rMin:5, rMax:8, rest:180, inc:2.5, im:"frontsq",
   cues:["Dirsəklər yuxarı — ştanq çiyin önündə oturur.","Gövdə dik qalır; bir az önə əyilmək ştanqı yerə salır."]},
-smsq:{name:"Smith Machine Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads","glutes"], sec:["hams"], sets:4, rMin:8, rMax:10, rest:150, inc:5, im:"smithsq",
+smsq:{name:"Smith Machine Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads","glutes"], sec:["hams"], load:"smith", sets:4, rMin:5, rMax:8, rest:150, inc:5, im:"smithsq",
   cues:["Ayaqlar bir az öndə — ştanq xətti topuqdan keçsin.","Nəzarətli enin, dabanlarla itələyin."]},
-wsq:{name:"Wide-Stance Squat", tag:"Sağrı · Bud içi", g:"legs", pri:["glutes","quads"], sec:["hams"], sets:4, rMin:8, rMax:10, rest:150, inc:5, im:"widesq",
+wsq:{name:"Wide-Stance Squat", tag:"Sağrı · Bud içi", g:"legs", pri:["glutes","quads"], sec:["hams"], load:"bar", sets:4, rMin:5, rMax:8, rest:150, inc:5, im:"widesq",
   cues:["Ayaqlar çiyindən geniş, barmaqlar bayıra baxır.","Dizləri barmaqlar istiqamətində açın, sağrını sıxaraq qalxın."]},
-dl:{name:"Conventional Deadlift", tag:"Bütün arxa zəncir", g:"legs", pri:["hams","glutes","lowback"], sec:["traps","quads"], sets:3, rMin:5, rMax:6, rest:180, inc:5, im:"deadlift",
-  cues:["Ştanq topuğun ortası üzərində, əllər dizdən kənarda.","Döşü qaldırın, beli düzləyin, sonra ayaqla döşəməni itələyin.","Ştanq bədən boyunca sürüşsün; yuxarıda sağrını sıxın."],
-  mist:["Belin yumrulanması.","Ştanqın bədəndən uzaqlaşması.","Hər təkrardan sonra sıçratmaq — hər təkrarı yenidən qurun."]},
-gm:{name:"Good Morning", tag:"Arxa bud · Bel", g:"legs", pri:["hams"], sec:["lowback","glutes"], sets:3, rMin:10, rMax:12, rest:120, inc:2.5, im:"goodm",
+gm:{name:"Good Morning", tag:"Arxa bud · Bel", g:"legs", pri:["hams"], sec:["lowback","glutes"], load:"bar", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, im:"goodm",
   cues:["Ştanq trapesiya üzərində, dizlər yüngül bükülü.","Ombanı geriyə itələyin, bel düz qalsın — çox yüngül başlayın."]},
-smdl:{name:"Smith Machine Deadlift", tag:"Arxa bud · Sağrı", g:"legs", pri:["hams","glutes"], sec:["lowback"], sets:3, rMin:8, rMax:10, rest:150, inc:5, im:"smithdl",
+smdl:{name:"Smith Machine Deadlift", tag:"Arxa bud · Sağrı", g:"legs", pri:["hams","glutes"], sec:["lowback"], load:"smith", sets:3, rMin:8, rMax:12, rest:150, inc:5, im:"smithdl",
   cues:["Sabit trayektoriya — texnikanı öyrənmək üçün yaxşıdır.","Omba hərəkətini unutmayın: bel yox, omba işləyir."]},
-nlp:{name:"Narrow-Stance Leg Press", tag:"Dördbaşlı əzələ (xarici)", g:"legs", pri:["quads"], sec:["glutes"], sets:3, rMin:10, rMax:12, rest:120, inc:5, im:"narrowlp",
+nlp:{name:"Narrow-Stance Leg Press", tag:"Dördbaşlı əzələ (xarici)", g:"legs", pri:["quads"], sec:["glutes"], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"narrowlp",
   cues:["Ayaqlar platformanın ortasında, bir-birinə yaxın.","Dizlər içəri düşməsin — bayıra doğru itələyin."]},
-smhs:{name:"Smith Machine Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], sets:3, rMin:10, rMax:12, rest:120, inc:5, im:"smithhack",
+smhs:{name:"Smith Machine Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], load:"smith", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"smithhack",
   cues:["Ayaqlar öndə, kürək ştanqın altında sabit.","Dərin enin — dördbaşlı əzələ bu vəziyyətdə maksimum işləyir."]},
-slc:{name:"Seated Leg Curl", tag:"Arxa budun əzələsi", g:"legs", pri:["hams"], sec:[], sets:3, rMin:10, rMax:12, rest:90, inc:2.5, im:"seatcurl",
+slc:{name:"Seated Leg Curl", tag:"Arxa budun əzələsi", g:"legs", pri:["hams"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"seatcurl",
   cues:["Yastıq baldırın aşağısında olsun, omba kəmərlə sabitlənsin.","Tam bükün, 2-3 saniyə ərzində nəzarətlə açın."]},
-stlc:{name:"Standing Leg Curl", tag:"Arxa budun əzələsi (tək ayaq)", g:"legs", pri:["hams"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, im:"standcurl",
+stlc:{name:"Standing Leg Curl", tag:"Arxa budun əzələsi (tək ayaq)", g:"legs", pri:["hams"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"standcurl",
   cues:["Bir ayaqla işləyin, omba sabit qalsın.","Zəif ayağı güclüsü ilə eyni təkrarda saxlayın."]},
-siss:{name:"Sissy Squat", tag:"Dördbaşlı əzələ (uzanma)", g:"legs", pri:["quads"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"sissy",
+siss:{name:"Sissy Squat", tag:"Dördbaşlı əzələ (uzanma)", g:"legs", pri:["quads"], sec:[], load:"bw", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, bodyweight:true, im:"sissy",
   cues:["Dizləri önə verib bədəni geri yatırın, omba düz xətdə qalsın.","Dizlərə həssassınızsa amplitudanı qısaldın."]},
-scr:{name:"Seated Calf Raise", tag:"Baldır (soleus)", g:"legs", pri:["calves"], sec:[], sets:4, rMin:12, rMax:15, rest:60, inc:2.5, im:"seatcalf",
+scr:{name:"Seated Calf Raise", tag:"Baldır (soleus)", g:"legs", pri:["calves"], sec:[], load:"stack", sets:4, rMin:12, rMax:15, rest:60, inc:2.5, im:"seatcalf",
   cues:["Aşağıda dabanı tam sallayın — uzanma vacibdir.","Yuxarıda 1 saniyə saxlayın."]},
-lpcr:{name:"Leg Press Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], sets:4, rMin:12, rMax:15, rest:60, inc:5, im:"calfpress",
+lpcr:{name:"Leg Press Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"plate", sets:4, rMin:12, rMax:15, rest:60, inc:5, im:"calfpress",
   cues:["Pəncələr platformanın aşağı kənarında.","Tam amplituda — aşağı uzanma, yuxarı sıxma. Dizlər kilidlənməsin."]},
-don:{name:"Donkey Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], sets:4, rMin:12, rMax:15, rest:60, inc:2.5, im:"donkey",
+don:{name:"Donkey Calf Raise", tag:"Baldır əzələsi", g:"legs", pri:["calves"], sec:[], load:"stack", sets:4, rMin:12, rMax:15, rest:60, inc:2.5, im:"donkey",
   cues:["Ombadan önə əyilin — baldır bu vəziyyətdə daha çox uzanır.","Yavaş enin, yuxarıda sıxın."]},
-wlg:{name:"Walking Lunge", tag:"Dördbaşlı · Sağrı (hər ayaq)", g:"legs", pri:["quads","glutes"], sec:["hams"], sets:3, rMin:10, rMax:12, rest:90, inc:2, im:"walklunge",
+wlg:{name:"Walking Lunge", tag:"Dördbaşlı · Sağrı (hər ayaq)", g:"legs", pri:["quads","glutes"], sec:["hams"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"walklunge",
   cues:["Uzun addım — ön diz barmaq xəttini keçməsin.","Gövdə dik, arxa diz yerə yaxınlaşır.","Təkrarı BİR ayaq üçün sayın."]},
-stpu:{name:"Dumbbell Step-Up", tag:"Sağrı · Dördbaşlı (hər ayaq)", g:"legs", pri:["glutes","quads"], sec:["hams"], sets:3, rMin:10, rMax:12, rest:90, inc:2, im:"stepup",
+stpu:{name:"Dumbbell Step-Up", tag:"Sağrı · Dördbaşlı (hər ayaq)", g:"legs", pri:["glutes","quads"], sec:["hams"], load:"db", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"stepup",
   cues:["Platformadakı ayaqla itələnin, arxa ayaqla yox.","Yuxarıda tam dikəlin, nəzarətlə enin."]},
-pls:{name:"Sumo / Plié Squat", tag:"Sağrı · Bud içi", g:"legs", pri:["glutes","quads"], sec:[], sets:3, rMin:12, rMax:15, rest:90, inc:2, im:"sumosq",
+pls:{name:"Sumo / Plié Squat", tag:"Sağrı · Bud içi", g:"legs", pri:["glutes","quads"], sec:[], load:"db1", sets:3, rMin:8, rMax:12, rest:90, inc:2, im:"sumosq",
   cues:["Ayaqlar geniş, barmaqlar bayıra; hantel ortada asılı qalır.","Dizləri barmaq istiqamətində açın, sağrını sıxaraq qalxın."]},
-pshu:{name:"Push-Up", tag:"Döş · Triseps · Gövdə", g:"push", pri:["chest"], sec:["triceps","delts"], sets:3, rMin:12, rMax:20, rest:60, inc:2.5, bodyweight:true, im:"pushup",
+pshu:{name:"Push-Up", tag:"Döş · Triseps · Gövdə", g:"push", pri:["chest"], sec:["triceps","delts"], load:"bw", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, bodyweight:true, im:"pushup",
   cues:["Bədən düz xətt — sağrı nə qalxsın, nə çöksün.","Asanlaşanda kürəyə disk qoyun və ya ayaqları yüksəldin."]},
-nchn:{name:"Narrow Parallel-Grip Chin-Up", tag:"Enli kürək · Biseps", g:"pull", pri:["lats","biceps"], sec:["forearm"], sets:3, rMin:6, rMax:10, rest:120, inc:2.5, bodyweight:true, im:"npchin",
+nchn:{name:"Narrow Parallel-Grip Chin-Up", tag:"Enli kürək · Biseps", g:"pull", pri:["lats","biceps"], sec:["forearm"], load:"bw", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, bodyweight:true, im:"npchin",
   cues:["Neytral tutuş — çiyinlərə ən rahat variant.","Döşü tutacağa doğru aparın."]},
-sbe:{name:"Stability Ball Back Extension", tag:"Bel · Sağrı", g:"legs", pri:["lowback","glutes"], sec:["hams"], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"sbhyper",
+sbe:{name:"Stability Ball Back Extension", tag:"Bel · Sağrı", g:"legs", pri:["lowback","glutes"], sec:["hams"], load:"bw", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"sbhyper",
   cues:["Qarın topun üstündə, ayaqlar divara dayanır.","Yuxarıda neytral xətdə dayanın — geri əyilməyin."]},
-sup:{name:"Superman", tag:"Bel · Duruş", g:"core", pri:["lowback"], sec:["glutes"], sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"superman",
+sup:{name:"Superman", tag:"Bel · Duruş", g:"core", pri:["lowback"], sec:["glutes"], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"superman",
   cues:["Üzüstə uzanın, qol və ayaqları eyni anda qaldırın.","Yuxarıda 2 saniyə saxlayın — sürət yox, saxlama vacibdir."]},
-crn:{name:"Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], sets:3, rMin:15, rMax:20, rest:45, inc:2.5, bodyweight:true, im:"crunch",
+crn:{name:"Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:2.5, bodyweight:true, im:"crunch",
   cues:["Qabırğaları çanağa yaxınlaşdırın, boyun sərbəst qalsın.","Yuxarıda nəfəsi tam verin və bir saniyə sıxın."]},
-dcrn:{name:"Decline Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"declcr",
+dcrn:{name:"Decline Crunch", tag:"Qarın əzələləri", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:60, inc:2.5, bodyweight:true, im:"declcr",
   cues:["Nəzarətlə enin — düşməyin.","Ağırlığı sinədə tutub çətinləşdirmək olar."]},
-hipr:{name:"Bent-Knee Hip Raise", tag:"Aşağı qarın", g:"core", pri:["abs"], sec:[], sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"hipraise",
+hipr:{name:"Bent-Knee Hip Raise", tag:"Aşağı qarın", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"hipraise",
   cues:["Çanağı tavana doğru burun — ayaqları yuxarı atmaqla eyni şey deyil.","Yellənmədən, yavaş."]},
-shr:{name:"Barbell Shrug", tag:"Trapesiya", pri:["traps"], sec:[], g:"pull", sets:3, rMin:12, rMax:15, rest:60, inc:5, im:"shrug",
+shr:{name:"Barbell Shrug", tag:"Trapesiya", pri:["traps"], sec:[], g:"pull", load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:5, im:"shrug",
   cues:["Ştanq düz qollarda asılı qalır — qollar dartmır, yalnız çiyinlər qalxır.","Çiyinləri qulaqlara doğru düz yuxarı qaldırın, fırlatmayın.","Yuxarıda 1 saniyə sıxın, nəzarətlə endirin."]},
-abike:{name:"Air Bike", tag:"Qarın · Yan qarın", g:"core", pri:["abs"], sec:[], sets:3, rMin:15, rMax:20, rest:45, inc:1, bodyweight:true, im:"airbike",
+abike:{name:"Air Bike", tag:"Qarın · Yan qarın", g:"core", pri:["abs"], sec:[], load:"bw", sets:3, rMin:12, rMax:15, rest:45, inc:1, bodyweight:true, im:"airbike",
   cues:["Dirsək və əks dizi bir-birinə yaxınlaşdırın, gövdəni burun.","Boynu əllə dartmayın."]}
 };
 
@@ -756,7 +767,7 @@ const ALT_OF = {
   lat:["uprb","uprc"], fly:["pdk","dbfl","icf"], tri:["skc","vbar","ohte","dip"],
   lp:["pu","chn","vbpd","cgpd"], row:["rgr"], tbr:["brow"], rdr:["rdrb","bocl","srlc"],
   cur:["dbcu","cbcu","prc","con"], ham:["chcu","xham"],
-  sq:["hsq","fsq","smsq","wsq"], rdl:["dl","gm","smdl"], lpz:["nlp","smhs"],
+  sq:["hsq","fsq","smsq","wsq"], rdl:["gm","smdl"], lpz:["nlp","smhs"],
   llc:["slc","stlc"], lex:["siss"], calf:["scr","lpcr","don"],
   gsq:["wlg","stpu","pls"], mchp:["pshu"], upd:["nchn"], msp:["smil"],
   be:["sbe","sup"], abs:["crn","dcrn","hipr","abike"]
@@ -774,10 +785,10 @@ const DAY_META = {
   F:{name:"Tam Bədən",     letter:"T", sub:"Bütün bədən · orta yük", cls:"d"}
 };
 const PROGRAM_DEF = {
-  P:["bp","sdp","idp","lat","fly","tri"],
-  L:["lp","row","tbr","rdr","cur","ham"],
+  P:["bp","ohp","idp","cdip","lat","tri"],
+  L:["pu","rgr","row","rdr","cur","ham"],
   G:["sq","rdl","lpz","llc","lex","calf"],
-  F:["gsq","mchp","upd","msp","be","abs"]
+  F:["gsq","mchp","chn","msp","be","abs"]
 };
 /* köhnə A/B/C məşqləri: yalnız tarixçəni düzgün göstərmək üçün saxlanılır */
 const LEGACY_DAYS = { A:{name:"A Məşqi (köhnə)",cls:"a"}, B:{name:"B Məşqi (köhnə)",cls:"b"}, C:{name:"C Məşqi (köhnə)",cls:"c"} };
@@ -809,25 +820,7 @@ const TIPS = [
   "Sabitlik intensivlikdən üstündür: bir il ərzində hər ikinci gün dürüst məşq, bir ay ərzində altı mükəmməl məşqdən daha yaxşıdır."
 ];
 
-/* k is kcal at the reference total below; renderFuel() scales every row to the
-   user's computed target so the template can't drift from the number above it. */
-const MEALS = [
-  { t:"Səhər yeməyi (yüngül)", k:300, d:"1 dilim çörək + 1 xörək qaşığı qaymaq + 30 q pendir. Səhərlər az iştahınız üçün — ağır heç nə yox." },
-  { t:"Yumurta yeməyi", k:450, d:"3 bütöv yumurta + 2 yumurta ağı, zeytun yağında bişirilmiş + tərəvəz. Günortadan sonra / axşama yaxın yeyin." },
-  { t:"Nahar", k:800, d:"200 q toyuq döşü + 120 q düyü (quru çəki) + tərəvəz + 1 xörək qaşığı zeytun yağı" },
-  { t:"Məşqdən sonra / Qəlyanaltı", k:500, d:"Su ilə hazırlanmış protein çalxalaması + 1 banan — və ya bal və qoz-fındıqla qatıq" },
-  { t:"Şam yeməyi", k:750, d:"200 q toyuq döşü və ya yağsız mal əti + kartof və ya düyü + zeytun yağlı böyük salat" },
-  { t:"Yatmazdan əvvəl", k:250, d:"Qatıq və ya kəsmik + bir ovuc qoz" }
-];
-const MEALS_BASE = MEALS.reduce((a,m)=>a+m.k, 0); /* 3050 kkal reference */
 
-const STAPLES = ["Düyü","Makaron","Kartof","Çörək","Qaymaq","Pendir","Qatıq","Yumurta","Toyuq döşü","Toyuq budu","Mal əti","Araxis yağı","Zeytun yağı","Qoz-fındıq","Banan","Bal"];
-
-const ACT_OPTS = [
-  { v:1.375, l:"Aşağı — ofis işi, həftədə 3 dəfə idman zalı" },
-  { v:1.55,  l:"Orta — çox ayaq üstə iş + idman zalı" },
-  { v:1.725, l:"Yüksək — fiziki iş + idman zalı" }
-];
 
 /* ================= state & persistence ================= */
 /* Bump when PROGRAM's day->exercise mapping changes. applyLoaded() uses it to
@@ -836,12 +829,16 @@ const PROGRAM_VERSION = 3;
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
-const DEFAULTS = { profile:{name:"Elvin",age:"",h:"",w:"",act:1.375,sur:350,sex:"m",weeklyTarget:4},
+const DEFAULTS = { profile:{name:"Elvin",w:"",weeklyTarget:4,
+    /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
+    barKg:20, plate:1.25, dbStep:2, stackStep:5, clockOffset:0},
   weights:[], sessions:[], active:null, supps:[], deloadAt:null, plan:null, userEx:{}, pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
 const $ = s => document.querySelector(s);
+/* hər vərəqin yuxarısında qalan bağla düyməsi — uzun vərəqdə aşağı sürüşdürmək lazım deyil */
+const SHEETHEAD = '<div class="shead"><span class="grab"></span><button class="xbtn" onclick="closeSheet()" aria-label="bağla">✕</button></div>';
 const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const todayISO = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 const fmtD = iso => { const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d).toLocaleDateString("az",{day:"numeric",month:"short"}); };
@@ -859,11 +856,54 @@ function daySlots(D){
   if(Array.isArray(custom)) return custom.filter(s => libEx(s.k));
   return (PROGRAM_DEF[D] || []).map(defSlot);
 }
+/* ================= YÜK TİPİ =================
+   Hər hərəkət kq xanasının NƏYİ ölçdüyünü bilir. Bu olmadan "2.5 kq artır"
+   cümləsi mənasızdır: ştanqda 2.5 kq = hər tərəfə 1.25, hanteldə isə 2.5
+   birbaşa hantelin öz çəkisidir. Artım addımı da buradan hesablanır, əl ilə
+   yazılmış rəqəmdən yox — zalındakı ən kiçik disk/hantel addımı ayarlardadır. */
+const LOAD_LBL = {
+  bar:{s:"ştanq · cəmi", l:"Ştanqın öz çəkisi + bütün disklər. 20 kq ştanq + hər tərəfə 10 = 40 kq yaz."},
+  plate:{s:"yalnız disklər", l:"Aparatın öz çəkisi sayılmır — yalnız taxdığın disklərin cəmini yaz."},
+  smith:{s:"Smith · disklər", l:"Smith ştanqının öz çəkisi zaldan-zala dəyişir — yalnız disklərin cəmini yaz."},
+  db:{s:"bir hantel", l:"İKİ hantelin cəmini yox, BİR hantelin üzərindəki rəqəmi yaz."},
+  db1:{s:"hantel çəkisi", l:"Tək hantellə edilir — hantelin öz rəqəmini yaz."},
+  stack:{s:"yığın", l:"Aparatın çəki yığınındakı rəqəmi yaz."},
+  bw:{s:"əlavə disk", l:"Bədən çəkisi ilə edilir. Əlavə disk/kəmər taxmısansa onu yaz, yoxsa boş burax."}
+};
+function gymCfg(){
+  const p = state.profile || {};
+  return { bar:+p.barKg||20, plate:+p.plate||1.25, db:+p.dbStep||2, stack:+p.stackStep||5 };
+}
+function incFor(ex){
+  const c = gymCfg();
+  switch(ex && ex.load){
+    case "bar": case "plate": case "smith": return c.plate*2;   /* hər tərəfə bir disk */
+    case "db": case "db1": return c.db;
+    case "stack": return c.stack;
+    case "bw": return c.plate*2;
+    default: return (ex && ex.inc) || 2.5;
+  }
+}
+/* ştanq/disk hərəkətlərində: cəmi çəki -> hər tərəfə nə taxmalı */
+function plateBreak(total, ex){
+  if(!ex || !["bar","plate","smith"].includes(ex.load)) return null;
+  const c = gymCfg();
+  const barW = ex.load==="bar" ? c.bar : 0;
+  let side = (total - barW)/2;
+  if(!(side > 0)) return null;
+  const out = [];
+  [25,20,15,10,5,2.5,1.25].filter(p=>p>=c.plate).forEach(p=>{
+    const n = Math.floor(side/p + 1e-9);
+    if(n){ out.push(n>1 ? `${n}×${p}` : `${p}`); side = Math.round((side - n*p)*1000)/1000; }
+  });
+  if(side > 0.01 || !out.length) return null;
+  return (barW ? `ştanq ${barW} + ` : "") + `hər tərəfə ${out.join(" + ")}`;
+}
 function mkEx(sl, D){
   const e = libEx(sl.k) || { name:sl.k, tag:"" };
   return { ...e, key:sl.k, day:D,
     sets:Math.max(1, +sl.sets||1), rMin:Math.max(1, +sl.rMin||1), rMax:Math.max(1, +sl.rMax||1),
-    rest:Math.max(15, +sl.rest||60), inc:e.inc || 2.5,
+    rest:Math.max(15, +sl.rest||60), inc: e.load ? incFor(e) : (e.inc || 2.5), load: e.load || "stack",
     cues:e.cues || [], mist:e.mist || [], bodyweight:!!e.bodyweight };
 }
 function buildProgram(){
@@ -908,7 +948,7 @@ function effEx(slotKey){
 function openSwap(slotKey){
   const opts = [EXMAP[slotKey], ...(ALT_OF[slotKey]||[]).map(k=>EXMAP[k]).filter(Boolean)];
   const cur = effEx(slotKey).key;
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>Hərəkəti seçin</h3><div class="stag">${EXMAP[slotKey].tag}</div>
     <div class="swaplist">${opts.map((o,oi)=>{
       const p = lastPerf(o.key);
@@ -1286,7 +1326,7 @@ function dismissDeload(){
   save(); cloudPush(); renderToday();
   toast("Qeyd edildi — sayğac sıfırlandı");
 }
-function profileDone(){ const p=state.profile; return p.name && p.age && p.h && (p.w || state.weights.length); }
+function profileDone(){ const p=state.profile; return !!(p.name && (p.w || state.weights.length)); }
 function isFirstEver(){ return state.sessions.length===0; }
 function isoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function suppToday(kind){ const e=state.supps.find(x=>x.d===todayISO()); return !!(e && e[kind]); }
@@ -1314,7 +1354,7 @@ function switchTab(name){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
   $("#view-"+name).classList.add("on");
   document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
-  ({today:renderToday, train:renderTrain, plan:renderPlan, fuel:renderFuel, prog:renderProg})[name]();
+  ({today:renderToday, train:renderTrain, plan:renderPlan, set:renderSettings, prog:renderProg})[name]();
   window.scrollTo({top:0});
 }
 function refresh(){ const on=document.querySelector(".tabbar button.on").dataset.tab; switchTab(on); }
@@ -1332,15 +1372,12 @@ function renderToday(){
   let setup = "";
   if(!profileDone()){
     setup = `<div class="card">
-      <div class="h-big">Protokolunuzu qurun</div>
-      <div class="sub" style="margin-top:2px">30 saniyə — bu, qidalanma hədəflərinizi və proqres izlənməsini işə salır.</div>
-      <div class="field"><label>Ad</label><input id="su-name" value="${esc(p.name)}"></div>
-      <div class="grid3">
-        <div class="field"><label>Yaş</label><input id="su-age" type="number" inputmode="numeric" value="${esc(p.age)}" placeholder="27"></div>
-        <div class="field"><label>Boy (sm)</label><input id="su-h" type="number" inputmode="numeric" value="${esc(p.h)}" placeholder="178"></div>
+      <div class="h-big">Başlayaq</div>
+      <div class="sub" style="margin-top:2px">İki xana — proqres izlənməsi bununla işə düşür.</div>
+      <div class="grid2">
+        <div class="field"><label>Ad</label><input id="su-name" value="${esc(p.name)}"></div>
         <div class="field"><label>Çəki (kq)</label><input id="su-w" type="number" inputmode="decimal" step="0.1" value="${esc(p.w)}" placeholder="70"></div>
       </div>
-      <div class="field"><label>Gündəlik fəallıq</label><select id="su-act">${ACT_OPTS.map(o=>`<option value="${o.v}" ${p.act==o.v?"selected":""}>${o.l}</option>`).join("")}</select></div>
       <button class="btn block" onclick="saveSetup()">Yadda saxla və başla</button>
     </div>`;
   }
@@ -1366,8 +1403,8 @@ function renderToday(){
       </div>
       <div class="lastline" style="margin:8px 0 12px">${ state.active ? `<b>Məşq davam edir</b> — zalda ${hm(sessionMinutes(state.active, staleHours() ? 0 : GAP_CAP))}.` : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${dayMeta(last.day).name}` : `Birinci gün. Sıra: <b>İtələmə → Çəkmə → Ayaq → Tam bədən</b>, bir gün məşq, bir gün istirahət.` }</div>
       ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}</div>` : ""}
-      ${!state.active && rest ? `<div class="hint" style="margin-bottom:12px">Bu gün <b>istirahət günüdür</b>. Növbəti məşq: <b>${fmtD(nt)}</b>. Bərpa proqramın bir hissəsidir — istəsəniz yenə də başlaya bilərsiniz.</div>` : ""}
       <button class="btn block" onclick="${state.active ? "switchTab('train')" : `startSession('${nd}')`}">${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
+      ${!state.active && rest ? `<div class="small" style="margin-top:10px;text-align:center">Cədvələ görə növbəti məşq <b style="color:var(--ink)">${fmtD(nt)}</b> — amma bu gün istəsən indi başla, sıra pozulmur.</div>` : ""}
     </div>
 
     <div class="sect">Cədvəl · bir gün var, bir gün yox</div>
@@ -1408,6 +1445,47 @@ function renderToday(){
       </button>
     </div></div>
 
+    <div class="sect">Məşqçinin köşəsi</div>
+    <div class="card coach"><div class="cq">“</div><div><p>${tip}</p><div class="who">— Protokol</div></div></div>`;
+}
+
+/* ================= AYARLAR ================= */
+function renderSettings(){
+  const p = state.profile, c = gymCfg(), w = latestW();
+  $("#view-set").innerHTML = `
+    <div class="sect">Sən</div>
+    <div class="card">
+      <div class="grid2">
+        <div class="field"><label>Ad</label><input id="st-name" value="${esc(p.name)}" onchange="saveSet()"></div>
+        <div class="field"><label>Həftəlik hədəf (məşq)</label><input id="st-wt" type="number" inputmode="numeric" min="1" max="7" value="${weeklyTarget()}" onchange="saveSet()"></div>
+      </div>
+      <div class="inline-log" style="margin-top:4px">
+        <input id="st-w" type="number" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"bugünkü çəki (kq)"}">
+        <button class="btn sm" onclick="addWeight('st-w')">Çəkini qeyd et</button>
+      </div>
+    </div>
+
+    <div class="sect">Zalın avadanlığı</div>
+    <div class="card">
+      <div class="small" style="margin-bottom:10px">Çəki artımı təklifləri və disk hesablayıcısı buradan hesablanır. Zalındakı ən kiçik diski düzgün yazsan, tətbiq sənə mümkün olmayan çəki təklif etməyəcək.</div>
+      <div class="grid2">
+        <div class="field"><label>Ştanqın çəkisi (kq)</label><input id="st-bar" type="number" inputmode="decimal" step="0.5" value="${c.bar}" onchange="saveSet()"></div>
+        <div class="field"><label>Ən kiçik disk (kq)</label><input id="st-plate" type="number" inputmode="decimal" step="0.25" value="${c.plate}" onchange="saveSet()"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Hantel addımı (kq)</label><input id="st-db" type="number" inputmode="decimal" step="0.5" value="${c.db}" onchange="saveSet()"></div>
+        <div class="field"><label>Aparat addımı (kq)</label><input id="st-stack" type="number" inputmode="decimal" step="0.5" value="${c.stack}" onchange="saveSet()"></div>
+      </div>
+      <div class="hint" style="margin-top:6px">İndiki artımlar: ştanq <b>+${c.plate*2} kq</b> (hər tərəfə ${c.plate}) · hantel <b>+${c.db} kq</b> · aparat <b>+${c.stack} kq</b></div>
+    </div>
+
+    <div class="sect">Zalın saatı</div>
+    <div class="card">
+      <div class="small" style="margin-bottom:10px">Zalın divar saatı telefonundan fərqlidirsə, fərqi yaz — məşq vaxtları həmin saatla göstəriləcək.</div>
+      <div class="field"><label>Fərq (dəqiqə, mənfi də ola bilər)</label>
+        <input id="st-clock" type="number" inputmode="numeric" step="1" value="${parseInt(p.clockOffset)||0}" onchange="saveSet()"></div>
+      <div class="hint">Telefon: <b>${fmtClock(Date.now(), true)}</b> · Zal: <b>${fmtClock(Date.now())}</b></div>
+    </div>
     ${sbReady() ? `<div class="sect">Bulud yedəyi</div>
     <div class="card tight">${ sbUser
       ? `<div class="small">☁️ Sinxronizasiya aktivdir — <b style="color:var(--ink)">${esc(sbUser.email)}</b>${sbStatus?` · ${sbStatus}`:""}. Hər dəyişiklik avtomatik buluda yazılır.</div>
@@ -1431,8 +1509,26 @@ function renderToday(){
       <div class="small" style="margin-top:8px">Geri yükləmə <b style="color:var(--ink)">əvəz etmir</b> — mövcud qeydlərlə birləşdirilir.</div>
     </div>
 
-    <div class="sect">Məşqçinin köşəsi</div>
-    <div class="card coach"><div class="cq">“</div><div><p>${tip}</p><div class="who">— Protokol</div></div></div>`;
+  `;
+}
+function saveSet(){
+  const p = state.profile, n = (id,d) => { const v = parseFloat($("#"+id).value); return isNaN(v) ? d : v; };
+  p.name = ($("#st-name").value || "").replace(/[<>]/g,"").trim() || "İdmançı";
+  p.weeklyTarget = Math.min(7, Math.max(1, parseInt($("#st-wt").value) || 4));
+  p.barKg = Math.max(0, n("st-bar", 20));
+  p.plate = Math.max(0.25, n("st-plate", 1.25));
+  p.dbStep = Math.max(0.5, n("st-db", 2));
+  p.stackStep = Math.max(0.5, n("st-stack", 5));
+  p.clockOffset = Math.max(-720, Math.min(720, parseInt($("#st-clock").value) || 0));
+  buildProgram();          /* artım addımları yük tipindən hesablanır — yenidən qurulmalıdır */
+  save(); cloudPush(); renderSettings();
+  toast("Ayarlar yadda saxlanıldı");
+}
+/* zalın divar saatı ilə uyğunlaşdırılmış vaxt */
+function fmtClock(ts, raw){
+  const off = raw ? 0 : (parseInt(state.profile.clockOffset)||0)*60000;
+  const d = new Date(ts + off);
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
 }
 function exportData(){
   const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
@@ -1466,13 +1562,10 @@ function importData(input){
 }
 function saveSetup(){
   const p = state.profile;
-  p.name = $("#su-name").value.trim() || "İdmançı";
-  p.age = parseFloat($("#su-age").value)||"";
-  p.h = parseFloat($("#su-h").value)||"";
+  p.name = ($("#su-name").value || "").replace(/[<>]/g,"").trim() || "İdmançı";
   p.w = parseFloat($("#su-w").value)||"";
-  p.act = parseFloat($("#su-act").value);
-  if(p.w && !state.weights.length) state.weights.push({d:todayISO(), kg:p.w});
-  save(); toast("Protokol hazırdır 💪"); renderToday();
+  if(p.w && !state.weights.length) state.weights.push({d:todayISO(), kg:p.w, ts:Date.now()});
+  save(); toast("Hazırdır 💪"); renderToday();
 }
 function addWeight(inputId){
   const v = parseFloat($("#"+inputId).value);
@@ -1579,7 +1672,7 @@ function clockChip(){
 function openClockFix(){
   const a = state.active; if(!a) return;
   const st = new Date(a.startedAt||Date.now());
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>Məşq vaxtı</h3>
     <div class="stag">Başlanğıc: ${String(st.getHours()).padStart(2,"0")}:${String(st.getMinutes()).padStart(2,"0")} · hesablanan: ${hm(sessionMinutes(a, staleHours() ? 0 : GAP_CAP))}</div>
     <div class="small" style="margin:8px 0 12px">Zala girəndə tətbiqi açmağı unutmusunuzsa, başlanğıcı geriyə sürüşdürün. Vaxt onsuz da qeydlərdən hesablanır: dövrlər arasındakı 20 dəqiqədən uzun boşluqlar sayılmır, ona görə “Bitir”i basmağı unutmağınız nəticəni pozmur.</div>
@@ -1660,16 +1753,19 @@ function renderTrain(){
       const h = hintFor(eff,p);
       const wk = parseFloat(st[0].kg) || suggestKg(eff.key);
       const ramp = (eff.rest>=120 && wk && wk>=30) ? `<div class="ramp">Qızışma dövrləri: <b class="num">${r25(wk*0.4)} kq × 8 → ${r25(wk*0.6)} kq × 5 → ${r25(wk*0.8)} kq × 3</b> — sonra iş dövrləri (sayılmır)</div>` : "";
+      const pb = plateBreak(wk, eff);
+      const plateLine = pb ? `<div class="ramp"><b class="num">${wk} kq</b> = ${pb}</div>` : "";
       return `<div class="card ex" style="--dc:var(--${D.cls})">
         <div class="exhead"><div class="exname">
           ${exImg(eff,"exanim sm")}
           <div>
             <div class="name">${i+1}. ${esc(eff.name)}</div>
-            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span>${swapped?`<span class="tag swp">alternativ</span>`:`<span class="tag">${esc(eff.tag||"")}</span>`}</div>
+            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${'$'}{eff.key}')">${LOAD_LBL[eff.load]?LOAD_LBL[eff.load].s:"kq"}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}</div>
           </div>
         </div><div class="exbtns"><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${(ALT_OF[ex.key]||[]).length?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}</div></div>
         ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
         <div class="hint ${h.cls}">${h.txt}</div>
+        ${plateLine}
         ${ramp}
         <div class="sethdr"><div>Dövr</div><div>kq</div><div>Təkrar</div><div>✓</div></div>
         ${rows}
@@ -1685,7 +1781,7 @@ function renderTrain(){
             ${exImg(ex,"exanim sm")}
             <div>
               <div class="name">${i+1}. ${esc(ex.name)}</div>
-              <div class="meta"><span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span><span class="tag">⏱ ${Math.round(ex.rest/60*10)/10} dəq</span><span class="tag">${esc(ex.tag||"")}</span></div>
+              <div class="meta"><span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span><span class="tag">⏱ ${Math.round(ex.rest/60*10)/10} dəq</span><span class="tag lt">${LOAD_LBL[ex.load]?LOAD_LBL[ex.load].s:"kq"}</span></div>
             </div>
           </div><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button></div>
           ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
@@ -1749,11 +1845,14 @@ function toggleDone(key,i){
   const s = state.active.ex[key][i]; s.done = !s.done;
   if(s.done){
     s.t = Date.now();   /* real vaxt bu nöqtələrdən hesablanır — sessionMinutes() */
-    /* carrying the previous set's LOAD forward is a reasonable inference */
-    if(!parseFloat(s.kg)){ const k=smartKg(key,i); if(k>0) s.kg = String(k); }
-    /* ...inventing REPS is not. A fabricated rMax satisfies the double-progression
-       test and walks the prescribed load above real strength. rMax stays a placeholder. */
-    if(!(parseFloat(s.reps)>0)) toast("İşarələndi — proqressiyaya sayılması üçün təkrar sayını yazın");
+    /* ✓ = "bu dövrü göstərildiyi kimi etdim". Boz rəqəm yalnız təklifdir; onu
+       həqiqi dəyərə çevirməsək, dövr yadda saxlanarkən atılırdı və növbəti məşqdə
+       hərəkət "ilk dəfə" kimi görünürdü. Fərqli olubsa xananı əl ilə düzəldirsən. */
+    if(!parseFloat(s.kg)){ const k = smartKg(key,i); if(k > 0) s.kg = String(k); }
+    if(!(parseFloat(s.reps) > 0)){ const r = smartReps(key,i); if(r > 0) s.reps = String(r); }
+    const inp = document.getElementById(`in-${key}-${i}-kg`), inr = document.getElementById(`in-${key}-${i}-reps`);
+    if(inp) inp.value = s.kg;
+    if(inr) inr.value = s.reps;
     startTimer(EXMAP[key].rest, effEx(key).name);
   }
   save();
@@ -1762,8 +1861,8 @@ function toggleDone(key,i){
   const btn = document.getElementById(`ck-${key}-${i}`);
   if(btn) btn.classList.toggle("done", s.done); else renderTrain();
 }
-function finishSession(){
-  const a = state.active; if(!a) return;
+/* qeyd qurma ayrıca: həm “Bitir” düyməsi, həm avtomatik bağlama eyni məntiqi işlədir */
+function buildRecord(a){
   /* d: məşqin BAŞLADIĞI gün — gecə yarısını keçən məşq dünənə yazılsın deyə */
   const startISO = a.startedAt ? isoOf(new Date(a.startedAt)) : (a.started || todayISO());
   const rec = { d: startISO, day: a.day, ex: [], foundation: !!a.foundation, min: sessionMinutes(a, staleHours() ? 0 : TAIL_CAP) };
@@ -1779,6 +1878,11 @@ function finishSession(){
       .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
     if(sets.length){ rec.ex.push({key:eff.key, name:eff.name, sets}); n += sets.length; }
   });
+  return { rec, n, skipped };
+}
+function finishSession(){
+  const a = state.active; if(!a) return;
+  const { rec, n, skipped } = buildRecord(a);
   if(!n){
     info("Təkrar sayı yazılmayıb",
       "Məşqi yadda saxlamaq üçün ən azı bir dövrün TƏKRAR xanası dolu olmalıdır — tək ✓ işarəsi kifayət etmir, çünki proqressiya təkrar sayına baxır.\n\nKq xanası boş qala bilər (bədən çəkisi ilə edilən hərəkətlərdə normaldır).");
@@ -1787,6 +1891,21 @@ function finishSession(){
   const warn = skipped ? `\n\nDiqqət: işarələnmiş ${skipped} dövr təkrar sayı boş olduğu üçün qeyd edilməyəcək.` : "";
   const dur = rec.min!=null ? `\nZalda keçən real vaxt: ${hm(rec.min)}.` : "";
   ask(`${PROGRAM[a.day].name} yadda saxlanılsın?`, `${n} dövr qeyd edilib.${dur}${warn}`, "Bəli, yadda saxla", ()=>saveSession(rec));
+}
+/* “Bitir”i unutmaq daha məlumat itirmir: 3 saatdan çox toxunulmayan məşq
+   tətbiq növbəti dəfə açılanda özü bağlanır, vaxt sonuncu qeydə qədər sayılır. */
+function autoFinishStale(){
+  const a = state.active;
+  if(!a || staleHours() < 3) return;
+  const { rec, n } = buildRecord(a);
+  if(n){
+    state.sessions.push(rec); state.active = null; save(); cloudPush();
+    migrationNote = `“Bitir” basılmamışdı — <b>${dayMeta(rec.day).name}</b> məşqi avtomatik yadda saxlanıldı: `
+      + `${n} dövr · ${hm(rec.min)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`;
+  } else {
+    state.active = null; save();
+    migrationNote = "Yarımçıq qalmış məşq bağlandı — heç bir dövr qeyd edilmədiyi üçün tarixçəyə yazılmadı.";
+  }
 }
 function saveSession(rec){
   state.sessions.push(rec); state.active = null; timerSkip(); save(); cloudPush();
@@ -1803,7 +1922,7 @@ function openTech(day,i){
   const ex = (state.active && state.active.day===day) ? effEx(base.key) : base;
   const alts = (ALT_OF[base.key]||[]).map(k=>EXMAP[k]).filter(Boolean);
   const nf = frames(ex).length;
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     ${exImg(ex,"exanim big")}
     ${nf>1?`<div class="framelbl"><span>Başlanğıc ⇄ Bitiş</span><span>avtomatik oynayır</span></div>`:""}
     <h3>${esc(ex.name)}</h3><div class="stag">${esc(ex.tag||"")}</div>
@@ -1812,6 +1931,7 @@ function openTech(day,i){
       <span class="tag">istirahət ${Math.round(ex.rest/60*10)/10} dəq</span>
       <span class="tag">proqres: +${ex.inc} kq</span>
     </div>
+    <div class="hint" style="margin-top:8px">Kq xanası: <b>${LOAD_LBL[ex.load]?LOAD_LBL[ex.load].s:"kq"}</b> — ${LOAD_LBL[ex.load]?LOAD_LBL[ex.load].l:""}</div>
     <div class="cuelist">${(ex.cues||[]).map(c=>`<div class="cue good"><div class="ic">✓</div><p>${esc(c)}</p></div>`).join("")}</div>
     ${(ex.mist||[]).length?`<hr class="split">
     <div class="small" style="letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-bottom:2px">Ümumi səhvlər</div>
@@ -1820,6 +1940,11 @@ function openTech(day,i){
     <div class="small">Avadanlıq məşğuldursa, alternativlər: <b style="color:var(--ink)">${alts.map(a=>esc(a.name)).join(" · ")}</b> — məşq zamanı kartdakı “⇄ Dəyiş” düyməsi ilə keçin.</div>`:""}
     <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`;
   $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+}
+function loadInfo(key){
+  const ex = EXMAP[key]; if(!ex) return;
+  const d = LOAD_LBL[ex.load] || {s:"kq", l:"Qaldırdığın çəkini yaz."};
+  info(`Kq xanası: ${d.s}`, `${esc(ex.name)}\n\n${d.l}\n\nArtım addımı: +${incFor(ex)} kq (Ayarlar bölməsindən dəyişdirilir).`);
 }
 function closeSheet(){ askFn = null; $("#overlay").classList.remove("on"); $("#sheet").classList.remove("on"); }
 
@@ -1830,7 +1955,7 @@ function closeSheet(){ askFn = null; $("#overlay").classList.remove("on"); $("#s
 let askFn = null;
 function ask(title, body, okLabel, onOk, danger){
   askFn = onOk;
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${title}</h3>
     <div class="small" style="margin:8px 0 16px;white-space:pre-line;font-size:13.5px">${body}</div>
     <button class="btn block ${danger?"danger":""}" onclick="askYes()">${okLabel}</button>
@@ -1840,7 +1965,7 @@ function ask(title, body, okLabel, onOk, danger){
 function askYes(){ const f = askFn; askFn = null; closeSheet(); if(f) f(); }
 function info(title, body){
   askFn = null;
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${title}</h3>
     <div class="small" style="margin:8px 0 16px;white-space:pre-line;font-size:13.5px">${body}</div>
     <button class="btn block" onclick="closeSheet()">Başa düşdüm</button>`;
@@ -1899,103 +2024,6 @@ function beep(){
       o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.18);
     });
   }catch(e){}
-}
-
-/* ================= FUEL ================= */
-function renderFuel(){
-  const p = state.profile;
-  $("#view-fuel").innerHTML = `
-    <div class="sect">Sizin göstəricilər</div>
-    <div class="card">
-      <div class="grid3">
-        <div class="field"><label>Yaş</label><input id="f-age" type="number" inputmode="numeric" value="${esc(p.age)}" oninput="fuelIn()"></div>
-        <div class="field"><label>Boy (sm)</label><input id="f-h" type="number" inputmode="numeric" value="${esc(p.h)}" oninput="fuelIn()"></div>
-        <div class="field"><label>Çəki (kq)</label><input id="f-w" type="number" inputmode="decimal" step="0.1" value="${latestW()||""}" oninput="fuelIn()"></div>
-      </div>
-      <div class="grid2">
-        <div class="field"><label>Cins</label><select id="f-sex" onchange="fuelIn()">
-          <option value="m" ${p.sex!=="f"?"selected":""}>Kişi</option>
-          <option value="f" ${p.sex==="f"?"selected":""}>Qadın</option>
-        </select></div>
-        <div class="field"><label>Gündəlik fəallıq</label><select id="f-act" onchange="fuelIn()">${ACT_OPTS.map(o=>`<option value="${o.v}" ${p.act==o.v?"selected":""}>${o.l}</option>`).join("")}</select></div>
-      </div>
-      <div class="field"><label>Profisit: <span id="surV" class="num">+${p.sur}</span> kkal <span style="color:var(--dim);text-transform:none;letter-spacing:0">(yüngül kütlə 250 → aqressiv 500)</span></label>
-      <input type="range" id="f-sur" min="250" max="500" step="50" value="${p.sur}" oninput="fuelIn()"></div>
-    </div>
-    <div id="fuelOut"></div>
-
-    <div class="sect">Günlük şablon</div>
-    <div class="card">
-      ${MEALS.map(m=>`<div class="meal"><div class="mt"><span>${m.t}</span><span class="num">~${Math.round(m.k*mealScale()/10)*10} kkal</span></div><p>${m.d}</p></div>`).join("")}
-      <div class="small" style="margin-top:10px">${ fuelTarget()
-        ? `Şablon sizin hədəfinizə (<b style="color:var(--ink)">${fuelTarget().toLocaleString()} kkal</b>) uyğun miqyaslanıb. Porsiyaları eyni nisbətdə artırıb-azaldın — karbohidrat (düyü, çörək, kartof) ən asan tənzimlənən elementdir.`
-        : `Şablon ≈ ${MEALS_BASE.toLocaleString()} kkal üçündür. Yaş, boy və çəkinizi daxil edin — şablon avtomatik sizin hədəfinizə uyğunlaşacaq.` }</div>
-    </div>
-
-    <div class="sect">Kütlə dövrü üçün əsas məhsullar</div>
-    <div class="card tight"><div class="chips">${STAPLES.map(s=>`<span>${s}</span>`).join("")}</div></div>
-
-    <div class="sect">Məşqçinin qeydləri</div>
-    <div class="card">
-      <div class="rule"><b>Tərəzi hakimdir</b><p>2 həftə ardıcıl həftədə 0.25 kq-dan az artım → 200 kkal əlavə edin. Həftədə 0.5 kq-dan xeyli çox artım → 200 kkal azaldın. Təxmin etməyin, tənzimləyin.</p></div>
-      <div class="rule"><b>Zülal əsası</b><p>Bədən çəkisinin hər kiloqramına ~2 q, 30-50 q-lıq 4-5 yeməyə bölünmüş şəkildə. Əvvəlcə zülal hədəfinə çatın, qalanını karbohidrat və yağla doldurun.</p></div>
-      <div class="rule"><b>Əhəmiyyətli əlavələr</b><p>Hər gün 5 q kreatin monohidrat (mövcud ən sübut edilmiş əlavə), zülal boşluqlarını doldurmaq üçün zərdab zülalı (whey), istəsəniz məşqdən əvvəl kofein. Qalan hər şey marketinqdir.</p></div>
-      <div class="rule"><b>Bərpa da proqramın hissəsidir</b><p>7-9 saat yuxu, 2-3 L su. Yuxusuz profisit sadəcə yağa çevrilir.</p></div>
-    </div>`;
-  renderFuelOut();
-}
-let fuelWT = null;
-function fuelIn(){
-  const p = state.profile;
-  p.age = parseFloat($("#f-age").value)||"";
-  p.h = parseFloat($("#f-h").value)||"";
-  p.act = parseFloat($("#f-act").value);
-  p.sur = parseInt($("#f-sur").value);
-  p.sex = $("#f-sex").value;
-  $("#surV").textContent = "+"+p.sur;
-  /* Bodyweight lands in weights[], not profile.w — otherwise Qida and Bugün disagree.
-     Debounced so typing "78" doesn't first record an entry for "7". Overwrites today. */
-  clearTimeout(fuelWT);
-  fuelWT = setTimeout(()=>{
-    const v = parseFloat($("#f-w") ? $("#f-w").value : NaN);
-    if(setWeight(v)){ save(); cloudPush(); renderFuelOut(); }
-  }, 600);
-  save(); renderFuelOut();
-}
-/* Single definition of the calorie target — the meal template and the macro card
-   must never compute it differently. wOverride lets the live input drive it while typing. */
-function fuelTarget(wOverride){
-  const p = state.profile;
-  const w = (wOverride!=null && wOverride>0) ? wOverride : latestW();
-  if(!(p.age && p.h && w)) return null;
-  /* Mifflin-St Jeor: +5 male, -161 female. Existing users default to "m" via migrate(). */
-  const bmr = 10*w + 6.25*p.h - 5*p.age + (p.sex==="f" ? -161 : 5);
-  return Math.round((bmr*p.act + p.sur)/10)*10;
-}
-function mealScale(){ const t = fuelTarget(); return t ? t/MEALS_BASE : 1; }
-function renderFuelOut(){
-  const p = state.profile, w = parseFloat($("#f-w") ? $("#f-w").value : latestW());
-  const box = $("#fuelOut");
-  const target = fuelTarget(w);
-  if(!target){ box.innerHTML = `<div class="card"><div class="empty">Hədəflərinizi görmək üçün yaş, boy və çəkinizi daxil edin.</div></div>`; return; }
-  const tdee = target - p.sur;
-  const pr = Math.round(2.0*w), fat = Math.round(0.9*w);
-  const carbs = Math.max(0, Math.round((target - pr*4 - fat*9)/4));
-  const pct = v => Math.round(v/target*100);
-  box.innerHTML = `<div class="card">
-    <div class="small" style="letter-spacing:.16em;text-transform:uppercase;font-size:10.5px">Gündəlik hədəf · kütlə artımı</div>
-    <div class="bignum num">${target.toLocaleString()} <small>kkal</small></div>
-    <div class="kcalrow"><span>Saxlama ≈ <b class="num">${Math.round(tdee).toLocaleString()}</b></span><span>Hədəf: <b class="num">+${(w*0.0025).toFixed(1)}–${(w*0.005).toFixed(1)} kq/həftə</b></span></div>
-    <div class="macro">
-      <div class="mrow"><span>Zülal</span><b class="num">${pr} q · ${pct(pr*4)}%</b></div><div class="mbar"><i style="width:${pct(pr*4)}%;background:var(--b)"></i></div>
-    </div>
-    <div class="macro">
-      <div class="mrow"><span>Karbohidrat</span><b class="num">${carbs} q · ${pct(carbs*4)}%</b></div><div class="mbar"><i style="width:${pct(carbs*4)}%;background:var(--c)"></i></div>
-    </div>
-    <div class="macro">
-      <div class="mrow"><span>Yağ</span><b class="num">${fat} q · ${pct(fat*9)}%</b></div><div class="mbar"><i style="width:${pct(fat*9)}%;background:var(--a)"></i></div>
-    </div>
-  </div>`;
 }
 
 /* ================= PROGRESS ================= */
@@ -2284,7 +2312,7 @@ function openLibPick(D, idx){
   if(planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
   libFilter = { P:"push", L:"pull", G:"legs" }[D] || "all";   /* günün qrupu ilə başla */
   libQuery = "";
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${idx===null?"Hərəkət əlavə et":"Hərəkəti əvəz et"}</h3>
     <div class="stag">${DAY_META[D].name}</div>
     <input class="srch" id="libq" placeholder="Axtar: bench, squat, curl..." oninput="libSearch(this.value)">
@@ -2319,7 +2347,7 @@ function renderLibList(){
 function openSlotEdit(D,i){
   if(planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
   const sl = daySlots(D)[i], ex = mkEx(sl, D);
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     ${exImg(ex,"exanim big")}
     <h3>${esc(ex.name)}</h3><div class="stag">${esc(ex.tag||"")}</div>
     <div class="grid2">
@@ -2352,7 +2380,7 @@ function applySlot(D,i){
 const clean = s => String(s||"").replace(/[<>]/g,"").trim();
 function openCustom(key){
   const e = (key && state.userEx && state.userEx[key]) || { name:"", tag:"", g:"push", sets:3, rMin:10, rMax:12, rest:90, inc:2.5, cues:[] };
-  $("#sheet").innerHTML = `<div class="grab"></div>
+  $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${key?"Hərəkətə düzəliş":"Öz hərəkətini yarat"}</h3>
     <div class="field"><label>Ad</label><input id="cx-name" value="${esc(e.name)}" placeholder="məs. Landmine Press"></div>
     <div class="grid2">
@@ -2418,7 +2446,7 @@ function delCustom(k){
   const d=new Date();
   $("#dateChip").innerHTML = `<b>${d.toLocaleDateString("az",{weekday:"long"})}</b><br>${d.toLocaleDateString("az",{day:"numeric",month:"short",year:"numeric"})}`;
 })();
-loadState().then(()=>{ renderSaveNote(); renderToday(); });
+loadState().then(()=>{ autoFinishStale(); renderSaveNote(); renderToday(); });
 window.addEventListener("load", ()=>{
   sbBoot();                                    /* after the deferred Supabase CDN script */
   /* Offline shell. Needs https (Netlify) or localhost — silently skipped on file:// */

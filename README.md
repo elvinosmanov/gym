@@ -13,8 +13,9 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Əzələ xəritəsi** — ön/arxa bədən üzərində hansı əzələnin nə qədər işlədiyi (əsas dövr tam, köməkçi yarım sayılır), gün və tam dövr üzrə
 - **İkiqat proqressiya** — bütün dövrlərdə diapazonun yuxarı həddinə çatanda tətbiq çəki artırmağı təklif edir
 - **Günə uyğun qızışma** siyahısı + 4 dəqiqəlik taymer
-- **Real vaxt sayğacı** — vaxt qeydlərdən hesablanır: dövrlər arası 20 dəqiqədən uzun boşluqlar sayılmır, ona görə "Bitir"i basmağı unutmaq nəticəni pozmur
-- **İstirahət taymeri** (ekranı yatmağa qoymur), bədən çəkisi və təxmini 1TM qrafikləri, kalori/makro hesablayıcısı
+- **Real vaxt sayğacı** — vaxt qeydlərdən hesablanır: dövrlər arası 20 dəqiqədən uzun boşluqlar sayılmır. "Bitir"i unutsan, 3 saatdan sonra məşq özü bağlanır və düzgün müddətlə yadda saxlanılır
+- **Yük tipi** — hər hərəkət kq xanasının nəyi ölçdüyünü bilir (ştanq cəmi / bir hantel / yığın / əlavə disk) və ştanq hərəkətlərində hər tərəfə hansı diskləri taxmalı olduğunu göstərir
+- **İstirahət taymeri** (ekranı yatmağa qoymur), bədən çəkisi və təxmini 1TM qrafikləri
 - **Yaddaş**: localStorage + istəyə bağlı Supabase bulud sinxronizasiyası (sahə səviyyəsində birləşdirmə, son-yazan-qalib deyil) + .json ixrac/idxal
 
 Bütün təsdiq pəncərələri tətbiqin özündədir — brauzerin `confirm()`/`alert()` pəncərələri PWA və daxili brauzerlərdə bloklana bildiyi üçün istifadə olunmur.
@@ -33,7 +34,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v5` → `forge-v6`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v6` → `forge-v7`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 
