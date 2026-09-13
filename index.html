@@ -619,6 +619,14 @@ const IMG={
   cbcu:["Standing_Biceps_Cable_Curl/0.jpg","Standing_Biceps_Cable_Curl/1.jpg"],
   prc:["Preacher_Curl/0.jpg","Preacher_Curl/1.jpg"],
   con:["Concentration_Curls/0.jpg","Concentration_Curls/1.jpg"],
+  incc:["Incline_Dumbbell_Curl/0.jpg","Incline_Dumbbell_Curl/1.jpg"],
+  bayc:["Standing_One-Arm_Cable_Curl/0.jpg","Standing_One-Arm_Cable_Curl/1.jpg"],
+  bcur:["Barbell_Curl/0.jpg","Barbell_Curl/1.jpg"],
+  spdr:["Spider_Curl/0.jpg","Spider_Curl/1.jpg"],
+  mcur:["Machine_Bicep_Curl/0.jpg","Machine_Bicep_Curl/1.jpg"],
+  rvcu:["Reverse_Barbell_Curl/0.jpg","Reverse_Barbell_Curl/1.jpg"],
+  zott:["Zottman_Curl/0.jpg","Zottman_Curl/1.jpg"],
+  ihcu:["Incline_Hammer_Curls/0.jpg","Incline_Hammer_Curls/1.jpg"],
   chcu:["Cable_Hammer_Curls_-_Rope_Attachment/0.jpg","Cable_Hammer_Curls_-_Rope_Attachment/1.jpg"],
   xham:["Cross_Body_Hammer_Curl/0.jpg","Cross_Body_Hammer_Curl/1.jpg"],
   hsq:["Hack_Squat/0.jpg","Hack_Squat/1.jpg"],
@@ -865,6 +873,33 @@ prc:{name:"Preacher Curl", tag:"Biseps (aşağı hissə)", g:"pull", pri:["bicep
   cues:["Qoltuqaltı yastığa yapışsın — ətalət mümkün deyil.","Aşağıda qolu tam açın, ancaq oynağı zorla dartmayın."]},
 con:{name:"Concentration Curl", tag:"Biseps (zirvə)", g:"pull", pri:["biceps"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"con",
   cues:["Dirsəyi budun içinə dayayın.","Yuxarıda bir saniyə sıxın — bu hərəkət ağır çəki yox, sıxılma üçündür."]},
+/* ---- biseps seçimləri ----
+   2025-ci ilin iki randomizə tədqiqatı eyni şeyi göstərir: çiyin ARXADA (incline,
+   Bayesian) olanda biseps çiyin oynağında da gərilir və qolun YUXARI hissəsi daha
+   çox böyüyür; çiyin ÖNDƏ (preacher, spider) olanda isə yük hərəkətin başında
+   ağırlaşır və dirsəyə YAXIN hissə (brachialis) daha çox böyüyür.
+   Kassiano 2025 (n=63, 8 həftə): yuxarı hissə incline +11.2% / preacher +8.3%;
+   aşağı hissə preacher +10.3% / incline +6.4%.
+   Ona görə ən yaxşısı “ya bu, ya o” deyil — dövrdə hər iki mövqedən bir hərəkət. */
+incc:{name:"Incline Dumbbell Curl", tag:"Biseps (yuxarı hissə · gərilmiş)", g:"pull", pri:["biceps"], sec:["forearm"], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"incc",
+  cues:["Skamya 45-60°, kürək yastığa yapışıq — qollar bədənin arxasında sərbəst assın.","Dirsəyi irəli çəkmə: yalnız said qalxsın.","Aşağıda qolu tam aç — hərəkətin əsas qazancı məhz o gərilmədədir."],
+  mist:["Dirsəyi qabağa gətirmək — biseps gərilməsi itir.","Çox ağır hantel götürüb yarımçıq endirmək."]},
+bayc:{name:"Bayesian Cable Curl", tag:"Biseps (uzun baş · daimi gərginlik)", g:"pull", pri:["biceps"], sec:["forearm"], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"bayc",
+  cues:["Aşağı bloka arxası ilə dayan, bir addım qabağa çıx — qol bədənin arxasında qalsın.","Tək qolla işlə, o biri əllə dayaq tut.","Kabel aşağıda da gərginliyi buraxmır — endirməni ləngit."],
+  mist:["Blokun tam üstündə dayanmaq — qol arxada qalmır, adi bükməyə çevrilir."]},
+bcur:{name:"Barbell Curl", tag:"Biseps · ən ağır variant", g:"pull", pri:["biceps"], sec:["forearm"], load:"bar", sets:3, rMin:6, rMax:10, rest:75, inc:2.5, im:"bcur",
+  cues:["Düz ştanq daha çox çəki götürməyə imkan verir — artım üçün ən asan hərəkət.","Dirsəklər böyürdə sabit, bel neytral.","Bilək ağrıyırsa EZ ştanqa keç."],
+  mist:["Beli qurbağa kimi yelləmək.","Dirsəkləri yuxarı qaldırıb yükü çiyinə ötürmək."]},
+spdr:{name:"Spider Curl", tag:"Biseps (zirvə · sıxılma)", g:"pull", pri:["biceps"], sec:[], load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"spdr",
+  cues:["Skamyanın üzü üstə uzan, qollar şaquli assın.","Ətalət sıfırdır — yuxarıda bir saniyə sıx.","Preacher ailəsindəndir: dirsəyə yaxın hissəni yükləyir."]},
+mcur:{name:"Machine Biceps Curl", tag:"Biseps · aparat", g:"pull", pri:["biceps"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"mcur",
+  cues:["Yol sabitdir — texnika pozulmadan tükənməyə yaxın işləmək olar.","Dirsək oxu aparatın oxu ilə üst-üstə düşsün.","Sonuncu dövrü tam gücə apara bilərsən, ştanq kimi risk yoxdur."]},
+rvcu:{name:"Reverse Barbell Curl", tag:"Brachialis · Brachioradialis", g:"pull", pri:["biceps","forearm"], sec:[], load:"bar", sets:3, rMin:8, rMax:12, rest:60, inc:1.25, im:"rvcu",
+  cues:["Ovuclar aşağı. Çəki adi bükmədən xeyli az olacaq — normaldır.","Biləyi qırma, sabit saxla.","Qolun qalınlığını artıran hissəni (brachialis) bura yükləyir."]},
+zott:{name:"Zottman Curl", tag:"Biseps + Said", g:"pull", pri:["biceps","forearm"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"zott",
+  cues:["Ovuclar yuxarı qaldır, yuxarıda bilək çevir, ovuclar aşağı endir.","Endirmə hissəsi yavaş — said orada işləyir."]},
+ihcu:{name:"Incline Hammer Curl", tag:"Brachialis (gərilmiş)", g:"pull", pri:["biceps","forearm"], sec:[], load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"ihcu",
+  cues:["Çəkic tutuş + arxaya əyilmiş skamya: brachialis gərilmiş vəziyyətdə yüklənir.","Dirsək bədənin arxasında qalsın."]},
 chcu:{name:"Cable Hammer Curl (rope)", tag:"Brachialis · Said", g:"pull", pri:["biceps","forearm"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:60, inc:2.5, im:"chcu",
   cues:["Kəndir tutuşu — baş barmaqlar yuxarı.","Dirsəklər sabit, yalnız said qalxır."]},
 xham:{name:"Cross-Body Hammer Curl", tag:"Brachialis", pri:["biceps","forearm"], sec:[], g:"pull", load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"xham",
@@ -927,7 +962,12 @@ const ALT_OF = {
   bp:["dbp","wbp","smbp"], sdp:["ohp","arn","oasp"], idp:["incm","hgip","smip","idfl"],
   lat:["uprb","uprc","dfr"], fly:["pdk","dbfl","idfl","icf","fbcf","lcfl","dcfl"], tri:["vbar","mtri","ktri","ohdb","dbte","skc","kick","dip","ohte"],
   lp:["pu","chn","vbpd","cgpd","dpul"], row:["rgr","brow","dpul"], tbr:["brow"], rdr:["dbrf","rdrb","bocl","srlc"],
-  cur:["dbcu","cbcu","prc","con"], ham:["chcu","xham"],
+  /* sıra təsadüfi deyil: əvvəl çiyin arxada olan variantlar (yuxarı hissə),
+     sonra ağır ştanq, sonra çiyin öndə olanlar (dirsəyə yaxın hissə) */
+  cur:["incc","bayc","bcur","prc","spdr","mcur","dbcu","cbcu","con","rvcu","zott"],
+  ham:["chcu","ihcu","xham","rvcu","zott"],
+  incc:["bayc","prc","spdr","cur","dbcu"], bayc:["incc","cbcu","cur","mcur"],
+  bcur:["cur","dbcu","prc","mcur"], mcur:["cbcu","prc","cur","bayc"],
   sq:["hsq","fsq","smsq","wsq","gsq"], lpz:["nlp","smhs"], llc:["slc","stlc","gm"],
   lex:["siss"], calf:["scr","dcr","lpcr","don"],
   wlg:["stpu","pls","gsq"], gsq:["wlg","stpu","pls"], hsq:["smhs","smsq","gsq","pls"], mchp:["dbp","ddbp","oabp","pshu"], upd:["nchn"], msp:["sdp","arn","oasp","dfr","smil"],
@@ -989,7 +1029,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v32";
+const APP_VERSION = "forge-v33";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
