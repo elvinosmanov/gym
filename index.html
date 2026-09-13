@@ -218,6 +218,7 @@ details.wu.done .wulist li b{text-decoration:line-through}
 .credit{font-size:10px;color:var(--dim);text-align:center;margin:8px 0 10px}
 .bodyfig span{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:4px}
 .mlist{margin-top:2px}
+.mlist.wide .mrowv{grid-template-columns:1fr 56px 92px}
 .mrowv{display:grid;grid-template-columns:1fr 76px 34px;gap:8px;align-items:center;padding:5px 0;font-size:12.5px}
 .mrowv .mn{color:var(--ink)}
 .mrowv .mb{height:7px;border-radius:99px;background:var(--card2);overflow:hidden}
@@ -324,6 +325,31 @@ details.rules .inner{padding:0 16px 14px;border-top:1px solid var(--line)}
 select.lift{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:12px;font-size:15px;margin:8px 0}
 .prbadge{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#151515;background:var(--c);
   border-radius:7px;padding:3px 9px;font-weight:700;margin-left:8px}
+.lift{padding:14px 0;border-bottom:1px solid var(--line)}
+.lift:first-child{padding-top:2px}
+.lift:last-child{border-bottom:0;padding-bottom:2px}
+.lhead{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.lname{font-family:var(--disp);font-weight:600;font-size:15.5px;letter-spacing:.02em;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbadge{flex:none;font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-radius:99px;
+  padding:3px 9px;border:1px solid var(--line);color:var(--mut)}
+.lbadge.up{color:var(--green);border-color:rgba(62,207,142,.4)}
+.lbadge.down{color:var(--red);border-color:rgba(224,72,78,.4)}
+.lbadge.flat{color:var(--c);border-color:rgba(243,183,63,.35)}
+.lrow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:8px}
+.lnum b{display:block;font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:.02em}
+.lnum small{display:block;color:var(--dim);font-size:11px;margin-top:2px}
+.spk{width:84px;height:26px;flex:none}
+.lmeta{font-size:11.5px;color:var(--mut);margin-top:8px}
+.lmeta b{color:var(--ink)}
+.lnext{font-size:13px;margin-top:8px;padding:8px 10px;border-radius:9px;background:var(--card2);border:1px dashed var(--line)}
+.lnext b{color:var(--ink)}
+.lnext.up{border-color:rgba(62,207,142,.4)}
+.lnext.up b{color:var(--green)}
+.lnext.warn{border-color:rgba(243,183,63,.4)}
+.lnext.warn b{color:var(--c)}
+.lproj{font-size:12px;color:var(--c);margin-top:6px}
+.lproj b{color:var(--ink)}
 .prrow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
 .prrow:last-child{border-bottom:0}
 .prrow .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1407,28 +1433,168 @@ function onlyFoundation(key){
   return !lastPerf(key) && !!lastPerf(key, {includeFoundation:true});
 }
 function perfStr(p){ return p.sets.map(s=>`${s.kg>0?s.kg:"BÇ"}×${s.reps}`).join(", "); }
+/* ================= PROQRESSİYA ALQORİTMİ =================
+   Köhnə məntiq primitiv idi: “bütün dövrlərdə maks təkrara çatdınmı?” — çatmadınsa
+   eyni çəkidə saxlayırdı. Bu, real zalda baş verəni görmürdü: son dövrdə çəkini
+   artırıb 12 əvəzinə 10 təkrar etmək GERİLƏMƏ deyil, İRƏLİLƏMƏDİR.
+
+   Ona görə qərar təkrar sayına yox, hər dövrün TƏXMİNİ 1TM-nə baxır (Epley:
+   kq × (1 + təkrar/30)). Bu, çəki ilə təkrarı bir ölçüyə gətirir:
+     60×10 = 80.0     62.5×9  = 81.3     65×8 = 82.3
+   Yəni çəkini artırıb bir-iki təkrar itirmək hesabda irəliləmədir — alqoritm bunu
+   görür və “eyni çəkidə qal” demir.
+
+   Baxdığı şeylər: ən yaxşı dövrün 1TM-i, iş çəkisi, ümumi həcm (kq×təkrar) və
+   son üç məşqin trendi. Nəticədə konkret göstəriş verir: çəki artır / təkrar
+   artır / yüngülləşdir. */
+function exSessions(key, limit){
+  const out = [];
+  for(let i=state.sessions.length-1; i>=0 && out.length<(limit||8); i--){
+    const s = state.sessions[i];
+    if(s.foundation) continue;
+    const f = s.ex.find(e=>e.key===key);
+    if(!f || !f.sets.length) continue;
+    const sets = f.sets.filter(x=>x.reps>0);
+    if(!sets.length) continue;
+    let top = sets[0];
+    sets.forEach(x=>{ if(e1rm(x.kg, x.reps) > e1rm(top.kg, top.reps)) top = x; });
+    const bw = sets.every(x => !(x.kg > 0));                /* bədən çəkisi: 1TM mənasızdır */
+    if(bw) sets.forEach(x=>{ if(x.reps > top.reps) top = x; });
+    out.push({
+      d: s.d, sets, bw,
+      top,                                                   /* ən güclü dövr */
+      e1: bw ? top.reps : e1rm(top.kg, top.reps),
+      vol: sets.reduce((a,x)=>a + (x.kg||0)*x.reps, 0),      /* həcm: kq × təkrar */
+      reps: sets.reduce((a,x)=>a+x.reps, 0)
+    });
+  }
+  return out;                                                /* yenidən köhnəyə doğru */
+}
+const r05 = v => Math.round(v*2)/2;
+/* əsas qərar funksiyası — bütün təkliflər buradan çıxır */
+function progressPlan(key){
+  const ex = EXMAP[key];
+  if(!ex) return null;
+  const H = exSessions(key, 8);
+  const inc = incFor(ex), u = unitOf(ex);
+  if(!H.length){
+    const only = onlyFoundation(key);
+    return { action:"first", kg:null, reps:ex.rMax, cls:"",
+      txt: only
+        ? "Təməl məşqi qəsdən yüngül idi, ona görə baza sayılmır. Bu gün <b>real iş çəkisi</b> seç: son təkrardan sonra hələ ~2 təkrar edə biləcəyin çəki."
+        : "İlk dəfə: ~2 əlavə təkrar edə biləcəyin çəki seç. Qeyd et — davamını mən götürəcəyəm." };
+  }
+  const L = H[0];                       /* sonuncu məşq */
+  const best = Math.max(...H.map(h=>h.e1));
+  const prevBest = H.length>1 ? Math.max(...H.slice(1).map(h=>h.e1)) : 0;
+  const T = L.top.kg, R = L.top.reps;
+  const bw = ex.bodyweight && !(T>0);
+  const pr = L.e1 >= best - 0.01;       /* sonuncu məşq ən yaxşısıdır */
+  const near = L.e1 >= prevBest * 0.985; /* 1.5% həddində — praktiki olaraq bərabər */
+  /* durğunluq: son üç məşqdə ən yaxşı nəticə ondan əvvəlkiləri keçməyib */
+  let stalled = false;
+  if(H.length >= 5){
+    const last3 = Math.max(...H.slice(0,3).map(h=>h.e1));
+    const older = Math.max(...H.slice(3).map(h=>h.e1));
+    stalled = last3 < older * 1.005;
+  }
+  const fmt = v => (Math.round(v*10)/10);
+
+  /* bədən çəkisi ilə: çəki yox, təkrar artır */
+  if(bw){
+    const allTop = L.sets.every(s=>s.reps>=ex.rMax);
+    if(allTop) return { action:"up", kg:inc, reps:ex.rMin, cls:"up",
+      txt:`Bədən çəkisi ilə bütün dövrlərdə ${ex.rMax} təkrara çatdın — indi <b>disk əlavə et</b> (${inc} ${u}) və ${ex.rMin} təkrardan başla.` };
+    if(R >= ex.rMax) return { action:"reps", kg:0, reps:ex.rMax, cls:"",
+      txt:`Bədən çəkisi ilə: ən güclü dövrün artıq <b>${R} təkrar</b>. Qalan dövrləri də ${ex.rMax}-ə çatdır — hamısı çatanda disk əlavə edirik.` };
+    return { action:"reps", kg:0, reps:Math.min(ex.rMax, R+1), cls:"",
+      txt:`Bədən çəkisi ilə işlə. Keçən dəfə ən yaxşı dövr <b>${R} təkrar</b> idi — bu gün hədəf <b>${Math.min(ex.rMax,R+1)}</b>. Hamısı ${ex.rMax}-ə çatanda disk əlavə edəcəyik.` };
+  }
+
+  /* 1) hamısı yuxarı hədə çatıb -> çəki artır */
+  if(L.sets.every(s=>s.reps>=ex.rMax) && L.sets.every(s=>s.kg>=T-0.01)){
+    return { action:"up", kg:r05(T+inc), reps:ex.rMin, cls:"up",
+      txt:`Keçən dəfə <b>${T} ${u}</b> ilə bütün dövrlərdə ${ex.rMax} təkrar. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}) — ${ex.rMin} təkrardan başla.` };
+  }
+  /* 2) ən güclü dövr yuxarı hədi keçib (qalan dövrlər daha yüngül olsa belə):
+        deməli o çəki artıq mənimsənilib — növbəti dəfə üstünə qoy */
+  if(R >= ex.rMax){
+    return { action:"up", kg:r05(T+inc), reps:ex.rMin, cls:"up",
+      txt:`Keçən dəfə ən güclü dövr <b>${T} ${u} × ${R}</b> — ${ex.rMax} hədəfini keçdin. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}), ${ex.rMin} təkrardan başla.` };
+  }
+  /* 3) çəki çox ağırdır: ən yaxşı dövr belə minimumdan aşağı */
+  if(R < ex.rMin){
+    const ok = H.find(h => h.top.reps >= ex.rMin);
+    const back = ok ? ok.top.kg : r05(Math.max(inc, T - inc));
+    return { action:"down", kg:r05(back), reps:ex.rMin, cls:"warn",
+      txt:`Keçən dəfə <b>${T} ${u} × ${R}</b> — diapazonun altında qaldı, yəni çəki hələ tezdir. Bu gün <b>${r05(back)} ${u}</b> ilə ${ex.rMin}-${ex.rMax} təkrara qayıt, sonra yenidən qalx.` };
+  }
+  /* 4) üç məşqdir yerində sayır -> yüngülləşdirmə */
+  if(stalled){
+    const dl = r05(Math.max(inc, T*0.9));
+    return { action:"deload", kg:dl, reps:ex.rMax, cls:"warn",
+      txt:`Üç məşqdir bu hərəkətdə irəliləmə yoxdur (ən yaxşı ${fmt(best)} ${u} 1TM). Bu gün <b>${dl} ${u}</b>-a en, ${ex.rMax} təkrarı asanlıqla vur, sonra yenidən yüksəl — bu, dayanmanı qırmağın ən qısa yoludur.` };
+  }
+  /* 5) rekord və ya ona bərabər: çəkini SAXLA, təkrar əlavə et.
+        (köhnə məntiq burada səhvən “çatmadın, eyni çəkidə qal” deyirdi) */
+  if(pr || near){
+    const tgt = Math.min(ex.rMax, R+1);
+    const gain = prevBest ? Math.round((L.e1 - prevBest)*10)/10 : 0;
+    return { action:"reps", kg:r05(T), reps:tgt, cls:"up",
+      txt: pr && gain > 0
+        ? `Keçən dəfə <b>${T} ${u} × ${R}</b> — bu sənin ən güclü dövrün idi (təxmini 1TM ${fmt(L.e1)} ${u}, +${gain}). ${R} təkrar ${ex.rMax}-dən az olsa da bu irəliləmədir. Bu gün <b>eyni ${T} ${u}</b>, hədəf <b>${tgt} təkrar</b>.`
+        : `Keçən dəfə <b>${T} ${u} × ${R}</b> — ən yaxşı nəticənə bərabərdir. Bu gün <b>${T} ${u}</b> ilə <b>${tgt} təkrar</b> hədəflə; ${ex.rMax}-ə çatanda çəki artacaq.` };
+  }
+  /* 6) ən yaxşıdan geri qalıb — həcmi bərpa et */
+  const bestH = H.reduce((a,h)=>h.e1>a.e1?h:a, H[0]);
+  return { action:"hold", kg:r05(T), reps:Math.min(ex.rMax, R+1), cls:"",
+    txt:`Keçən dəfə <b>${T} ${u} × ${R}</b>. Ən yaxşın <b>${bestH.top.kg} ${u} × ${bestH.top.reps}</b> (${fmtD(bestH.d)}) — bu gün əvvəlcə ona qayıt, sonra irəli. Hədəf: <b>${Math.min(ex.rMax,R+1)} təkrar</b>.` };
+}
+/* köhnə çağırış yerləri üçün nazik örtük */
 function suggestKg(key){
-  const p = lastPerf(key), ex = EXMAP[key];
-  if(!p) return null;
-  const top = Math.max(...p.sets.map(s=>s.kg));
-  /* unloaded movement: progression is reps, not load — never suggest 0+inc */
-  if(ex.bodyweight && !(top>0)) return 0;
-  const allTop = p.sets.every(s=>s.reps>=ex.rMax);
-  return Math.round((allTop ? top+ex.inc : top)*10)/10;
+  const p = progressPlan(key);
+  if(!p || p.kg == null) return null;
+  return p.kg;
+}
+function suggestReps(key){
+  const p = progressPlan(key);
+  return (p && p.reps) || (EXMAP[key] ? EXMAP[key].rMax : 10);
 }
 function hintFor(ex, p){
-  if(!p){
-    if(onlyFoundation(ex.key)) return { cls:"", txt:"Təməl məşqi qeydə alındı — o, qəsdən yüngül idi, ona görə proqressiya bazası sayılmır. Bu gün <b>real iş çəkisi</b> seçin: son təkrardan sonra hələ ~2 təkrar edə biləcəyiniz çəki. Artım bundan sonra başlayır." };
-    return { cls:"", txt:"İlk dəfə: ~2 əlavə təkrar edə biləcəyiniz çəki seçin. Qeyd edin — davamını mən götürəcəyəm." };
-  }
-  const sug = suggestKg(ex.key);
-  const allTop = p.sets.every(s=>s.reps>=ex.rMax);
-  if(ex.bodyweight && !(sug>0)){
-    if(allTop) return { cls:"up", txt:`Bədən çəkisi ilə bütün dövrlərdə ${ex.rMax} təkrara çatdınız — indi <b>disk əlavə edin</b> (2.5-5 kq) və yenidən ${ex.rMin} təkrardan başlayın.` };
-    return { cls:"", txt:`Bədən çəkisi ilə işləyin — çəki xanasını boş buraxın. Hədəf: hər dövrdə <b>${ex.rMax} təkrar</b>. Çatanda növbəti dəfə disk əlavə edəcəksiniz.` };
-  }
-  if(allTop) return { cls:"up", txt:`Bu gün bütün dövrlər: <b>${sug} ${unitOf(ex)}</b> (+${ex.inc} ${unitOf(ex)}) — keçən dəfə hamısı ${ex.rMax} təkrara çatdı. Haqq etmisiniz.` };
-  return { cls:"", txt:`Bu gün bütün dövrlər: <b>${sug} ${unitOf(ex)}</b> — çəkini saxlayın, hər dövrdə ${ex.rMax} təkrara doğru çalışın. Proqres = əvvəl təkrar, sonra çəki.` };
+  const pl = progressPlan(ex.key);
+  return pl ? { cls: pl.cls, txt: pl.txt } : { cls:"", txt:"" };
+}
+/* ---- trend və proqnoz: Proqres səhifəsi üçün ---- */
+function liftTrend(key){
+  const H = exSessions(key, 10);
+  if(H.length < 2) return null;
+  const pts = H.slice().reverse().map(h=>({ t:new Date(h.d).getTime()/86400000, y:h.e1, d:h.d }));
+  const n = pts.length;
+  const mx = pts.reduce((a,p)=>a+p.t,0)/n, my = pts.reduce((a,p)=>a+p.y,0)/n;
+  let num=0, den=0;
+  pts.forEach(p=>{ num += (p.t-mx)*(p.y-my); den += (p.t-mx)**2; });
+  const perDay = den ? num/den : 0;
+  const first = pts[0], last = pts[n-1];
+  const days = Math.max(1, last.t - first.t);
+  return {
+    n, perWeek: perDay*7, e1: last.y, bestE1: Math.max(...pts.map(p=>p.y)),
+    change: last.y - first.y, days,
+    status: perDay*7 > 0.35 ? "up" : (perDay*7 < -0.35 ? "down" : "flat")
+  };
+}
+/* cari iş çəkisindən növbəti dəyirmi mərhələyə nə qədər qalıb */
+function projection(key){
+  const t = liftTrend(key), ex = EXMAP[key];
+  if(!t || t.perWeek <= 0.15) return null;
+  const inc = incFor(ex);
+  const H = exSessions(key, 1);
+  const cur = H.length ? H[0].top.kg : 0;
+  if(!cur) return null;
+  const step = unitOf(ex)==="lb" ? 10 : (inc>=5 ? 10 : 5);
+  const target = Math.ceil((cur + 0.1)/step)*step;
+  const weeks = Math.ceil((target - cur) / (t.perWeek * 0.75));   /* 1TM artımı iş çəkisinə tam keçmir */
+  if(weeks < 1 || weeks > 40) return null;
+  return { target, weeks, unit: unitOf(ex) };
 }
 const r25 = v => Math.round(v/2.5)*2.5;
 /* Rolling 7 days, not since-Monday: training every other day drifts across the calendar
@@ -1512,17 +1678,19 @@ function tonnage(s){
 function dueIncreases(day){
   const out = [];
   (PROGRAM[day] ? PROGRAM[day].ex : []).forEach(ex=>{
-    const p = lastPerf(ex.key); if(!p) return;
-    if(!p.sets.every(s=>s.reps >= ex.rMax)) return;
-    const sug = suggestKg(ex.key);
-    const top = Math.max(...p.sets.map(s=>s.kg));
-    if(sug > top) out.push(`${ex.name}: ${top} → <b>${sug} ${unitOf(ex)}</b>`);
+    const pl = progressPlan(ex.key);
+    if(!pl) return;
+    const H = exSessions(ex.key, 1);
+    const top = H.length ? H[0].top.kg : 0;
+    if(pl.action === "up" && pl.kg > top) out.push({t:`${ex.name}: ${top} → <b>${pl.kg} ${unitOf(ex)}</b>`, c:"up", i:"↑"});
+    else if(pl.action === "deload") out.push({t:`${ex.name}: üç məşqdir yerində sayır — <b>${pl.kg} ${unitOf(ex)}</b>-a en`, c:"", i:"↓"});
+    else if(pl.action === "down") out.push({t:`${ex.name}: çəki ağır gəlib — <b>${pl.kg} ${unitOf(ex)}</b>-a qayıt`, c:"", i:"↓"});
   });
   return out;
 }
 function briefItems(day){
   const items = [], vol = loggedVolume(14);
-  dueIncreases(day).slice(0,3).forEach(t=>items.push({i:"↑", t:`Çəki artır — ${t}`, c:"up"}));
+  dueIncreases(day).slice(0,3).forEach(x=>items.push({i:x.i, t:x.t, c:x.c}));
   /* 14 gündə heç işlənməyən və ya çox az işlənən əzələ */
   const low = Object.keys(MUSN).filter(m=>(vol[m]||0) < 4);
   if(state.sessions.length >= 3 && low.length)
@@ -2087,7 +2255,7 @@ function smartKg(key,i){
 function smartReps(key,i){
   const st = state.active.ex[key];
   for(let j=i-1;j>=0;j--){ const v=parseFloat(st[j].reps); if(v) return v; }
-  return EXMAP[key].rMax;
+  return suggestReps(effEx(key).key);
 }
 function stepVal(key,i,f,dir){
   const s = state.active.ex[key][i];
@@ -2421,38 +2589,102 @@ function chartSVG(pts,color,unit){
     <text x="${W-R}" y="${H-4}" text-anchor="end" font-size="10" fill="#6b7480">${fmtD(pts[pts.length-1].d)}</text>
   </svg>`;
 }
+/* kiçik trend xətti — hər hərəkət kartı üçün */
+function spark(vals, color){
+  if(vals.length < 2) return "";
+  const W=84, H=26, mn=Math.min(...vals), mx=Math.max(...vals), r=(mx-mn)||1;
+  const pts = vals.map((v,i)=>`${(i/(vals.length-1)*W).toFixed(1)},${(H-2 - (v-mn)/r*(H-4)).toFixed(1)}`);
+  return `<svg class="spk" viewBox="0 0 ${W} ${H}"><polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${W}" cy="${(H-2 - (vals[vals.length-1]-mn)/r*(H-4)).toFixed(1)}" r="2.6" fill="${color}"/></svg>`;
+}
+/* cədvələ nə qədər əməl olunub — son 28 gün */
+function adherence(){
+  let planned = 0, done = 0;
+  for(let i=0;i<28;i++){
+    const iso = addDaysISO(todayISO(), -i);
+    if(isTrainDay(iso)) planned++;
+    if(state.sessions.some(s=>s.d===iso)) done++;
+  }
+  return { planned, done, pct: planned ? Math.round(done/planned*100) : 0 };
+}
+/* gün tipi üzrə vaxt bölgüsü */
+function timeByDay(){
+  const m = {};
+  DAYS.forEach(d=>m[d]={n:0,min:0,sets:0});
+  state.sessions.forEach(s=>{
+    if(!m[s.day]) return;
+    m[s.day].n++;
+    m[s.day].min += (s.min||0);
+    m[s.day].sets += s.ex.reduce((a,e)=>a+e.sets.length,0);
+  });
+  return m;
+}
 function renderProg(){
   const wPts = state.weights.map(x=>({d:x.d, y:Math.round(x.kg*10)/10}));
-  const liftKeys = [...new Set(state.sessions.flatMap(s=>s.ex.map(e=>e.key)))];
-  if(!selLift || !liftKeys.includes(selLift)) selLift = liftKeys.includes("sq") ? "sq" : liftKeys[0] || null;
+  const real = state.sessions.filter(s=>!s.foundation);
+  const mins = real.filter(s=>s.min!=null);
+  const avgMin = mins.length ? Math.round(mins.reduce((a,s)=>a+s.min,0)/mins.length) : null;
+  const monthISO = todayISO().slice(0,7);
+  const thisMonth = state.sessions.filter(s=>s.d.slice(0,7)===monthISO).length;
+  const totTon = Math.round(state.sessions.reduce((a,s)=>a+tonnage(s),0));
+  const adh = adherence();
+  const tbd = timeByDay();
 
-  let liftBlock = `<div class="empty">İlk məşqinizi bitirin, güc qrafikləri burada görünəcək.</div>`;
-  if(selLift){
-    /* charts show every session, foundation included — only progression math skips it */
-    const rows = [];
-    state.sessions.forEach(s=>{ const f=s.ex.find(e=>e.key===selLift); if(f) rows.push({d:s.d, sets:f.sets}); });
-    const sel = `<select class="lift" onchange="pickLift(this.value)">${liftKeys.map(k=>`<option value="${esc(k)}" ${k===selLift?"selected":""}>${esc(exName(k))}</option>`).join("")}</select>`;
-    const loaded = rows.some(r=>r.sets.some(st=>st.kg>0));
-    if(loaded){
-      const pts=[]; let pr=null;
-      rows.forEach(r=>{
-        let best=null;
-        r.sets.forEach(st=>{ if(!(st.kg>0)) return; /* a 0 kg set would flatten the 1RM line */
-          const v=e1rm(st.kg,st.reps); if(!best||v>best.v) best={v,kg:st.kg,reps:st.reps}; });
-        if(best){ pts.push({d:r.d, y:Math.round(best.v)}); if(!pr||best.v>pr.v) pr={...best,d:r.d}; }
-      });
-      liftBlock = `${sel}
-      <div class="chartbox">${chartSVG(pts,"#f3b73f"," kq")}</div>
-      ${pr?`<div class="small">Təxmini 1TM trendi · Ən yaxşı dövr: <b style="color:var(--ink)" class="num">${pr.kg} kq × ${pr.reps}</b> (${fmtD(pr.d)})<span class="prbadge">REKORD ${Math.round(pr.v)} kq</span></div>`:""}`;
-    } else {
-      /* unloaded lift: 1RM is meaningless, total reps per session is the real progression */
-      const pts = rows.map(r=>({ d:r.d, y:r.sets.reduce((a,st)=>a+st.reps,0) }));
-      const best = pts.reduce((m,p)=>(!m||p.y>m.y)?p:m, null);
-      liftBlock = `${sel}
-      <div class="chartbox">${chartSVG(pts,"#3ecf8e"," təkrar")}</div>
-      ${best?`<div class="small">Bədən çəkisi ilə — ümumi təkrar trendi. Ən yaxşı məşq: <b style="color:var(--ink)" class="num">${best.y} təkrar</b> (${fmtD(best.d)})<span class="prbadge">REKORD ${best.y} TƏKRAR</span></div>`:""}`;
-    }
+  /* ---- hərəkət analizi: əsas dəyər buradadır ---- */
+  const keys = [...new Set(state.sessions.flatMap(s=>s.ex.map(e=>e.key)))];
+  const rows = keys.map(k=>{
+    const H = exSessions(k, 10);
+    if(!H.length) return null;
+    const t = liftTrend(k), pl = progressPlan(k), pj = projection(k);
+    return { k, name: exName(k), H, t, pl, pj, last: H[0], u: unitOf(EXMAP[k]||{}) };
+  }).filter(Boolean).sort((a,b)=> a.last.d < b.last.d ? 1 : -1);
+
+  const STAT = { up:{t:"irəliləyir",c:"up"}, flat:{t:"yerində sayır",c:"flat"}, down:{t:"geriləyir",c:"down"} };
+  const liftCards = rows.length ? rows.map(r=>{
+    const st = r.t ? STAT[r.t.status] : null;
+    const vals = r.H.slice().reverse().map(h=>h.e1);
+    return `<div class="lift">
+      <div class="lhead">
+        <div class="lname">${esc(r.name)}</div>
+        ${st ? `<span class="lbadge ${st.c}">${st.t}</span>` : `<span class="lbadge">yeni</span>`}
+      </div>
+      <div class="lrow">
+        <div class="lnum"><b class="num">${r.last.bw ? `${r.last.top.reps} təkrar` : `${r.last.top.kg}${r.u==="lb"?" lb":""} × ${r.last.top.reps}`}</b><small>son ən güclü dövr · ${fmtD(r.last.d)}</small></div>
+        ${spark(vals, r.t && r.t.status==="down" ? "#e0484e" : "#3ecf8e")}
+      </div>
+      ${r.t ? `<div class="lmeta">${r.last.bw
+          ? `Ən yaxşı dövr <b class="num">${Math.round(r.t.e1)}</b> təkrar · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} təkrar${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""}`
+          : `Təxmini 1TM <b class="num">${Math.round(r.t.e1)}</b> ${r.u} · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} ${r.u}${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""} · həftədə <b>${r.t.perWeek>=0?"+":""}${Math.round(r.t.perWeek*10)/10}</b>`}</div>` : ""}
+      <div class="lnext ${r.pl.cls}">Növbəti: <b>${r.pl.kg==null?"iş çəkisini seç":(r.last.bw && !(r.pl.kg>0) ? `${r.pl.reps} təkrar` : `${r.pl.kg} ${r.u} × ${r.pl.reps}`)}</b>${
+        r.pl.action==="up"?" — çəki artır":r.pl.action==="deload"?" — yüngülləşdir":r.pl.action==="down"?" — geri qayıt":r.pl.action==="reps"?" — təkrar artır":""}</div>
+      ${r.pj ? `<div class="lproj">Bu tempi saxlasan <b>${r.pj.target} ${r.pj.unit}</b>-a təxminən <b>${r.pj.weeks} həftəyə</b> çatırsan.</div>` : ""}
+    </div>`;
+  }).join("") : `<div class="empty">İki məşq qeyd et — analiz burada özü qurulacaq.</div>`;
+
+  /* ---- diqqət tələb edən nöqtələr ---- */
+  const warn = [];
+  rows.filter(r=>r.pl.action==="deload").forEach(r=>warn.push(`<b>${esc(r.name)}</b> — üç məşqdir irəliləmə yoxdur, ${r.pl.kg} ${r.u}-a enib yenidən qalx.`));
+  rows.filter(r=>r.t && r.t.status==="down").slice(0,3).forEach(r=>warn.push(`<b>${esc(r.name)}</b> — trend aşağıdır (həftədə ${Math.round(r.t.perWeek*10)/10} ${r.u}). Yuxu və qidanı yoxla.`));
+  const vol = loggedVolume(14);
+  const low = Object.keys(MUSN).filter(m=>(vol[m]||0) < 4);
+  if(state.sessions.length>=3 && low.length) warn.push(`Son 2 həftədə az işlənib: <b>${low.slice(0,4).map(m=>MUSN[m]).join(", ")}</b>.`);
+  if(adh.planned>=4 && adh.pct<70) warn.push(`Son 4 həftədə cədvəlin <b>${adh.pct}%</b>-i tutulub (${adh.done}/${adh.planned}). Artım əvvəlcə davamiyyətdən gəlir.`);
+  if(state.weights.length>=3){
+    const w=state.weights[state.weights.length-1], w0=state.weights.find(x=>x.d>=addDaysISO(todayISO(),-21))||state.weights[0];
+    const d=Math.round((w.kg-w0.kg)*10)/10;
+    if(w0!==w && d<=0) warn.push(`Bədən çəkisi 3 həftədə <b>${d} kq</b> — kütlə üçün kalori artımı lazımdır.`);
   }
+
+  const volRows = Object.keys(MUSN).map(m=>({m, v:vol[m]||0})).sort((a,b)=>b.v-a.v);
+  const volMax = Math.max(10, ...volRows.map(r=>r.v));
+
+  const prs = []; const best = {};
+  state.sessions.forEach(s=>s.ex.forEach(e=>e.sets.forEach(st=>{
+    if(!(st.kg>0)) return;
+    const v = e1rm(st.kg, st.reps);
+    if(!best[e.key] || v > best[e.key].v + 0.01){ best[e.key] = {v, kg:st.kg, reps:st.reps, d:s.d, name:e.name}; prs.push({...best[e.key], key:e.key}); }
+  })));
+  const recentPR = prs.slice(-6).reverse();
 
   const hist = state.sessions.length ? state.sessions.slice().reverse().map((s,ri)=>{
     const i = state.sessions.length-1-ri;
@@ -2462,41 +2694,32 @@ function renderProg(){
       ${s.ex.map(e=>`<div class="histset"><b>${esc(e.name)}</b> — <span class="num">${perfStr(e)}</span></div>`).join("")}
       <button class="btn sm danger" style="margin:8px 0 10px" onclick="delSession(${i})">Məşqi sil</button>
     </details>`;
-  }).join("") : `<div class="empty">Hələ məşq yoxdur. Məşq etdikcə tarixçə özü yazılacaq.</div>`;
-
-  /* ---- ümumi göstəricilər ---- */
-  const real = state.sessions.filter(s=>!s.foundation);
-  const mins = real.filter(s=>s.min!=null);
-  const avgMin = mins.length ? Math.round(mins.reduce((a,s)=>a+s.min,0)/mins.length) : null;
-  const monthISO = todayISO().slice(0,7);
-  const thisMonth = state.sessions.filter(s=>s.d.slice(0,7)===monthISO).length;
-  const totTon = Math.round(state.sessions.reduce((a,s)=>a+tonnage(s),0));
-  const vol = loggedVolume(14);
-  const volRows = Object.keys(MUSN).map(m=>({m, v:vol[m]||0})).sort((a,b)=>b.v-a.v);
-  const volMax = Math.max(10, ...volRows.map(r=>r.v));
-
-  /* ---- rekord lenti: hər hərəkət üzrə ən yaxşı dövr nə vaxt qırılıb ---- */
-  const prs = [];
-  const best = {};
-  state.sessions.forEach(s=>s.ex.forEach(e=>{
-    e.sets.forEach(st=>{
-      if(!(st.kg>0)) return;
-      const v = e1rm(st.kg, st.reps);
-      if(!best[e.key] || v > best[e.key].v + 0.01){
-        best[e.key] = {v, kg:st.kg, reps:st.reps, d:s.d, name:e.name};
-        prs.push({...best[e.key], key:e.key});
-      }
-    });
-  }));
-  const recentPR = prs.slice(-6).reverse();
+  }).join("") : `<div class="empty">Hələ məşq yoxdur.</div>`;
 
   $("#view-prog").innerHTML = `
     <div class="stats">
-      <div class="stat"><div class="v num">${real.length}</div><div class="l">Məşq</div></div>
-      <div class="stat"><div class="v num">${thisMonth}</div><div class="l">Bu ay</div></div>
+      <div class="stat"><div class="v num">${thisMonth}</div><div class="l">Bu ay məşq</div></div>
+      <div class="stat"><div class="v num">${adh.pct}<small>%</small></div><div class="l">Cədvəl · 4 həftə</div></div>
       <div class="stat"><div class="v num">${avgMin!=null?avgMin:"—"}<small> dəq</small></div><div class="l">Orta müddət</div></div>
     </div>
-    <div class="card tight"><div class="kcalrow"><span>Ümumi qaldırılan yük</span><span><b class="num">${totTon.toLocaleString()}</b> kq</span></div></div>
+
+    ${warn.length ? `<div class="sect">Diqqət tələb edir</div>
+    <div class="card"><div class="brief">${warn.slice(0,5).map(w=>`<div class="brow"><span class="bi">!</span><p>${w}</p></div>`).join("")}</div></div>` : ""}
+
+    <div class="sect">Hərəkət analizi</div>
+    <div class="card">${liftCards}</div>
+
+    <div class="sect">Vaxt və həcm</div>
+    <div class="card">
+      <div class="mlist wide">${DAYS.filter(d=>tbd[d].n).map(d=>`<div class="mrowv">
+        <span class="mn">${DAY_META[d].name.split(" · ")[0]}</span>
+        <span class="mb"><i style="width:${Math.round(tbd[d].min/Math.max(1,...DAYS.map(x=>tbd[x].min))*100)}%"></i></span>
+        <span class="mv num">${tbd[d].n}× · ${Math.round(tbd[d].min/tbd[d].n)} dəq</span>
+      </div>`).join("") || `<div class="empty">Məşq qeyd etdikcə doldurulacaq.</div>`}</div>
+      <hr class="split">
+      <div class="kcalrow"><span>Ümumi qaldırılan yük</span><span><b class="num">${totTon.toLocaleString()}</b> kq</span></div>
+      <div class="kcalrow"><span>Ümumi məşq · dövr</span><span><b class="num">${real.length}</b> · <b class="num">${state.sessions.reduce((a,s)=>a+s.ex.reduce((b,e)=>b+e.sets.length,0),0)}</b></span></div>
+    </div>
 
     <div class="sect">Son 14 gün · əzələ yükü</div>
     <div class="card">
@@ -2505,16 +2728,14 @@ function renderProg(){
         <span class="mb"><i style="width:${Math.round(r.v/volMax*100)}%"></i></span>
         <span class="mv num">${r.v ? Math.round(r.v*10)/10 : "—"}</span>
       </div>`).join("")}</div>
-      <div class="small" style="margin-top:10px">Həqiqətən qeyd etdiyin dövrlərdən hesablanıb (plandan yox). 2 həftədə əzələ başına <b style="color:var(--ink)">14-30 dövr</b> yaxşı aralıqdır — boş qalanlara hərəkət əlavə et.</div>`
-      : `<div class="empty">İlk məşqini bitir, burada hansı əzələni nə qədər işlətdiyin görünəcək.</div>`}
+      <div class="small" style="margin-top:10px">Həqiqətən qeyd etdiyin dövrlərdən hesablanıb. 2 həftədə əzələ başına <b style="color:var(--ink)">14-30 dövr</b> yaxşı aralıqdır.</div>`
+      : `<div class="empty">İlk məşqini bitir.</div>`}
     </div>
 
     <div class="sect">Rekordlar</div>
     <div class="card">
       ${recentPR.length ? recentPR.map(p=>`<div class="prrow">
-        <span class="pn">${esc(p.name)}</span>
-        <span class="pv num">${p.kg} kq × ${p.reps}</span>
-        <span class="pd">${fmtD(p.d)}</span>
+        <span class="pn">${esc(p.name)}</span><span class="pv num">${p.kg} × ${p.reps}</span><span class="pd">${fmtD(p.d)}</span>
       </div>`).join("") : `<div class="empty">Hələ rekord yoxdur.</div>`}
     </div>
 
@@ -2531,14 +2752,9 @@ function renderProg(){
       }).join("")}</div>`:""}
     </div>
 
-    <details class="rules"><summary>Hərəkət üzrə güc qrafiki</summary><div class="inner">
-      <div style="padding-top:10px">${liftBlock}</div>
-    </div></details>
-
     <div class="sect">Tarixçə</div>
     <div class="card">${hist}</div>`;
 }
-function pickLift(k){ selLift=k; renderProg(); }
 function delWeight(i){ ask("Çəki qeydi silinsin?", `${state.weights[i].kg} kq · ${fmtD(state.weights[i].d)}`, "Sil", ()=>{ state.weights.splice(i,1); if(state.weights.length) state.profile.w = state.weights[state.weights.length-1].kg; save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
 function delSession(i){ const s=state.sessions[i]; ask("Məşq tarixçədən silinsin?", `${dayMeta(s.day).name} · ${fmtD(s.d)}`, "Sil", ()=>{ state.sessions.splice(i,1); save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
 
