@@ -15,6 +15,8 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
 - **Video** — hər hərəkət üçün YouTube axtarışı, istəsən öz videonu təyin edirsən
 - **Məşq qeydləri** — məşqin sonunda qeyd yazırsan, növbəti dəfə həmin gün açılanda qarşına çıxır
+- **Adət tanıma** — plan 8-12 desə də, son üç məşqi həmişə 10-da bitirmisənsə, alqoritm 12 gözləmir: 10-a çatanda çəkini artırır. Plan doktoru diapazonu da düzəltməyi təklif edir
+- **Aşağı doldurma** — dövrü ✓ etdikdə çəki və təkrar altındakı toxunulmamış dövrlərə keçir (10 etdinsə altındakılar 10; sonrakını 8 etsən, ondan aşağısı 8). Tətbiqin yazdığı rəqəmlər boz göstərilir və ✓ basılmayana qədər qeyd edilmir
 - **Proqressiya alqoritmi** — qərar təkrar sayına yox, hər dövrün təxmini 1TM-nə (kq×(1+təkrar/30)) baxır. Çəkini artırıb bir-iki təkrar itirmək irəliləmə sayılır; durğunluq üç məşqdən sonra aşkarlanır və yüngülləşdirmə təklif olunur
 - **Analiz** — hər hərəkət üçün trend (həftədə neçə kq), status, növbəti addım və proqnoz: “bu tempi saxlasan 80 kq-a 6 həftəyə çatırsan”
 - **Günə uyğun qızışma** siyahısı + 4 dəqiqəlik taymer
@@ -22,6 +24,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Yük tipi** — hər hərəkət kq xanasının nəyi ölçdüyünü bilir (ştanq cəmi / bir hantel / yığın / əlavə disk) və ştanq hərəkətlərində hər tərəfə hansı diskləri taxmalı olduğunu göstərir
 - **İstirahət** — hər dövrdən sonra növbəti dövrün dəqiq saatı yazılır (zalın divar saatı ilə), sonuncu dövrdən sonra istirahət göstərilmir. Tam ekran taymer istəyə bağlıdır və divar vaxtına bağlıdır — telefonu bağlasan da düzgün qalır
 - Bədən çəkisi və təxmini 1TM qrafikləri
+- **Çəkisiz qeydin qarşısı alınır** — aparat/ştanq hərəkətində çəki xanası boşdursa ✓ qəbul edilmir (əvvəl belə dövrlər tarixçəyə `0 kq` düşürdü və “Son: BÇ×12” kimi görünürdü). Köhnə 0 kq qeydlər tarixçədə qalır, amma proqressiya hesabına girmir
 - **Yaddaş**: localStorage + istəyə bağlı Supabase bulud sinxronizasiyası. Bulud heç vaxt kor-koranə üzərinə yazılmır — hər yazıdan əvvəl oxunub birləşdirilir, ona görə köhnə nüsxəli cihaz başqa cihazın qeydlərini silə bilmir. Hər məşqin sabit id-si var. + .json ixrac/idxal
 
 Bütün təsdiq pəncərələri tətbiqin özündədir — brauzerin `confirm()`/`alert()` pəncərələri PWA və daxili brauzerlərdə bloklana bildiyi üçün istifadə olunmur.
@@ -40,7 +43,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v24` → `forge-v26`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v24` → `forge-v27`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 

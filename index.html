@@ -124,6 +124,8 @@ a.btn{text-decoration:none}
 .hint.up{border-color:rgba(62,207,142,.4);color:var(--green)}
 .hint b{color:var(--ink)}
 .hint.up b{color:var(--green)}
+.hint.warn{border-color:rgba(224,72,78,.45)}
+.hint.warn b{color:var(--red)}
 .restline{font-size:12.5px;margin-top:10px;padding:9px 11px;border-radius:9px;background:var(--card2);
   border:1px dashed var(--line);color:var(--mut)}
 .restline b{color:var(--ink)}
@@ -182,6 +184,7 @@ a.btn{text-decoration:none}
 .sug .sact button{background:var(--card2);border:1px solid var(--line);color:var(--ink);
   border-radius:9px;padding:6px 11px;font-size:11.5px}
 .sug .sact button:active{border-color:var(--green)}
+.stepper input.gh{color:var(--dim)}
 .swopt.dis{opacity:.42}
 .swopt.dis .swck{color:var(--mut)}
 .swopt .swtxt{flex:1;min-width:0}
@@ -266,6 +269,8 @@ details.wu.done .wulist li b{text-decoration:line-through}
 .stepper input{flex:1;min-width:0;width:100%;background:transparent;border:0;
   color:var(--ink);padding:12px 0;font-size:16px;text-align:center;font-variant-numeric:tabular-nums}
 .stepper input:focus{outline:none}
+.stepper input.bad{color:var(--red);animation:badflash .9s ease}
+@keyframes badflash{0%,100%{background:transparent}35%{background:rgba(224,72,78,.18)}}
 .stepper input::placeholder{color:var(--dim)}
 .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .check{width:46px;height:46px;border-radius:11px;border:1px solid var(--line);background:var(--card2);
@@ -969,7 +974,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v26";
+const APP_VERSION = "forge-v27";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1510,11 +1515,24 @@ function scheduleStrip(){
 /* Foundation day 1 is deliberately submaximal (halved sets, ~50-60% effort). Feeding it
    to the progression math anchors every later session to a light baseline, so progression
    lookups skip it. History and charts pass includeFoundation:true and still show it. */
+/* Bədən çəkisi ilə edilən hərəkətlərdə kq=0 normaldır (Pull-Up, Back Extension,
+   Hanging Knee Raise…). Ştanq/hantel/aparat hərəkətində isə 0 real qeyd deyil —
+   sadəcə çəki xanası boş qalıb. Belə dövrlər tarixçədə qalır, amma proqressiya
+   və “Son:” sətri onları saymır, əks halda bütün hesabı aşağı çəkir. */
+function bwEx(key){
+  const e = EXMAP[key] || (typeof ARCHIVE!=="undefined" && ARCHIVE[key]) || libEx(key);
+  return !!(e && e.bodyweight);
+}
+function realSets(key, sets){
+  return (sets||[]).filter(s => s.reps>0 && (bwEx(key) || s.kg>0));
+}
 function lastPerf(key, opts = {}){
   for(let i=state.sessions.length-1;i>=0;i--){
     if(state.sessions[i].foundation && !opts.includeFoundation) continue;
     const f = state.sessions[i].ex.find(e=>e.key===key);
-    if(f && f.sets.length) return { d:state.sessions[i].d, sets:f.sets };
+    if(!f) continue;
+    const sets = realSets(key, f.sets);
+    if(sets.length) return { d:state.sessions[i].d, sets };
   }
   return null;
 }
@@ -1544,7 +1562,7 @@ function exSessions(key, limit, withFoundation){
     if(s.foundation && !withFoundation) continue;
     const f = s.ex.find(e=>e.key===key);
     if(!f || !f.sets.length) continue;
-    const sets = f.sets.filter(x=>x.reps>0);
+    const sets = realSets(key, f.sets);
     if(!sets.length) continue;
     let top = sets[0];
     sets.forEach(x=>{ if(e1rm(x.kg, x.reps) > e1rm(top.kg, top.reps)) top = x; });
@@ -1561,6 +1579,21 @@ function exSessions(key, limit, withFoundation){
   return out;                                                /* yenidən köhnəyə doğru */
 }
 const r05 = v => Math.round(v*2)/2;
+/* ---- ADƏT: faktiki bitirdiyin təkrar ----
+   Plan “8-12” yazsa da, adam üç məşqdir hər dəfə 10-da dayanırsa, 12 gözləmək
+   mənasızdır: çəki heç vaxt artmır və hər məşqdə “çatmadın” mesajı görünür.
+   Son üç məşqin ən yüksək təkrarı eynidirsə, onu şəxsi tavan sayırıq —
+   proqressiya həmin rəqəmə çatanda çəki artırır. */
+function habitReps(key, ex){
+  const H = exSessions(key, 6);
+  if(H.length < 3) return null;
+  const tops = H.slice(0,3).map(h => Math.max(...h.sets.map(s=>s.reps)));
+  const X = tops[0];
+  if(!tops.every(t => t===X)) return null;
+  const lo = (ex && ex.rMin) || 1, hi = (ex && ex.rMax) || 99;
+  if(X < lo || X >= hi) return null;     /* diapazondan kənar, ya onsuz da tavandadır */
+  return X;
+}
 /* əsas qərar funksiyası — bütün təkliflər buradan çıxır */
 function progressPlan(key){
   /* Kitabxanadan çıxarılmış hərəkət tarixçədə qala bilər (məsələn deadlift silindi).
@@ -1570,6 +1603,9 @@ function progressPlan(key){
     /* load qəsdən verilmir: unitOf "kq", incFor isə yuxarıdakı inc-i götürsün */
   const H = exSessions(key, 8);
   const inc = incFor(ex), u = unitOf(ex);
+  const habit = habitReps(key, ex);
+  const RMAX = habit || ex.rMax;       /* hədəf: ya planın tavanı, ya sənin adətin */
+  const hNote = habit ? ` <i>Son üç məşqi həmişə ${habit} təkrarda bitirmisən — ona görə ${ex.rMax} gözləmirəm.</i>` : "";
   if(!H.length){
     const only = onlyFoundation(key);
     return { action:"first", kg:null, reps:ex.rMax, cls:"",
@@ -1595,53 +1631,53 @@ function progressPlan(key){
 
   /* bədən çəkisi ilə: çəki yox, təkrar artır */
   if(bw){
-    const allTop = L.sets.every(s=>s.reps>=ex.rMax);
+    const allTop = L.sets.every(s=>s.reps>=RMAX);
     if(allTop) return { action:"up", kg:inc, reps:ex.rMin, cls:"up",
-      txt:`Bədən çəkisi ilə bütün dövrlərdə ${ex.rMax} təkrara çatdın — indi <b>disk əlavə et</b> (${inc} ${u}) və ${ex.rMin} təkrardan başla.` };
-    if(R >= ex.rMax) return { action:"reps", kg:0, reps:ex.rMax, cls:"",
-      txt:`Bədən çəkisi ilə: ən güclü dövrün artıq <b>${R} təkrar</b>. Qalan dövrləri də ${ex.rMax}-ə çatdır — hamısı çatanda disk əlavə edirik.` };
-    return { action:"reps", kg:0, reps:Math.min(ex.rMax, R+1), cls:"",
-      txt:`Bədən çəkisi ilə işlə. Keçən dəfə ən yaxşı dövr <b>${R} təkrar</b> idi — bu gün hədəf <b>${Math.min(ex.rMax,R+1)}</b>. Hamısı ${ex.rMax}-ə çatanda disk əlavə edəcəyik.` };
+      txt:`Bədən çəkisi ilə bütün dövrlərdə ${RMAX} təkrara çatdın — indi <b>disk əlavə et</b> (${inc} ${u}) və ${ex.rMin} təkrardan başla.` };
+    if(R >= RMAX) return { action:"reps", kg:0, reps:RMAX, cls:"",
+      txt:`Bədən çəkisi ilə: ən güclü dövrün artıq <b>${R} təkrar</b>. Qalan dövrləri də ${RMAX}-ə çatdır — hamısı çatanda disk əlavə edirik.` };
+    return { action:"reps", kg:0, reps:Math.min(RMAX, R+1), cls:"",
+      txt:`Bədən çəkisi ilə işlə. Keçən dəfə ən yaxşı dövr <b>${R} təkrar</b> idi — bu gün hədəf <b>${Math.min(RMAX,R+1)}</b>. Hamısı ${RMAX}-ə çatanda disk əlavə edəcəyik.` };
   }
 
   /* 1) hamısı yuxarı hədə çatıb -> çəki artır */
-  if(L.sets.every(s=>s.reps>=ex.rMax) && L.sets.every(s=>s.kg>=T-0.01)){
+  if(L.sets.every(s=>s.reps>=RMAX) && L.sets.every(s=>s.kg>=T-0.01)){
     return { action:"up", kg:r05(T+inc), reps:ex.rMin, cls:"up",
-      txt:`Keçən dəfə <b>${T} ${u}</b> ilə bütün dövrlərdə ${ex.rMax} təkrar. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}) — ${ex.rMin} təkrardan başla.` };
+      txt:`Keçən dəfə <b>${T} ${u}</b> ilə bütün dövrlərdə ${RMAX} təkrar. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}) — ${ex.rMin} təkrardan başla.${hNote}` };
   }
   /* 2) ən güclü dövr yuxarı hədi keçib (qalan dövrlər daha yüngül olsa belə):
         deməli o çəki artıq mənimsənilib — növbəti dəfə üstünə qoy */
-  if(R >= ex.rMax){
+  if(R >= RMAX){
     return { action:"up", kg:r05(T+inc), reps:ex.rMin, cls:"up",
-      txt:`Keçən dəfə ən güclü dövr <b>${T} ${u} × ${R}</b> — ${ex.rMax} hədəfini keçdin. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}), ${ex.rMin} təkrardan başla.` };
+      txt:`Keçən dəfə ən güclü dövr <b>${T} ${u} × ${R}</b> — ${RMAX} hədəfini keçdin. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}), ${ex.rMin} təkrardan başla.${hNote}` };
   }
   /* 3) çəki çox ağırdır: ən yaxşı dövr belə minimumdan aşağı */
   if(R < ex.rMin){
     const ok = H.find(h => h.top.reps >= ex.rMin);
     const back = ok ? ok.top.kg : r05(Math.max(inc, T - inc));
     return { action:"down", kg:r05(back), reps:ex.rMin, cls:"warn",
-      txt:`Keçən dəfə <b>${T} ${u} × ${R}</b> — diapazonun altında qaldı, yəni çəki hələ tezdir. Bu gün <b>${r05(back)} ${u}</b> ilə ${ex.rMin}-${ex.rMax} təkrara qayıt, sonra yenidən qalx.` };
+      txt:`Keçən dəfə <b>${T} ${u} × ${R}</b> — diapazonun altında qaldı, yəni çəki hələ tezdir. Bu gün <b>${r05(back)} ${u}</b> ilə ${ex.rMin}-${RMAX} təkrara qayıt, sonra yenidən qalx.` };
   }
   /* 4) üç məşqdir yerində sayır -> yüngülləşdirmə */
   if(stalled){
     const dl = r05(Math.max(inc, T*0.9));
-    return { action:"deload", kg:dl, reps:ex.rMax, cls:"warn",
-      txt:`Üç məşqdir bu hərəkətdə irəliləmə yoxdur (ən yaxşı ${fmt(best)} ${u} 1TM). Bu gün <b>${dl} ${u}</b>-a en, ${ex.rMax} təkrarı asanlıqla vur, sonra yenidən yüksəl — bu, dayanmanı qırmağın ən qısa yoludur.` };
+    return { action:"deload", kg:dl, reps:RMAX, cls:"warn",
+      txt:`Üç məşqdir bu hərəkətdə irəliləmə yoxdur (ən yaxşı ${fmt(best)} ${u} 1TM). Bu gün <b>${dl} ${u}</b>-a en, ${RMAX} təkrarı asanlıqla vur, sonra yenidən yüksəl — bu, dayanmanı qırmağın ən qısa yoludur.` };
   }
   /* 5) rekord və ya ona bərabər: çəkini SAXLA, təkrar əlavə et.
         (köhnə məntiq burada səhvən “çatmadın, eyni çəkidə qal” deyirdi) */
   if(pr || near){
-    const tgt = Math.min(ex.rMax, R+1);
+    const tgt = Math.min(RMAX, R+1);
     const gain = prevBest ? Math.round((L.e1 - prevBest)*10)/10 : 0;
     return { action:"reps", kg:r05(T), reps:tgt, cls:"up",
       txt: pr && gain > 0
-        ? `Keçən dəfə <b>${T} ${u} × ${R}</b> — bu sənin ən güclü dövrün idi (təxmini 1TM ${fmt(L.e1)} ${u}, +${gain}). ${R} təkrar ${ex.rMax}-dən az olsa da bu irəliləmədir. Bu gün <b>eyni ${T} ${u}</b>, hədəf <b>${tgt} təkrar</b>.`
-        : `Keçən dəfə <b>${T} ${u} × ${R}</b> — ən yaxşı nəticənə bərabərdir. Bu gün <b>${T} ${u}</b> ilə <b>${tgt} təkrar</b> hədəflə; ${ex.rMax}-ə çatanda çəki artacaq.` };
+        ? `Keçən dəfə <b>${T} ${u} × ${R}</b> — bu sənin ən güclü dövrün idi (təxmini 1TM ${fmt(L.e1)} ${u}, +${gain}). ${R} təkrar ${RMAX}-dən az olsa da bu irəliləmədir. Bu gün <b>eyni ${T} ${u}</b>, hədəf <b>${tgt} təkrar</b>.`
+        : `Keçən dəfə <b>${T} ${u} × ${R}</b> — ən yaxşı nəticənə bərabərdir. Bu gün <b>${T} ${u}</b> ilə <b>${tgt} təkrar</b> hədəflə; ${RMAX}-ə çatanda çəki artacaq.${hNote}` };
   }
   /* 6) ən yaxşıdan geri qalıb — həcmi bərpa et */
   const bestH = H.reduce((a,h)=>h.e1>a.e1?h:a, H[0]);
-  return { action:"hold", kg:r05(T), reps:Math.min(ex.rMax, R+1), cls:"",
-    txt:`Keçən dəfə <b>${T} ${u} × ${R}</b>. Ən yaxşın <b>${bestH.top.kg} ${u} × ${bestH.top.reps}</b> (${fmtD(bestH.d)}) — bu gün əvvəlcə ona qayıt, sonra irəli. Hədəf: <b>${Math.min(ex.rMax,R+1)} təkrar</b>.` };
+  return { action:"hold", kg:r05(T), reps:Math.min(RMAX, R+1), cls:"",
+    txt:`Keçən dəfə <b>${T} ${u} × ${R}</b>. Ən yaxşın <b>${bestH.top.kg} ${u} × ${bestH.top.reps}</b> (${fmtD(bestH.d)}) — bu gün əvvəlcə ona qayıt, sonra irəli. Hədəf: <b>${Math.min(RMAX,R+1)} təkrar</b>.` };
 }
 /* köhnə çağırış yerləri üçün nazik örtük */
 function suggestKg(key){
@@ -1971,7 +2007,8 @@ function renderSettings(){
     ${sbReady() ? `<div class="sect">Bulud yedəyi</div>
     <div class="card tight">${ sbUser
       ? `<div class="small">☁️ <b style="color:var(--ink)">${esc(sbUser.email)}</b>${sbStatus?` · ${sbStatus}`:""}${lastSync?` · sonuncu: ${fmtClock(lastSync, true)}`:""}</div>
-         <div class="hint" style="margin-top:8px">Bu cihazda: <b>${state.sessions.length}</b> məşq · <b>${state.weights.length}</b> çəki qeydi.
+         <div class="hint" style="margin-top:8px">Bu cihazda: <b>${state.sessions.length}</b> məşq · <b>${state.sessions.reduce((a,r)=>a+r.ex.reduce((x,e)=>x+e.sets.length,0),0)}</b> dövr · <b>${state.weights.length}</b> çəki qeydi${cloudDirty?` · <b style="color:var(--c)">göndərilməmiş dəyişiklik var</b>`:""}.
+           Məşqi bitirən kimi və tətbiqi bağlayan kimi bulud yenilənir.
            Bulud üzərinə kor-koranə yazılmır — əvvəlcə oxunur və birləşdirilir, ona görə başqa cihazdakı qeydlər silinmir.</div>
          <div style="display:flex;gap:8px;margin-top:10px">
            <button class="btn sm" style="flex:1" onclick="syncNow()">İndi sinxronla</button>
@@ -2294,7 +2331,7 @@ function renderTrain(){
       const eff = effEx(ex.key), swapped = eff.key!==ex.key;
       /* plan məşq gedərkən dəyişdirilibsə açar əskik ola bilər — çökmək əvəzinə qururuq */
       if(!Array.isArray(state.active.ex[ex.key]) || !state.active.ex[ex.key].length)
-        state.active.ex[ex.key] = Array.from({length:ex.sets}, ()=>({ kg:"", reps:"", done:false }));
+        state.active.ex[ex.key] = Array.from({length:ex.sets}, ()=>({ kg:"", reps:"", done:false, auto:true }));
       const p = lastPerf(eff.key), st = state.active.ex[ex.key];
       const rows = st.map((s,si)=>{
         const pkg = smartKg(ex.key,si), prep = smartReps(ex.key,si);
@@ -2303,12 +2340,12 @@ function renderTrain(){
           <div class="idx num">${si+1}</div>
           <div class="stepper">
             <button onclick="stepVal('${ex.key}',${si},'kg',-1)" aria-label="minus kg">−</button>
-            <input id="in-${ex.key}-${si}-kg" type="number" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
+            <input id="in-${ex.key}-${si}-kg" type="number" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
             <button onclick="stepVal('${ex.key}',${si},'kg',1)" aria-label="plus kg">+</button>
           </div>
           <div class="stepper">
             <button onclick="stepVal('${ex.key}',${si},'reps',-1)" aria-label="minus reps">−</button>
-            <input id="in-${ex.key}-${si}-reps" type="number" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
+            <input id="in-${ex.key}-${si}-reps" type="number" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
             <button onclick="stepVal('${ex.key}',${si},'reps',1)" aria-label="plus reps">+</button>
           </div>
           <button id="ck-${ex.key}-${si}" class="check ${s.done?"done":""}" onclick="toggleDone('${ex.key}',${si})" aria-label="set done">✓</button>
@@ -2374,9 +2411,13 @@ function startSession(day){
   const foundation = isFirstEver();
   const exState = {};
   PROGRAM[day].ex.forEach(ex=>{
-    const sug = suggestKg(ex.key);
+    const sug = suggestKg(ex.key), rep = suggestReps(ex.key);
     const setCount = foundation ? Math.max(2, Math.round(ex.sets/2)) : ex.sets;
-    exState[ex.key] = Array.from({length:setCount},()=>({ kg: sug ?? "", reps:"", done:false }));
+    /* auto:true = “bu rəqəmi tətbiq yazıb”. Boz göstərilir, yadda saxlanmır və
+       sən toxunan (və ya ✓ basdığın) an adi dəyərə çevrilir. Beləliklə eyni
+       rəqəmi üç dəfə yazmaq lazım gəlmir, amma etmədiyin dövr də qeyd olunmur. */
+    exState[ex.key] = Array.from({length:setCount},()=>(
+      { kg: sug ?? "", reps: rep>0 ? String(rep) : "", done:false, auto:true }));
   });
   /* startedAt: saat “Başla”dan işə düşür. Zala gec açmısınızsa Məşq səhifəsindəki
      saat çipindən geriyə sürüşdürün — openClockFix(). */
@@ -2384,7 +2425,13 @@ function startSession(day){
   viewDay = day; save(); switchTab("train");
   toast(foundation ? "Təməl məşqi başladı — yüngül saxlayın." : `${PROGRAM[day].name} başladı · saat işə düşdü.`);
 }
-function setVal(key,i,f,v){ state.active.ex[key][i][f] = v; save(); }
+function setVal(key,i,f,v){
+  const s = state.active.ex[key][i];
+  s[f] = v; delete s.auto;              /* əl ilə yazıldı — artıq təklif deyil */
+  const row = document.getElementById(`in-${key}-${i}-${f}`);
+  if(row) row.classList.remove("gh");
+  save();
+}
 function smartKg(key,i){
   const st = state.active.ex[key];
   for(let j=i-1;j>=0;j--){ const v=parseFloat(st[j].kg); if(v) return v; }
@@ -2404,9 +2451,9 @@ function stepVal(key,i,f,dir){
   if(!v){ v = f==="kg" ? (smartKg(key,i) ?? step) : smartReps(key,i); } /* first tap = accept suggestion */
   else v += dir*step;
   v = Math.max(0, Math.round(v*10)/10);
-  s[f] = String(v);
+  s[f] = String(v); delete s.auto;
   const inp = document.getElementById(`in-${key}-${i}-${f}`);
-  if(inp) inp.value = v;
+  if(inp){ inp.value = v; inp.classList.remove("gh"); }
   save();
 }
 /* Taymerdən asılı olmamaq üçün: hər dövrdən sonra növbəti dövrün DƏQİQ saatı
@@ -2434,6 +2481,38 @@ function toggleDone(key,i){
        hərəkət "ilk dəfə" kimi görünürdü. Fərqli olubsa xananı əl ilə düzəldirsən. */
     if(!parseFloat(s.kg)){ const k = smartKg(key,i); if(k > 0) s.kg = String(k); }
     if(!(parseFloat(s.reps) > 0)){ const r = smartReps(key,i); if(r > 0) s.reps = String(r); }
+    /* Çəki xanası boş qalmış aparat/ştanq dövrü tarixçəyə “0 kq” kimi düşürdü:
+       həm “Son: BÇ×12” kimi görünürdü, həm də proqressiyanı sıfıra dartırdı.
+       Belə halda ✓ qəbul edilmir — əvvəlcə çəki yazılmalıdır. */
+    if(!(parseFloat(s.kg) > 0) && !effEx(key).bodyweight){
+      s.done = false; save();
+      const el = document.getElementById(`in-${key}-${i}-kg`);
+      if(el){
+        el.focus(); el.select && el.select();
+        el.classList.add("bad"); setTimeout(()=>el.classList.remove("bad"), 1100);
+      }
+      toast("Əvvəlcə çəkini yaz — çəkisiz dövr qeyd edilmir");
+      const b0 = document.getElementById(`ck-${key}-${i}`);
+      if(b0) b0.classList.remove("done");
+      return;
+    }
+    delete s.auto;                       /* təsdiqlənən dövr artıq təklif deyil */
+    ["kg","reps"].forEach(f=>{
+      const el = document.getElementById(`in-${key}-${i}-${f}`);
+      if(el) el.classList.remove("gh");
+    });
+    /* AŞAĞI DOLDURMA: təsdiqlədiyin dövrün çəki/təkrarı altındakı toxunulmamış
+       dövrlərə keçir. 10 etdinsə, altındakılar 10 olur; növbətini 8 etsən,
+       ondan aşağısı 8 olur. Əl ilə yazdığın dövrə toxunulmur. */
+    const stAll = state.active.ex[key];
+    for(let j=i+1;j<stAll.length;j++){
+      const o = stAll[j];
+      if(o.done || !o.auto) continue;
+      o.kg = s.kg; o.reps = s.reps;
+      const ik = document.getElementById(`in-${key}-${j}-kg`), ir = document.getElementById(`in-${key}-${j}-reps`);
+      if(ik) ik.value = o.kg;
+      if(ir) ir.value = o.reps;
+    }
     const inp = document.getElementById(`in-${key}-${i}-kg`), inr = document.getElementById(`in-${key}-${i}-reps`);
     if(inp) inp.value = s.kg;
     if(inr) inr.value = s.reps;
@@ -2460,7 +2539,8 @@ function buildRecord(a){
      birləşdirmə onlardan yalnız birini saxlayırdı. */
   const rec = { id: startISO+"|"+a.day+"|"+(a.startedAt||Date.now()), d: startISO, day: a.day, ex: [],
     foundation: !!a.foundation, min: sessionMinutes(a, staleHours() ? 0 : TAIL_CAP) };
-  let n = 0, skipped = 0;
+  let n = 0, skipped = 0, zero = 0;
+  const logged = s => parseFloat(s.reps) > 0 && !(s.auto && !s.done);   /* boz təklif ≠ edilmiş dövr */
   PROGRAM[a.day].ex.forEach(ex=>{
     const eff = effEx(ex.key);
     const raw = a.ex[ex.key] || [];
@@ -2468,8 +2548,9 @@ function buildRecord(a){
     skipped += raw.filter(s=>s.done && !(parseFloat(s.reps)>0)).length;
     /* reps is the only requirement: kg 0 is legitimate (Back Extension, Assisted Pull-Up,
        Hanging Knee Raise, Decline Sit-Up, Band Pull-Apart all start unloaded) */
-    const sets = raw.filter(s=>parseFloat(s.reps)>0)
+    const sets = raw.filter(logged)
       .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
+    if(!eff.bodyweight) zero += sets.filter(x=>!(x.kg>0)).length;
     if(sets.length){ rec.ex.push({key:eff.key, name:eff.name, sets}); n += sets.length; }
   });
   /* Məşq gedərkən hərəkət plandan çıxarılsa (və ya kitabxanadan silinsə), onun
@@ -2477,21 +2558,22 @@ function buildRecord(a){
      yazılmış heç bir dövr itməsin. */
   Object.keys(a.ex || {}).forEach(k=>{
     if(rec.ex.some(e => e.key===k)) return;
-    const sets = (a.ex[k]||[]).filter(s=>parseFloat(s.reps)>0)
+    const sets = (a.ex[k]||[]).filter(logged)
       .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
     if(sets.length){ rec.ex.push({ key:k, name: exName(k), sets }); n += sets.length; }
   });
-  return { rec, n, skipped };
+  return { rec, n, skipped, zero };
 }
 function finishSession(){
   const a = state.active; if(!a) return;
-  const { rec, n, skipped } = buildRecord(a);
+  const { rec, n, skipped, zero } = buildRecord(a);
   if(!n){
     info("Təkrar sayı yazılmayıb",
       "Məşqi yadda saxlamaq üçün ən azı bir dövrün TƏKRAR xanası dolu olmalıdır — tək ✓ işarəsi kifayət etmir, çünki proqressiya təkrar sayına baxır.\n\nÇəki xanası boş qala bilər (bədən çəkisi ilə edilən hərəkətlərdə normaldır).");
     return;
   }
-  const warn = skipped ? `<div class="hint" style="margin-top:10px">Diqqət: işarələnmiş ${skipped} dövr təkrar sayı boş olduğu üçün qeyd edilməyəcək.</div>` : "";
+  const warn = (skipped ? `<div class="hint warn" style="margin-top:10px">Diqqət: işarələnmiş ${skipped} dövr təkrar sayı boş olduğu üçün qeyd edilməyəcək.</div>` : "")
+    + (zero ? `<div class="hint warn" style="margin-top:10px">Diqqət: ${zero} dövrdə çəki yazılmayıb — onlar <b>0 kq</b> kimi yazılacaq və növbəti dəfə çəki təklifi verə bilməyəcəyəm. İmtina edib çəkiləri doldurmaq daha yaxşıdır.</div>` : "");
   const dur = rec.min!=null ? ` · <b>${hm(rec.min)}</b>` : "";
   const prev = lastNote(a.day);
   $("#sheet").innerHTML = `${SHEETHEAD}
@@ -2529,7 +2611,7 @@ function autoFinishStale(){
   if(!a || !staleMins()) return;
   const { rec, n } = buildRecord(a);
   if(n){
-    state.sessions.push(rec); state.active = null; save(); cloudPush();
+    state.sessions.push(rec); state.active = null; save(); cloudPush(true);
     migrationNote = `“Bitir” basılmamışdı — <b>${dayMeta(rec.day).name}</b> məşqi avtomatik yadda saxlanıldı: `
       + `${n} dövr · ${hm(rec.min)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`;
   } else {
@@ -2538,7 +2620,7 @@ function autoFinishStale(){
   }
 }
 function saveSession(rec){
-  state.sessions.push(rec); state.active = null; timerSkip(); save(); cloudPush();
+  state.sessions.push(rec); state.active = null; timerSkip(); save(); cloudPush(true);
   const nxt = DAYS[(DAYS.indexOf(rec.day)+1) % DAYS.length];
   toast(`${dayMeta(rec.day).name} · ${hm(rec.min)} · növbəti: ${DAY_META[nxt].name}`);
   viewDay = nxt;
@@ -2700,7 +2782,14 @@ async function acquireWakeLock(){
 }
 function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock=null; }
 document.addEventListener("visibilitychange", ()=>{
-  if(document.visibilityState !== "visible"){ lastHide = Date.now(); return; }
+  if(document.visibilityState !== "visible"){
+    lastHide = Date.now();
+    /* Tətbiq arxa fona keçir: gözləyən dəyişikliyi elə indi buluda yaz.
+       Əvvəl yazı 10 saniyəlik gecikmə (və ya 60 saniyəlik təkrar cəhd) gözləyirdi —
+       telefonu cibə qoyub zaldan çıxanda həmin pəncərə heç vaxt gəlmirdi. */
+    if(sbUser && cloudDirty) doPush();
+    return;
+  }
   /* Köhnə kod yalnız açılışda bir dəfə oxuyurdu: tətbiq günlərlə açıq qalsa,
      başqa cihazda edilən məşqi heç vaxt görmürdü. İndi 5 dəqiqədən uzun
      fasilədən sonra qayıdanda bulud yenidən oxunur. */
@@ -3166,7 +3255,17 @@ function planAdvice(D){
       a: c ? [{l:"Əlavə et", f:`advAdd('${D}','${c}')`}] : [] });
   });
 
-  /* 7) UZUNLUQ */
+  /* 7) TƏKRAR DİAPAZONU — plan deyir 12, sən həmişə 10-da bitirirsən */
+  for(let i=0;i<slots.length;i++){
+    const ex = mkEx(slots[i], D), h = habitReps(slots[i].k, ex);
+    if(!h) continue;
+    out.push({ sev:1, ic:"⇲", t:`<b>${exNm(slots[i].k)}</b> üçün diapazon ${ex.rMin}-${h}`,
+      w:`Son üç məşqin hamısında <b>${h} təkrarda</b> bitirmisən, plan isə ${ex.rMin}-${ex.rMax} yazır. Alqoritm onsuz da ${h}-ı hədəf götürür (çəki ${h}-a çatanda artır), amma diapazonu da düzəltsək kartda “${ex.rMax}” yazısı yalan olmaz.`,
+      a:[{l:`${ex.rMin}-${h} et`, f:`advRange('${D}',${i},${ex.rMin},${h})`}] });
+    break;
+  }
+
+  /* 8) UZUNLUQ */
   if(sets > 26 || mins > 85)
     out.push({ sev:1, ic:"⏱", t:"Gün uzundur", w:`${sets} iş dövrü ≈ <b>${mins} dəq</b>. 60-75 dəqiqədən sonra dövrlərin keyfiyyəti düşür. Ən az pay verən izolyasiya hərəkətini çıxar və ya bir dövr azalt.`, a:[] });
   else if(sets < 12)
@@ -3193,6 +3292,13 @@ function advMove(D,from,to){
   if(from<0 || from>=p.length || to<0 || to>=p.length) return;
   const [x] = p.splice(from,1); p.splice(to,0,x);
   planTouch(); toast("Sıra dəyişdirildi");
+}
+function advRange(D,i,a,b){
+  if(planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
+  const p = ensurePlan(D); if(!p[i]) return;
+  p[i].rMin = Math.max(1, Math.min(50, a));
+  p[i].rMax = Math.max(p[i].rMin, Math.min(50, b));
+  planTouch(); toast(`${exNm(p[i].k)}: ${p[i].rMin}-${p[i].rMax} təkrar`);
 }
 function advSets(D,i,d){
   if(planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
