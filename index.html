@@ -69,6 +69,7 @@ hr.split{border:0;border-top:1px solid var(--line);margin:12px 0}
 .btn.danger{background:transparent;color:var(--red);border:1px solid #3d2225}
 .btn.sm{padding:9px 13px;font-size:12.5px;border-radius:10px}
 .btn:disabled{opacity:.45;cursor:default}
+a.btn{text-decoration:none}
 
 /* ---------- stat chips ---------- */
 .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
@@ -266,6 +267,15 @@ details.rules .inner{padding:0 16px 14px;border-top:1px solid var(--line)}
 .rule b{display:block;font-size:13.5px;margin-bottom:2px}
 .rule p{font-size:13px;color:var(--mut)}
 
+.brief{display:flex;flex-direction:column;gap:2px}
+.brow{display:flex;gap:10px;padding:7px 0;font-size:13.5px;align-items:flex-start}
+.brow .bi{flex:none;width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;
+  background:var(--card2);color:var(--mut);margin-top:1px}
+.brow.up .bi{background:rgba(62,207,142,.16);color:var(--green)}
+.brow p{color:#cfd6de}
+.brow b{color:var(--ink)}
+.brow.up b{color:var(--green)}
+
 /* ---------- coach tip ---------- */
 .coach{display:flex;gap:12px;align-items:flex-start}
 .coach .cq{font-family:var(--disp);font-weight:700;font-size:30px;color:var(--c);line-height:.8;margin-top:2px}
@@ -302,11 +312,17 @@ details.rules .inner{padding:0 16px 14px;border-top:1px solid var(--line)}
 select.lift{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;color:var(--ink);padding:12px;font-size:15px;margin:8px 0}
 .prbadge{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#151515;background:var(--c);
   border-radius:7px;padding:3px 9px;font-weight:700;margin-left:8px}
+.prrow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.prrow:last-child{border-bottom:0}
+.prrow .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prrow .pv{color:var(--c);font-weight:600}
+.prrow .pd{color:var(--dim);font-size:11.5px}
 details.hist{border-bottom:1px solid var(--line);padding:4px 0}
 details.hist:last-child{border-bottom:0}
 details.hist summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13.5px}
 details.hist summary::-webkit-details-marker{display:none}
 details.hist .hs{color:var(--mut);font-size:12.5px}
+.histnote{font-size:12.5px;color:var(--c);font-style:italic;padding:6px 0 2px}
 .histset{font-size:12.5px;color:var(--mut);padding:3px 0 3px 10px;border-left:2px solid var(--line);margin:4px 0}
 .histset b{color:var(--ink)}
 
@@ -840,7 +856,7 @@ const PROGRAM_VERSION = 3;
 const DEFAULTS = { profile:{name:"Elvin",w:"",weeklyTarget:4,
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
     barKg:20, plate:1.25, dbStep:2, stackStep:5, clockOffset:0},
-  weights:[], sessions:[], active:null, supps:[], deloadAt:null, plan:null, userEx:{}, pv:PROGRAM_VERSION };
+  weights:[], sessions:[], active:null, supps:[], deloadAt:null, plan:null, userEx:{}, vid:{}, pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -987,6 +1003,7 @@ function migrate(s, fromPv){
   if(!s.profile.weeklyTarget) s.profile.weeklyTarget = 4;
   if(s.deloadAt === undefined) s.deloadAt = null;
   if(!s.userEx || typeof s.userEx !== "object") s.userEx = {};
+  if(!s.vid || typeof s.vid !== "object") s.vid = {};
   if(s.plan !== null && typeof s.plan !== "object") s.plan = null;
   /* every-other-day split: 3 sessions/week was the A/B/C target, 3-4 is the PPL+full one */
   if(fromPv < 3 && s.profile.weeklyTarget == 3) s.profile.weeklyTarget = 4;
@@ -1088,7 +1105,7 @@ function mergeState(local, remote){
   (local.sessions||[]).forEach(s=>smap.set(s.d+"|"+s.day, s));
   (remote.sessions||[]).forEach(s=>{
     const k = s.d+"|"+s.day, cur = smap.get(k);
-    if(!cur || setsOf(s) > setsOf(cur)) smap.set(k, s);
+    if(!cur || setsOf(s) > setsOf(cur)) smap.set(k, {...s, note:(s.note || (cur && cur.note) || undefined)});
   });
   out.sessions = [...smap.values()].sort((a,b)=>a.d<b.d?-1:1);
 
@@ -1117,8 +1134,10 @@ function mergeState(local, remote){
     if(remote.deloadAt && (!local.deloadAt || remote.deloadAt > local.deloadAt)) out.deloadAt = remote.deloadAt;
     if(remote.plan !== undefined) out.plan = remote.plan;
     out.userEx = {...(local.userEx||{}), ...(remote.userEx||{})};
+    out.vid = {...(local.vid||{}), ...(remote.vid||{})};
   } else {
     out.userEx = {...(remote.userEx||{}), ...(local.userEx||{})};
+    out.vid = {...(remote.vid||{}), ...(local.vid||{})};
   }
   /* active is NEVER merged — an in-progress workout on this device must survive a sync */
   out.active = local.active;
@@ -1367,6 +1386,53 @@ function switchTab(name){
 }
 function refresh(){ const on=document.querySelector(".tabbar button.on").dataset.tab; switchTab(on); }
 
+/* ================= GÜNDƏLİK BRİFİNQ =================
+   Məqsəd: telefonda 20 saniyə. Bu gün nə etməli, nəyə diqqət, harada geri qalırsan. */
+function loggedVolume(days){
+  const cut = Date.now() - days*86400000, vol = {};
+  state.sessions.forEach(s=>{
+    const [y,m,d] = s.d.split("-").map(Number);
+    if(new Date(y,m-1,d).getTime() < cut) return;
+    s.ex.forEach(e=>{
+      const lib = libEx(e.key); if(!lib) return;
+      const n = e.sets.length;
+      (lib.pri||[]).forEach(k=>vol[k] = (vol[k]||0) + n);
+      (lib.sec||[]).forEach(k=>vol[k] = (vol[k]||0) + n/2);
+    });
+  });
+  return vol;
+}
+function tonnage(s){ return s.ex.reduce((a,e)=>a + e.sets.reduce((b,st)=>b + (st.kg||0)*st.reps, 0), 0); }
+/* bu gün çəki artırılacaq hərəkətlər */
+function dueIncreases(day){
+  const out = [];
+  (PROGRAM[day] ? PROGRAM[day].ex : []).forEach(ex=>{
+    const p = lastPerf(ex.key); if(!p) return;
+    if(!p.sets.every(s=>s.reps >= ex.rMax)) return;
+    const sug = suggestKg(ex.key);
+    const top = Math.max(...p.sets.map(s=>s.kg));
+    if(sug > top) out.push(`${ex.name}: ${top} → <b>${sug} kq</b>`);
+  });
+  return out;
+}
+function briefItems(day){
+  const items = [], vol = loggedVolume(14);
+  dueIncreases(day).slice(0,3).forEach(t=>items.push({i:"↑", t:`Çəki artır — ${t}`, c:"up"}));
+  /* 14 gündə heç işlənməyən və ya çox az işlənən əzələ */
+  const low = Object.keys(MUSN).filter(m=>(vol[m]||0) < 4);
+  if(state.sessions.length >= 3 && low.length)
+    items.push({i:"!", t:`Son 2 həftədə az işlənib: <b>${low.slice(0,3).map(m=>MUSN[m]).join(", ")}</b>`, c:""});
+  /* çəki trendi */
+  if(state.weights.length >= 2){
+    const w = state.weights[state.weights.length-1], w0 = state.weights.find(x=>x.d >= isoOf(new Date(Date.now()-14*86400000))) || state.weights[0];
+    const d = Math.round((w.kg - w0.kg)*10)/10;
+    if(w0 !== w) items.push({i:"◷", t:`Bədən çəkisi 2 həftədə <b>${d>0?"+":""}${d} kq</b> — kütlə üçün hədəf +0.5-1 kq`, c: d>0?"up":""});
+  }
+  const n = lastNote(day);
+  if(n) items.push({i:"✎", t:`Keçən qeydin: <i>${esc(n)}</i>`, c:""});
+  if(!items.length) items.push({i:"→", t:"İlk məşqini qeyd et — buradakı tövsiyələr sənin rəqəmlərindən çıxacaq.", c:""});
+  return items;
+}
 /* ================= TODAY ================= */
 function renderToday(){
   const p = state.profile, nd = nextDay(), D = PROGRAM[nd];
@@ -1413,6 +1479,11 @@ function renderToday(){
       ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}</div>` : ""}
       <button class="btn block" onclick="${state.active ? "switchTab('train')" : `startSession('${nd}')`}">${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
       ${!state.active && rest ? `<div class="small" style="margin-top:10px;text-align:center">Cədvələ görə növbəti məşq <b style="color:var(--ink)">${fmtD(nt)}</b> — amma bu gün istəsən indi başla, sıra pozulmur.</div>` : ""}
+    </div>
+
+    <div class="sect">Bu gün nəyə diqqət</div>
+    <div class="card">
+      <div class="brief">${briefItems(nd).map(b=>`<div class="brow ${b.c}"><span class="bi">${b.i}</span><p>${b.t}</p></div>`).join("")}</div>
     </div>
 
     <div class="sect">Cədvəl · bir gün var, bir gün yox</div>
@@ -1489,10 +1560,14 @@ function renderSettings(){
 
     <div class="sect">Zalın saatı</div>
     <div class="card">
-      <div class="small" style="margin-bottom:10px">Zalın divar saatı telefonundan fərqlidirsə, fərqi yaz — məşq vaxtları həmin saatla göstəriləcək.</div>
-      <div class="field"><label>Fərq (dəqiqə, mənfi də ola bilər)</label>
-        <input id="st-clock" type="number" inputmode="numeric" step="1" value="${parseInt(p.clockOffset)||0}" onchange="saveSet()"></div>
-      <div class="hint">Telefon: <b>${fmtClock(Date.now(), true)}</b> · Zal: <b>${fmtClock(Date.now())}</b></div>
+      <div class="small" style="margin-bottom:10px">Zalın divar saatına bax və elə olduğu kimi yaz — fərqi tətbiq özü hesablayır.</div>
+      <div class="inline-log">
+        <input id="st-clock" type="time" value="${fmtClock(Date.now())}">
+        <button class="btn sm" onclick="setGymClock()">Təyin et</button>
+      </div>
+      <div class="hint" style="margin-top:10px">Telefon: <b>${fmtClock(Date.now(), true)}</b> · Zal: <b>${fmtClock(Date.now())}</b>${
+        (parseInt(p.clockOffset)||0) ? ` <span style="color:var(--c)">(${(parseInt(p.clockOffset)||0)>0?"+":""}${parseInt(p.clockOffset)||0} dəq)</span>` : " — fərq yoxdur"}</div>
+      ${(parseInt(p.clockOffset)||0) ? `<button class="btn sm ghost" style="margin-top:10px" onclick="resetGymClock()">Fərqi sıfırla</button>` : ""}
     </div>
 
     <div class="sect">İstirahət</div>
@@ -1528,6 +1603,21 @@ function renderSettings(){
 
   `;
 }
+/* Zalın saatı: istifadəçi divar saatındakı vaxtı olduğu kimi yazır, fərqi biz
+   hesablayırıq. Gecəyarısını keçən fərqlər ±12 saat aralığına sıxılır. */
+function setGymClock(){
+  const v = ($("#st-clock").value || "").split(":");
+  const hh = parseInt(v[0]), mm = parseInt(v[1]);
+  if(isNaN(hh) || isNaN(mm)){ toast("Saatı yaz: 16:45"); return; }
+  const now = new Date();
+  let diff = (hh*60 + mm) - (now.getHours()*60 + now.getMinutes());
+  if(diff > 720) diff -= 1440;
+  if(diff < -720) diff += 1440;
+  state.profile.clockOffset = diff;
+  save(); cloudPush(); renderSettings();
+  toast(diff ? `Zal saatı təyin edildi (${diff>0?"+":""}${diff} dəq)` : "Saatlar üst-üstə düşür");
+}
+function resetGymClock(){ state.profile.clockOffset = 0; save(); cloudPush(); renderSettings(); toast("Sıfırlandı"); }
 function toggleTimerScreen(){
   state.profile.noTimer = !state.profile.noTimer;
   if(state.profile.noTimer) timerSkip();
@@ -1541,7 +1631,6 @@ function saveSet(){
   p.plate = Math.max(0.25, n("st-plate", 1.25));
   p.dbStep = Math.max(0.5, n("st-db", 2));
   p.stackStep = Math.max(0.5, n("st-stack", 5));
-  p.clockOffset = Math.max(-720, Math.min(720, parseInt($("#st-clock").value) || 0));
   buildProgram();          /* artım addımları yük tipindən hesablanır — yenidən qurulmalıdır */
   save(); cloudPush(); renderSettings();
   toast("Ayarlar yadda saxlanıldı");
@@ -1823,6 +1912,8 @@ function renderTrain(){
     ${rules}
     <div class="sect">${D.name} · ${D.sub}</div>
     ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote">${FOUNDATION_NOTE}</div>` : ""}
+    ${lastNote(viewDay) ? `<div class="card tight"><div class="small" style="letter-spacing:.12em;text-transform:uppercase;font-size:10px;color:var(--dim)">Keçən ${D.name} məşqindən qeydin</div>
+      <div style="font-size:13.5px;margin-top:6px">${esc(lastNote(viewDay))}</div></div>` : ""}
     ${warmupCard(viewDay)}
     ${body}`;
 }
@@ -1933,9 +2024,36 @@ function finishSession(){
       "Məşqi yadda saxlamaq üçün ən azı bir dövrün TƏKRAR xanası dolu olmalıdır — tək ✓ işarəsi kifayət etmir, çünki proqressiya təkrar sayına baxır.\n\nKq xanası boş qala bilər (bədən çəkisi ilə edilən hərəkətlərdə normaldır).");
     return;
   }
-  const warn = skipped ? `\n\nDiqqət: işarələnmiş ${skipped} dövr təkrar sayı boş olduğu üçün qeyd edilməyəcək.` : "";
-  const dur = rec.min!=null ? `\nZalda keçən real vaxt: ${hm(rec.min)}.` : "";
-  ask(`${PROGRAM[a.day].name} yadda saxlanılsın?`, `${n} dövr qeyd edilib.${dur}${warn}`, "Bəli, yadda saxla", ()=>saveSession(rec));
+  const warn = skipped ? `<div class="hint" style="margin-top:10px">Diqqət: işarələnmiş ${skipped} dövr təkrar sayı boş olduğu üçün qeyd edilməyəcək.</div>` : "";
+  const dur = rec.min!=null ? ` · <b>${hm(rec.min)}</b>` : "";
+  const prev = lastNote(a.day);
+  $("#sheet").innerHTML = `${SHEETHEAD}
+    <h3>${PROGRAM[a.day].name} yadda saxlanılsın?</h3>
+    <div class="stag">${n} dövr${dur}</div>
+    ${warn}
+    ${prev ? `<div class="small" style="margin-top:10px">Keçən dəfəki qeydin: <i>“${esc(prev)}”</i></div>` : ""}
+    <div class="field" style="margin-top:12px"><label>Bu məşq üçün qeyd (istəyə bağlı)</label>
+      <textarea id="fin-note" rows="3" placeholder="məs. bench çətin gəldi, çiyin ağrıdı — növbəti dəfə çəkini saxla"></textarea></div>
+    <button class="btn block" onclick="saveWithNote()">Bəli, yadda saxla</button>
+    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
+  pendingRec = rec;
+  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+}
+let pendingRec = null;
+function saveWithNote(){
+  const rec = pendingRec; if(!rec) return;
+  const t = $("#fin-note");
+  const note = t ? t.value.replace(/[<>]/g,"").trim().slice(0,400) : "";
+  if(note) rec.note = note;
+  pendingRec = null; closeSheet(); saveSession(rec);
+}
+/* həmin gün tipi üçün sonuncu qeyd — növbəti dəfə göz önünə çıxarılır */
+function lastNote(day){
+  for(let i=state.sessions.length-1;i>=0;i--){
+    const s = state.sessions[i];
+    if(s.day===day && s.note) return s.note;
+  }
+  return "";
 }
 /* “Bitir”i unutmaq daha məlumat itirmir: 3 saatdan çox toxunulmayan məşq
    tətbiq növbəti dəfə açılanda özü bağlanır, vaxt sonuncu qeydə qədər sayılır. */
@@ -1983,8 +2101,38 @@ function openTech(day,i){
     <div class="cuelist">${ex.mist.map(c=>`<div class="cue bad"><div class="ic">✕</div><p>${esc(c)}</p></div>`).join("")}</div>`:""}
     ${alts.length?`<hr class="split">
     <div class="small">Avadanlıq məşğuldursa, alternativlər: <b style="color:var(--ink)">${alts.map(a=>esc(a.name)).join(" · ")}</b> — məşq zamanı kartdakı “⇄ Dəyiş” düyməsi ilə keçin.</div>`:""}
-    <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`;
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <a class="btn" style="flex:1" href="${vidURL(ex)}" target="_blank" rel="noopener noreferrer">▶ Video${(state.vid&&state.vid[ex.key])?"":" axtar"}</a>
+      <button class="btn ghost" onclick="openVidSet('${ex.key}')" aria-label="video təyin et">⚙</button>
+    </div>
+    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">Bağla</button>`;
   $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+}
+/* ================= VİDEO =================
+   Şəkil hərəkətin yolunu göstərir, sürəti və nəfəsi yox. Hər hərəkət üçün
+   YouTube axtarışı açılır; bəyəndiyin videonu təyin etsən, birbaşa o açılır
+   (state.vid-də saxlanılır, bulud sinxronizasiyasına düşür). */
+function vidURL(ex){
+  const own = state.vid && state.vid[ex.key];
+  if(own) return own;
+  return "https://www.youtube.com/results?search_query=" + encodeURIComponent(ex.name + " proper form technique");
+}
+function openVidSet(key){
+  const ex = EXMAP[key]; if(!ex) return;
+  $("#sheet").innerHTML = `${SHEETHEAD}
+    <h3>Video təyin et</h3><div class="stag">${esc(ex.name)}</div>
+    <div class="small" style="margin:8px 0 12px">Bəyəndiyin videonun linkini yapışdır — bundan sonra “Video” düyməsi birbaşa onu açacaq. Boş buraxsan, YouTube axtarışı açılır.</div>
+    <div class="field"><input id="vd-url" value="${esc((state.vid&&state.vid[key])||"")}" placeholder="https://youtu.be/..."></div>
+    <button class="btn block" onclick="saveVid('${key}')">Yadda saxla</button>
+    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
+  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+}
+function saveVid(key){
+  const v = ($("#vd-url").value||"").trim();
+  state.vid = state.vid || {};
+  if(v && /^https?:\/\//i.test(v)) state.vid[key] = v; else delete state.vid[key];
+  save(); cloudPush(); closeSheet();
+  toast(v ? "Video təyin edildi" : "Axtarışa qaytarıldı");
 }
 function loadInfo(key){
   const ex = EXMAP[key]; if(!ex) return;
@@ -2162,12 +2310,66 @@ function renderProg(){
     const i = state.sessions.length-1-ri;
     const n = s.ex.reduce((a,e)=>a+e.sets.length,0);
     return `<details class="hist"><summary><span><span class="mini-plate mp-${dayMeta(s.day).cls}"></span><b>${dayMeta(s.day).name}</b>${s.foundation?` <span class="prbadge">TƏMƏL</span>`:""} · ${fmtD(s.d)}</span><span class="hs num">${n} dövr${s.min!=null?` · ${hm(s.min)}`:""}</span></summary>
+      ${s.note ? `<div class="histnote">“${esc(s.note)}”</div>` : ""}
       ${s.ex.map(e=>`<div class="histset"><b>${esc(e.name)}</b> — <span class="num">${perfStr(e)}</span></div>`).join("")}
       <button class="btn sm danger" style="margin:8px 0 10px" onclick="delSession(${i})">Məşqi sil</button>
     </details>`;
   }).join("") : `<div class="empty">Hələ məşq yoxdur. Məşq etdikcə tarixçə özü yazılacaq.</div>`;
 
+  /* ---- ümumi göstəricilər ---- */
+  const real = state.sessions.filter(s=>!s.foundation);
+  const mins = real.filter(s=>s.min!=null);
+  const avgMin = mins.length ? Math.round(mins.reduce((a,s)=>a+s.min,0)/mins.length) : null;
+  const monthISO = todayISO().slice(0,7);
+  const thisMonth = state.sessions.filter(s=>s.d.slice(0,7)===monthISO).length;
+  const totTon = Math.round(state.sessions.reduce((a,s)=>a+tonnage(s),0));
+  const vol = loggedVolume(14);
+  const volRows = Object.keys(MUSN).map(m=>({m, v:vol[m]||0})).sort((a,b)=>b.v-a.v);
+  const volMax = Math.max(10, ...volRows.map(r=>r.v));
+
+  /* ---- rekord lenti: hər hərəkət üzrə ən yaxşı dövr nə vaxt qırılıb ---- */
+  const prs = [];
+  const best = {};
+  state.sessions.forEach(s=>s.ex.forEach(e=>{
+    e.sets.forEach(st=>{
+      if(!(st.kg>0)) return;
+      const v = e1rm(st.kg, st.reps);
+      if(!best[e.key] || v > best[e.key].v + 0.01){
+        best[e.key] = {v, kg:st.kg, reps:st.reps, d:s.d, name:e.name};
+        prs.push({...best[e.key], key:e.key});
+      }
+    });
+  }));
+  const recentPR = prs.slice(-6).reverse();
+
   $("#view-prog").innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="v num">${real.length}</div><div class="l">Məşq</div></div>
+      <div class="stat"><div class="v num">${thisMonth}</div><div class="l">Bu ay</div></div>
+      <div class="stat"><div class="v num">${avgMin!=null?avgMin:"—"}<small> dəq</small></div><div class="l">Orta müddət</div></div>
+    </div>
+    <div class="card tight"><div class="kcalrow"><span>Ümumi qaldırılan yük</span><span><b class="num">${totTon.toLocaleString()}</b> kq</span></div></div>
+
+    <div class="sect">Son 14 gün · əzələ yükü</div>
+    <div class="card">
+      ${state.sessions.length ? `<div class="mlist">${volRows.map(r=>`<div class="mrowv ${r.v?"":"zero"}">
+        <span class="mn">${MUSN[r.m]}</span>
+        <span class="mb"><i style="width:${Math.round(r.v/volMax*100)}%"></i></span>
+        <span class="mv num">${r.v ? Math.round(r.v*10)/10 : "—"}</span>
+      </div>`).join("")}</div>
+      <div class="small" style="margin-top:10px">Həqiqətən qeyd etdiyin dövrlərdən hesablanıb (plandan yox). 2 həftədə əzələ başına <b style="color:var(--ink)">14-30 dövr</b> yaxşı aralıqdır — boş qalanlara hərəkət əlavə et.</div>`
+      : `<div class="empty">İlk məşqini bitir, burada hansı əzələni nə qədər işlətdiyin görünəcək.</div>`}
+    </div>
+
+    <div class="sect">Rekordlar</div>
+    <div class="card">
+      ${recentPR.length ? recentPR.map(p=>`<div class="prrow">
+        <span class="pn">${esc(p.name)}</span>
+        <span class="pv num">${p.kg} kq × ${p.reps}</span>
+        <span class="pd">${fmtD(p.d)}</span>
+      </div>`).join("") : `<div class="empty">Hələ rekord yoxdur.</div>`}
+    </div>
+
     <div class="sect">Bədən çəkisi</div>
     <div class="card">
       <div class="chartbox">${chartSVG(wPts,"#4a7dff"," kq")}</div>
@@ -2181,8 +2383,9 @@ function renderProg(){
       }).join("")}</div>`:""}
     </div>
 
-    <div class="sect">Güc · təxmini 1TM</div>
-    <div class="card">${liftBlock}</div>
+    <details class="rules"><summary>Hərəkət üzrə güc qrafiki</summary><div class="inner">
+      <div style="padding-top:10px">${liftBlock}</div>
+    </div></details>
 
     <div class="sect">Tarixçə</div>
     <div class="card">${hist}</div>`;
@@ -2200,35 +2403,38 @@ const MUSN = {
   forearm:"Said", abs:"Qarın", lats:"Enli kürək", traps:"Trapesiya · orta kürək", lowback:"Bel",
   glutes:"Sağrı", quads:"Dördbaşlı (bud ön)", hams:"Arxa bud", calves:"Baldır"
 };
-/* sadələşdirilmiş fiqur: gövdə/qol/ayaq blokları fon, əzələ blokları üstündə */
-const BODY_BASE = `
-  <circle cx="50" cy="16" r="10"/><rect x="46" y="25" width="8" height="8" rx="3"/>
-  <rect x="32" y="32" width="36" height="72" rx="13"/><rect x="34" y="99" width="32" height="20" rx="9"/>
-  <rect x="16" y="40" width="13" height="38" rx="6.5"/><rect x="71" y="40" width="13" height="38" rx="6.5"/>
-  <rect x="14" y="76" width="12" height="34" rx="6"/><rect x="74" y="76" width="12" height="34" rx="6"/>
-  <rect x="34" y="114" width="14" height="54" rx="7"/><rect x="52" y="114" width="14" height="54" rx="7"/>
-  <rect x="35" y="166" width="12" height="46" rx="6"/><rect x="53" y="166" width="12" height="46" rx="6"/>`;
+/* Anatomik fiqur: hər əzələ bədənin SOL yarısı üçün çəkilir və güzgü ilə sağa
+   köçürülür — simmetriya pozulmur, yol sayı yarıya düşür. Mərkəz xətti x=60;
+   qarın, trapesiya və bel mərkəzə toxunur ki, iki yarı bitişik görünsün. */
+const BODY_BASE = `<ellipse cx="60" cy="19" rx="11.5" ry="13.5"/>
+  <path d="M60 30 C56 30 54 32 54 36 L54 41 L60 43 Z"/>
+  <path d="M60 36 C52 37 42 41 36 48 C31 54 30 62 30 72 L32 104 C33 114 36 120 40 127 L60 127 Z"/>
+  <path d="M40 127 L60 127 L60 152 L45 152 C40 147 38 139 40 127 Z"/>
+  <path d="M30 50 C24 54 21 64 22 76 L25 101 C26 107 31 107 32 101 L34 74 C35 62 34 54 30 50 Z"/>
+  <path d="M24 101 C19 109 17 123 18 137 C19 144 25 144 26 137 L29 113 C30 107 28 102 24 101 Z"/>
+  <path d="M45 152 C41 162 41 182 43 198 L46 208 C48 213 55 213 56 207 L58 182 C59 168 58 158 56 152 Z"/>
+  <path d="M47 210 C44 220 44 236 46 248 C47 254 54 254 55 248 C56 236 56 222 55 210 Z"/>`;
 const SHAPES = {
   front:{
-    delts:`<ellipse cx="27.5" cy="42" rx="7.5" ry="7.5"/><ellipse cx="72.5" cy="42" rx="7.5" ry="7.5"/>`,
-    chest:`<rect x="36" y="41" width="12.5" height="17" rx="5.5"/><rect x="51.5" y="41" width="12.5" height="17" rx="5.5"/>`,
-    abs:`<rect x="41" y="60" width="18" height="40" rx="7"/>`,
-    biceps:`<rect x="17" y="48" width="11" height="26" rx="5.5"/><rect x="72" y="48" width="11" height="26" rx="5.5"/>`,
-    forearm:`<rect x="15" y="78" width="10" height="30" rx="5"/><rect x="75" y="78" width="10" height="30" rx="5"/>`,
-    quads:`<rect x="35" y="116" width="12" height="48" rx="6"/><rect x="53" y="116" width="12" height="48" rx="6"/>`
+    traps:`M60 39 L55 40 C51 44 47 47 44 49 L47 54 C52 52 57 46 59.6 43 Z`,
+    delts:`M31 50 C25 55 22 64 24 73 C31 75 36 69 37 61 C37 55 35 51 31 50 Z`,
+    chest:`M45 52 C39 55 38 65 41 71 C47 75 55 75 59.6 73 L59.6 54 C54 51 50 50 45 52 Z`,
+    biceps:`M26 77 C23 83 23 93 25 100 C30 101 33 96 33 88 C33 82 30 78 26 77 Z`,
+    forearm:`M23 105 C20 113 19 125 21 134 C25 135 28 129 28 120 C28 113 26 107 23 105 Z`,
+    abs:`M51 79 L59.6 79 L59.6 121 L54 119 C51 113 50 97 51 79 Z`,
+    quads:`M46 154 C42 164 42 182 44 196 C48 200 54 197 56 188 C58 176 58 162 56 154 Z`
   },
   back:{
-    traps:`<path d="M50 32 L64 38 L58 64 L50 68 L42 64 L36 38 Z"/>`,
-    rdelt:`<ellipse cx="29" cy="42" rx="8" ry="7.5"/><ellipse cx="71" cy="42" rx="8" ry="7.5"/>`,
-    lats:`<path d="M36 52 L33 57 L37 84 L49 92 L49 60 Z"/><path d="M64 52 L67 57 L63 84 L51 92 L51 60 Z"/>`,
-    lowback:`<rect x="42" y="86" width="16" height="15" rx="5"/>`,
-    triceps:`<rect x="17" y="48" width="11" height="26" rx="5.5"/><rect x="72" y="48" width="11" height="26" rx="5.5"/>`,
-    glutes:`<ellipse cx="42" cy="109" rx="9.5" ry="9"/><ellipse cx="58" cy="109" rx="9.5" ry="9"/>`,
-    hams:`<rect x="35" y="120" width="12" height="44" rx="6"/><rect x="53" y="120" width="12" height="44" rx="6"/>`,
-    calves:`<rect x="36" y="168" width="10" height="36" rx="5"/><rect x="54" y="168" width="10" height="36" rx="5"/>`
+    traps:`M60 35 L51 42 C47 49 45 57 45 63 L59.6 79 L59.6 35 Z`,
+    rdelt:`M31 50 C25 55 22 64 24 73 C31 75 36 69 37 61 C37 55 35 51 31 50 Z`,
+    lats:`M43 61 C36 69 35 84 40 95 L58.5 101 L58.5 75 Z`,
+    lowback:`M53 103 L59.6 103 L59.6 125 L56 122 C53 116 52 110 53 103 Z`,
+    triceps:`M26 77 C22 84 22 94 24 101 C29 102 32 97 32 89 C32 83 29 78 26 77 Z`,
+    glutes:`M45 129 C39 134 39 145 46 150 C53 152 58 146 58 137 C58 130 52 127 45 129 Z`,
+    hams:`M46 154 C43 164 43 180 45 194 C49 198 55 195 56 186 C57 174 56 160 54 154 Z`,
+    calves:`M47 212 C44 220 44 232 46 242 C50 245 54 241 55 232 C55 224 53 215 50 212 Z`
   }
 };
-/* slot siyahısından əzələ üzrə dövr sayı */
 function muscleVolume(slots){
   const vol = {};
   slots.forEach(sl=>{
@@ -2241,10 +2447,14 @@ function muscleVolume(slots){
 }
 function volOpacity(v){ return v>0 ? Math.min(0.18 + v*0.055, 0.95) : 0; }
 function bodySVG(view, vol){
-  const parts = Object.entries(SHAPES[view]).map(([m,shape]) =>
-    `<g fill="var(--red)" fill-opacity="${volOpacity(vol[m]||0).toFixed(2)}">${shape}</g>`).join("");
-  return `<svg viewBox="0 0 100 220" role="img" aria-label="${view==="front"?"ön":"arxa"} görünüş">
-    <g fill="var(--card2)" stroke="var(--line)" stroke-width="1">${BODY_BASE}</g>${parts}</svg>`;
+  const parts = Object.entries(SHAPES[view]).map(([m,d])=>{
+    const op = volOpacity(vol[m]||0).toFixed(2);
+    return `<g fill="var(--red)" fill-opacity="${op}"><path d="${d}"/><path d="${d}" transform="translate(120,0) scale(-1,1)"/></g>`;
+  }).join("");
+  return `<svg viewBox="0 0 120 262" role="img" aria-label="${view==="front"?"ön":"arxa"} görünüş">
+    <g fill="var(--card2)" stroke="var(--line)" stroke-width="0.9" stroke-linejoin="round">
+      ${BODY_BASE}<g transform="translate(120,0) scale(-1,1)">${BODY_BASE}</g>
+    </g>${parts}</svg>`;
 }
 /* Plan bölməsindəki kart: gün / həftə seçimi ilə */
 let volMode = "day";

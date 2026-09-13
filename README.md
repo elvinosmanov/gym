@@ -10,7 +10,10 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 
 - **85 hərəkətlik kitabxana** — hər birinin iki kadrlı (başlanğıc/bitiş) animasiyalı illüstrasiyası, texnika ipuçları və ümumi səhvləri
 - **Plan redaktoru** — istənilən günə hərəkət əlavə et, sil, yerini dəyiş, dövr/təkrar/istirahəti qur, öz hərəkətini yarat (şəkli və işlədiyi əzələlərlə)
-- **Əzələ xəritəsi** — ön/arxa bədən üzərində hansı əzələnin nə qədər işlədiyi (əsas dövr tam, köməkçi yarım sayılır), gün və tam dövr üzrə
+- **Əzələ xəritəsi** — anatomik ön/arxa fiqur üzərində hansı əzələnin nə qədər işlədiyi (əsas dövr tam, köməkçi yarım sayılır), gün və tam dövr üzrə
+- **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
+- **Video** — hər hərəkət üçün YouTube axtarışı, istəsən öz videonu təyin edirsən
+- **Məşq qeydləri** — məşqin sonunda qeyd yazırsan, növbəti dəfə həmin gün açılanda qarşına çıxır
 - **İkiqat proqressiya** — bütün dövrlərdə diapazonun yuxarı həddinə çatanda tətbiq çəki artırmağı təklif edir
 - **Günə uyğun qızışma** siyahısı + 4 dəqiqəlik taymer
 - **Real vaxt sayğacı** — vaxt qeydlərdən hesablanır: dövrlər arası 20 dəqiqədən uzun boşluqlar sayılmır. "Bitir"i unutsan, 3 saatdan sonra məşq özü bağlanır və düzgün müddətlə yadda saxlanılır
@@ -35,7 +38,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v7` → `forge-v8`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v8` → `forge-v9`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 
