@@ -1034,7 +1034,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v36";
+const APP_VERSION = "forge-v37";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -2153,11 +2153,11 @@ function renderSettings(){
     <div class="card">
       <div class="small" style="margin-bottom:10px">Zalın divar saatına bax və elə olduğu kimi yaz — fərqi tətbiq özü hesablayır.</div>
       <div class="inline-log">
-        <input id="st-clock" type="time" value="${fmtClock(Date.now())}">
+        <input id="st-clock" type="time" step="1" value="${fmtClock(Date.now(), false, true)}">
         <button class="btn sm" onclick="setGymClock()">Təyin et</button>
       </div>
-      <div class="hint" style="margin-top:10px">Telefon: <b>${fmtClock(Date.now(), true)}</b> · Zal: <b>${fmtClock(Date.now())}</b>${
-        (parseInt(p.clockOffset)||0) ? ` <span style="color:var(--c)">(${(parseInt(p.clockOffset)||0)>0?"+":""}${parseInt(p.clockOffset)||0} dəq)</span>` : " — fərq yoxdur"}</div>
+      <div class="hint" style="margin-top:10px">Telefon: <b>${fmtClock(Date.now(), true, true)}</b> · Zal: <b>${fmtClock(Date.now(), false, true)}</b>${
+        (parseInt(p.clockOffset)||0) ? ` <span style="color:var(--c)">(${fmtOffset(parseInt(p.clockOffset)||0)})</span>` : " — fərq yoxdur"}</div>
       ${(parseInt(p.clockOffset)||0) ? `<button class="btn sm ghost" style="margin-top:10px" onclick="resetGymClock()">Fərqi sıfırla</button>` : ""}
     </div>
 
@@ -2223,15 +2223,18 @@ function toggleDay(d){
 }
 function setGymClock(){
   const v = ($("#st-clock").value || "").split(":");
-  const hh = parseInt(v[0]), mm = parseInt(v[1]);
+  const hh = parseInt(v[0]), mm = parseInt(v[1]), ss = parseInt(v[2])||0;
   if(isNaN(hh) || isNaN(mm)){ toast("Saatı yaz: 16:45"); return; }
   const now = new Date();
-  let diff = (hh*60 + mm) - (now.getHours()*60 + now.getMinutes());
-  if(diff > 720) diff -= 1440;
-  if(diff < -720) diff += 1440;
+  /* saniyə ilə: köhnə versiya yalnız dəqiqəyə yuvarlayırdı — zalın saatı ilə
+     telefonun fərqi 30 saniyəyə qədər ola bilər, o da növbəti dövrün göstərilən
+     vaxtına birbaşa təsir edir. clockOffset indi SANİYƏ ilə saxlanılır. */
+  let diff = (hh*3600 + mm*60 + ss) - (now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds());
+  if(diff > 43200) diff -= 86400;
+  if(diff < -43200) diff += 86400;
   state.profile.clockOffset = diff;
   save(); cloudPush(); renderSettings();
-  toast(diff ? `Zal saatı təyin edildi (${diff>0?"+":""}${diff} dəq)` : "Saatlar üst-üstə düşür");
+  toast(diff ? `Zal saatı təyin edildi (${fmtOffset(diff)})` : "Saatlar üst-üstə düşür");
 }
 function resetGymClock(){ state.profile.clockOffset = 0; save(); cloudPush(); renderSettings(); toast("Sıfırlandı"); }
 function toggleTimerScreen(){
@@ -2254,10 +2257,16 @@ function saveSet(){
 }
 /* zalın divar saatı ilə uyğunlaşdırılmış vaxt */
 function fmtClock(ts, raw, withSec){
-  const off = raw ? 0 : (parseInt(state.profile.clockOffset)||0)*60000;
+  const off = raw ? 0 : (parseInt(state.profile.clockOffset)||0)*1000;
   const d = new Date(ts + off);
   const p = n => String(n).padStart(2,"0");
   return p(d.getHours()) + ":" + p(d.getMinutes()) + (withSec ? ":" + p(d.getSeconds()) : "");
+}
+/* clockOffset saniyə ilə saxlanılır (Zalın saatı) — fərqi oxunaqlı yaz */
+function fmtOffset(sec){
+  const a = Math.abs(sec), m = Math.floor(a/60), s = a%60;
+  const mag = m ? (s ? `${m} dəq ${s} san` : `${m} dəq`) : `${s} san`;
+  return (sec>0?"+":"-") + mag;
 }
 function exportData(){
   const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
@@ -2387,13 +2396,17 @@ function sessionMarks(a){
   Object.values((a && a.ex) || {}).forEach(sets => sets.forEach(s => { if(s.t) m.push(s.t); }));
   return m.sort((x,y)=>x-y);
 }
-function sessionMinutes(a, tailCap){
+function sessionSeconds(a, tailCap){
   const m = sessionMarks(a);
   if(!m.length) return null;
   let tot = 0;
   for(let i=1;i<m.length;i++) tot += Math.min(m[i]-m[i-1], GAP_CAP);
   if(tailCap) tot += Math.min(Date.now()-m[m.length-1], tailCap);
-  return Math.round(tot/60000);
+  return Math.round(tot/1000);
+}
+function sessionMinutes(a, tailCap){
+  const s = sessionSeconds(a, tailCap);
+  return s==null ? null : Math.round(s/60);
 }
 function lastMark(a){ const m = sessionMarks(a); return m.length ? m[m.length-1] : 0; }
 /* açıq qalmış məşq: sonuncu qeyddən STALE_MIN dəqiqədən çox keçib */
@@ -2408,6 +2421,14 @@ function staleHours(){ return staleMins() ? staleMins()/60 : 0; }
 function hm(min){
   if(min==null) return "—";
   return min >= 60 ? `${Math.floor(min/60)} sa ${min%60} dəq` : `${min} dəq`;
+}
+/* dəqiqədən dəqiq: saniyəni də göstərir — “Bitir” anında yadda saxlanan
+   müddət artıq yalnız dəqiqəyə yuvarlanmır (rec.sec), bura onu göstərir */
+function hms(sec){
+  if(sec==null) return "—";
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  if(h) return `${h} sa ${m} dəq`;
+  return s ? `${m} dəq ${s} san` : `${m} dəq`;
 }
 function clockChip(){
   const a = state.active; if(!a) return "";
@@ -2698,6 +2719,12 @@ function toggleDone(key,i){
     /* sonuncu dövrdən sonra istirahət yoxdur — növbəti hərəkətə keçilir */
     if(i < state.active.ex[key].length - 1) startTimer(EXMAP[key].rest, effEx(key).name);
     else toast("Hərəkət bitdi — növbəti hərəkətə keç");
+  } else if(state.active.rest && state.active.rest.label === effEx(key).name){
+    /* ✓ geri götürüləndə köhnə istirahət sayğacı arxa fonda işləməyə davam edirdi:
+       “növbəti dövr” xətti yoxa çıxırdı, amma üzük köhnə vaxta doğru saymağa davam
+       edirdi. Yenidən ✓ edəndə TAM YENİ istirahət başlayırdı — nəticədə əslində
+       gözlədiyin vaxtdan çox gözləmiş olurdun. İndi geri götürəndə sayğac da təmizlənir. */
+    timerSkip();
   }
   save();
   /* Task 9.1: full renderTrain() here rebuilt the whole view, collapsing the open
@@ -2713,8 +2740,9 @@ function buildRecord(a){
   const startISO = a.startedAt ? isoOf(new Date(a.startedAt)) : (a.started || todayISO());
   /* id olmadan açar “tarix|gün” idi: eyni gün eyni tipdə iki məşq etsən,
      birləşdirmə onlardan yalnız birini saxlayırdı. */
+  const sec = sessionSeconds(a, staleHours() ? 0 : TAIL_CAP);
   const rec = { id: startISO+"|"+a.day+"|"+(a.startedAt||Date.now()), d: startISO, day: a.day, ex: [],
-    foundation: !!a.foundation, min: sessionMinutes(a, staleHours() ? 0 : TAIL_CAP) };
+    foundation: !!a.foundation, min: sec==null ? null : Math.round(sec/60), sec };
   let n = 0, skipped = 0, zero = 0;
   const logged = s => parseFloat(s.reps) > 0 && !(s.auto && !s.done);   /* boz təklif ≠ edilmiş dövr */
   PROGRAM[a.day].ex.forEach(ex=>{
@@ -2750,7 +2778,7 @@ function finishSession(){
   }
   const warn = (skipped ? `<div class="hint warn" style="margin-top:10px">Diqqət: işarələnmiş ${skipped} dövr təkrar sayı boş olduğu üçün qeyd edilməyəcək.</div>` : "")
     + (zero ? `<div class="hint warn" style="margin-top:10px">Diqqət: ${zero} dövrdə çəki yazılmayıb — onlar <b>0 kq</b> kimi yazılacaq və növbəti dəfə çəki təklifi verə bilməyəcəyəm. İmtina edib çəkiləri doldurmaq daha yaxşıdır.</div>` : "");
-  const dur = rec.min!=null ? ` · <b>${hm(rec.min)}</b>` : "";
+  const dur = rec.sec!=null ? ` · <b>${hms(rec.sec)}</b>` : "";
   const prev = lastNote(a.day);
   $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${PROGRAM[a.day].name} yadda saxlanılsın?</h3>
@@ -2793,7 +2821,7 @@ function autoFinishStale(){
   if(n){
     state.sessions.push(rec); endActive(); save(); cloudPush(true);
     migrationNote = `“Bitir” basılmamışdı — <b>${dayMeta(rec.day).name}</b> məşqi avtomatik yadda saxlanıldı: `
-      + `${n} dövr · ${hm(rec.min)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`;
+      + `${n} dövr · ${hms(rec.sec)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`;
   } else {
     endActive(); save(); cloudPush(true);
     migrationNote = "Yarımçıq qalmış məşq bağlandı — heç bir dövr qeyd edilmədiyi üçün tarixçəyə yazılmadı.";
@@ -2802,7 +2830,7 @@ function autoFinishStale(){
 function saveSession(rec){
   state.sessions.push(rec); endActive(); timerSkip(); save(); cloudPush(true);
   const nxt = DAYS[(DAYS.indexOf(rec.day)+1) % DAYS.length];
-  toast(`${dayMeta(rec.day).name} · ${hm(rec.min)} · növbəti: ${DAY_META[nxt].name}`);
+  toast(`${dayMeta(rec.day).name} · ${hms(rec.sec)} · növbəti: ${DAY_META[nxt].name}`);
   viewDay = nxt;
   switchTab("today");
 }
@@ -3139,7 +3167,8 @@ function renderProg(){
   const hist = state.sessions.length ? state.sessions.slice().reverse().map((s,ri)=>{
     const i = state.sessions.length-1-ri;
     const n = s.ex.reduce((a,e)=>a+e.sets.length,0);
-    return `<details class="hist"><summary><span><span class="mini-plate mp-${dayMeta(s.day).cls}"></span><b>${dayMeta(s.day).name}</b>${s.foundation?` <span class="prbadge">TƏMƏL</span>`:""} · ${fmtD(s.d)}</span><span class="hs num">${n} dövr${s.min!=null?` · ${hm(s.min)}`:""}</span></summary>
+    const durTxt = s.sec!=null ? hms(s.sec) : (s.min!=null ? hm(s.min) : null);
+    return `<details class="hist"><summary><span><span class="mini-plate mp-${dayMeta(s.day).cls}"></span><b>${dayMeta(s.day).name}</b>${s.foundation?` <span class="prbadge">TƏMƏL</span>`:""} · ${fmtD(s.d)}</span><span class="hs num">${n} dövr${durTxt?` · ${durTxt}`:""}</span></summary>
       ${s.note ? `<div class="histnote">“${esc(s.note)}”</div>` : ""}
       ${s.ex.map(e=>`<div class="histset"><b>${esc(e.name)}</b> — <span class="num">${perfStr(e)}</span></div>`).join("")}
       <button class="btn sm danger" style="margin:8px 0 10px" onclick="delSession(${i})">Məşqi sil</button>
