@@ -24,7 +24,11 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Analiz** — hər hərəkət üçün trend (həftədə neçə kq), status, növbəti addım və proqnoz: “bu tempi saxlasan 80 kq-a 6 həftəyə çatırsan”
 - **Günə uyğun qızışma** siyahısı + 4 dəqiqəlik taymer
 - **Real vaxt sayğacı** — vaxt qeydlərdən hesablanır: dövrlər arası 20 dəqiqədən uzun boşluqlar sayılmır. "Bitir"i unutsan, 3 saatdan sonra məşq özü bağlanır və düzgün müddətlə yadda saxlanılır
+- **Çəki qaydası: hər tərəfə** — ştanq, Smith və disklə yüklənən aparatlarda xanaya BİR tərəfin diskləri yazılır, dəmirin öz çəkisi sayılmır (kartda “hər tərəfə 20 + 2.5 · cəmi 65 kq” kimi açılır). Hanteldə bir hantelin rəqəmi, yığınlı aparatda yığın rəqəmi. Köhnə qeydlər olduğu kimi qalır — oxunarkən avtomatik çevrilir (conv damğası)
+- **Avadanlığa uyğun artım** — ştanq/disk hər tərəfə +2.5, ayaq compoundları +10, hantel +2.5, yığın +5; istənilən hərəkətin addımı Plan → ⚙ bölməsindən ayrıca qurulur
+- **Alternativ ailəsi** — aparat dolu olanda alternativə keçəndə tətbiq artıq “ilk dəfə” demir: eyni ailədən son qeydi referens göstərir, avadanlıq tipi eynidirsə çəkini də təklif edir
 - **Yük tipi** — hər hərəkət kq xanasının nəyi ölçdüyünü bilir (ştanq cəmi / bir hantel / yığın / əlavə disk) və ştanq hərəkətlərində hər tərəfə hansı diskləri taxmalı olduğunu göstərir
+- **Geri sayım kartda da işləyir** — tam ekran taymeri kiçiltsən və ya istirahəti keçsən belə, kartdakı sayğac dövrün qeyd vaxtından hesablanıb işləməyə davam edir
 - **İstirahət** — hər dövrdən sonra növbəti dövrün dəqiq saatı yazılır (zalın divar saatı ilə), sonuncu dövrdən sonra istirahət göstərilmir. Tam ekran taymer istəyə bağlıdır və divar vaxtına bağlıdır — telefonu bağlasan da düzgün qalır
 - Bədən çəkisi və təxmini 1TM qrafikləri
 - **Çəkisiz qeydin qarşısı alınır** — aparat/ştanq hərəkətində çəki xanası boşdursa ✓ qəbul edilmir (əvvəl belə dövrlər tarixçəyə `0 kq` düşürdü və “Son: BÇ×12” kimi görünürdü). Köhnə 0 kq qeydlər tarixçədə qalır, amma proqressiya hesabına girmir
@@ -50,7 +54,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v24` → `forge-v36`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v24` → `forge-v38`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 

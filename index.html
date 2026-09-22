@@ -189,6 +189,8 @@ a.btn{text-decoration:none}
 .junkr input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--red)}
 .junkr b{display:block;font-size:13px}
 .junkr small{display:block;color:var(--mut);font-size:11.5px;margin-top:2px}
+.restline .cdn{font-variant-numeric:tabular-nums;color:var(--c)}
+.restline .cdn.over{color:var(--green)}
 .stepper input.gh{color:var(--dim)}
 .swopt.dis{opacity:.42}
 .swopt.dis .swck{color:var(--mut)}
@@ -525,6 +527,7 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
   </div>
   <div class="tbtns">
     <button class="btn ghost" onclick="timerAdd()">+30 san</button>
+    <button class="btn ghost" onclick="timerHide()">Kiçilt</button>
     <button class="btn" onclick="timerSkip()">İstirahəti keç</button>
   </div>
 </div>
@@ -739,10 +742,10 @@ ham:{name:"Hammer Curl", tag:"Biseps · Brachialis · Said", g:"pull", pri:["bic
   mist:["Çiyinlərdən ətalət yaratmaq.","Yuxarıda biləklərin içəri bükülməsi.","İki qolu eyni anda yellətmək — növbə ilə də edə bilərsiniz."]},
 
 /* ---------- AYAQ ---------- */
-sq:{name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:["hams","lowback"], load:"bar", sets:3, rMin:5, rMax:8, rest:180, inc:5, im:"sq",
+sq:{name:"Barbell Back Squat", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:["hams","lowback"], load:"bar", sets:3, rMin:5, rMax:8, rest:180, inc:10, im:"sq",
   cues:["Ştanqı trapesiya əzələlərinə sıx basın, onu bərk sıxın, dirsəklər aşağıda olsun.","Dərin nəfəs alın, qarnınızı zərbə alacaqmış kimi bərkidin — sonra enməyə başlayın.","Dabanlarınızın arasına oturun; dizlər ayaq barmaqları istiqamətində hərəkət etsin.","Paralel səviyyəyə və ya bir az aşağısına enin, sonra döşəməni bərk itələyərək qalxın."],
   mist:["Dabanların qalxması / çəkinin barmaqlara keçməsi.","Qalxarkən dizlərin içəri düşməsi.","Çəki ağırlaşdıqca dərinliyin azaldılması.","Qarın bərkiliyinin itirilməsi — döşün önə çökməsi."]},
-lpz:{name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:[], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"lpz",
+lpz:{name:"Leg Press", tag:"Dördbaşlı əzələ · Sağrı əzələsi", g:"legs", pri:["quads","glutes"], sec:[], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:10, im:"lpz",
   cues:["Ayaqları platformanın ortasında, çiyin enində yerləşdirin.","Dizlər ~90°-yə çatana və ya bel yastıqdan ayrılmayana qədər enin.","Bütün ayaq altını işlədərək itələyin; dizləri tam kilidləmədən dayanın."],
   mist:["O qədər dərin enmək ki, bel yastıqdan ayrılsın.","Ego üçün ağır çəki ilə yarımçıq təkrarlar etmək.","Dizlərin içəri düşməsi."]},
 llc:{name:"Lying Leg Curl", tag:"Arxa budun əzələsi", g:"legs", pri:["hams"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"llc",
@@ -909,19 +912,19 @@ chcu:{name:"Cable Hammer Curl (rope)", tag:"Brachialis · Said", g:"pull", pri:[
   cues:["Kəndir tutuşu — baş barmaqlar yuxarı.","Dirsəklər sabit, yalnız said qalxır."]},
 xham:{name:"Cross-Body Hammer Curl", tag:"Brachialis", pri:["biceps","forearm"], sec:[], g:"pull", load:"db", sets:3, rMin:8, rMax:12, rest:60, inc:1, im:"xham",
   cues:["Hanteli əks çiyinə doğru aparın.","Növbə ilə, dirsək böyürdə sabit."]},
-hsq:{name:"Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], load:"plate", sets:3, rMin:8, rMax:12, rest:150, inc:5, im:"hsq",
+hsq:{name:"Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], load:"plate", sets:3, rMin:8, rMax:12, rest:150, inc:10, im:"hsq",
   cues:["Kürəyinizi yastığa sıx basın, dabanlar platformada qalsın.","Dizlər barmaqlar istiqamətində, rahat gedən dərinliyə enin."]},
-fsq:{name:"Front Squat", tag:"Dördbaşlı əzələ · Gövdə", g:"legs", pri:["quads"], sec:["glutes","abs"], load:"bar", sets:3, rMin:5, rMax:8, rest:180, inc:2.5, im:"fsq",
+fsq:{name:"Front Squat", tag:"Dördbaşlı əzələ · Gövdə", g:"legs", pri:["quads"], sec:["glutes","abs"], load:"bar", sets:3, rMin:5, rMax:8, rest:180, inc:10, im:"fsq",
   cues:["Dirsəklər yuxarı — ştanq çiyin önündə oturur.","Gövdə dik qalır; bir az önə əyilmək ştanqı yerə salır."]},
-smsq:{name:"Smith Machine Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads","glutes"], sec:["hams"], load:"smith", sets:3, rMin:5, rMax:8, rest:150, inc:5, im:"smsq",
+smsq:{name:"Smith Machine Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads","glutes"], sec:["hams"], load:"smith", sets:3, rMin:5, rMax:8, rest:150, inc:10, im:"smsq",
   cues:["Ayaqlar bir az öndə — ştanq xətti topuqdan keçsin.","Nəzarətli enin, dabanlarla itələyin."]},
-wsq:{name:"Wide-Stance Squat", tag:"Sağrı · Bud içi", g:"legs", pri:["glutes","quads"], sec:["hams"], load:"bar", sets:3, rMin:5, rMax:8, rest:150, inc:5, im:"wsq",
+wsq:{name:"Wide-Stance Squat", tag:"Sağrı · Bud içi", g:"legs", pri:["glutes","quads"], sec:["hams"], load:"bar", sets:3, rMin:5, rMax:8, rest:150, inc:10, im:"wsq",
   cues:["Ayaqlar çiyindən geniş, barmaqlar bayıra baxır.","Dizləri barmaqlar istiqamətində açın, sağrını sıxaraq qalxın."]},
 gm:{name:"Good Morning", tag:"Arxa bud · Bel", g:"legs", pri:["hams"], sec:["lowback","glutes"], load:"bar", sets:3, rMin:8, rMax:12, rest:120, inc:2.5, im:"gm",
   cues:["Ştanq trapesiya üzərində, dizlər yüngül bükülü.","Ombanı geriyə itələyin, bel düz qalsın — çox yüngül başlayın."]},
-nlp:{name:"Narrow-Stance Leg Press", tag:"Dördbaşlı əzələ (xarici)", g:"legs", pri:["quads"], sec:["glutes"], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"nlp",
+nlp:{name:"Narrow-Stance Leg Press", tag:"Dördbaşlı əzələ (xarici)", g:"legs", pri:["quads"], sec:["glutes"], load:"plate", sets:3, rMin:8, rMax:12, rest:120, inc:10, im:"nlp",
   cues:["Ayaqlar platformanın ortasında, bir-birinə yaxın.","Dizlər içəri düşməsin — bayıra doğru itələyin."]},
-smhs:{name:"Smith Machine Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], load:"smith", sets:3, rMin:8, rMax:12, rest:120, inc:5, im:"smhs",
+smhs:{name:"Smith Machine Hack Squat", tag:"Dördbaşlı əzələ", g:"legs", pri:["quads"], sec:["glutes"], load:"smith", sets:3, rMin:8, rMax:12, rest:120, inc:10, im:"smhs",
   cues:["Ayaqlar öndə, kürək ştanqın altında sabit.","Dərin enin — dördbaşlı əzələ bu vəziyyətdə maksimum işləyir."]},
 slc:{name:"Seated Leg Curl", tag:"Arxa budun əzələsi", g:"legs", pri:["hams"], sec:[], load:"stack", sets:3, rMin:8, rMax:12, rest:90, inc:2.5, im:"slc",
   cues:["Yastıq baldırın aşağısında olsun, omba kəmərlə sabitlənsin.","Tam bükün, 2-3 saniyə ərzində nəzarətlə açın."]},
@@ -1034,13 +1037,13 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v37";
+const APP_VERSION = "forge-v38";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
 const DEFAULTS = { profile:{name:"Elvin",w:"", days:[1,2,4,6],
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
-    barKg:20, plate:1.25, dbStep:2, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
+    barKg:20, plate:2.5, dbStep:2.5, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
   weights:[], sessions:[], active:null, supps:[], plan:null, planTs:0, userEx:{}, vid:{},
   gone:[], goneW:[], pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
@@ -1075,6 +1078,8 @@ function histEx(k){ return libEx(k) || ARCHIVE[k] || null; }
 function libEx(k){ return (state.userEx && state.userEx[k]) || LIB[k] || null; }
 function libKeys(){ return Object.keys(LIB).concat(Object.keys(state.userEx||{})); }
 function defSlot(k){ const e = libEx(k) || {}; return { k, sets:e.sets||3, rMin:e.rMin||10, rMax:e.rMax||12, rest:e.rest||90 }; }
+/* slotda öz artım addımı varsa o işləyir (⚙ redaktorundan) */
+function slotInc(sl, e){ return (sl && +sl.inc > 0) ? +sl.inc : incFor(e); }
 function daySlots(D){
   const custom = state.plan && state.plan[D];
   if(Array.isArray(custom)) return custom.filter(s => libEx(s.k));
@@ -1086,9 +1091,9 @@ function daySlots(D){
    birbaşa hantelin öz çəkisidir. Artım addımı da buradan hesablanır, əl ilə
    yazılmış rəqəmdən yox — zalındakı ən kiçik disk/hantel addımı ayarlardadır. */
 const LOAD_LBL = {
-  bar:{s:"ştanq · cəmi", l:"Ştanqın öz çəkisi + bütün disklər. 20 kq ştanq + hər tərəfə 10 = 40 kq yaz."},
-  plate:{s:"yalnız disklər", l:"Aparatın öz çəkisi sayılmır — yalnız taxdığın disklərin cəmini yaz."},
-  smith:{s:"Smith · disklər", l:"Smith ştanqının öz çəkisi zaldan-zala dəyişir — yalnız disklərin cəmini yaz."},
+  bar:{s:"hər tərəfə", l:"Dəmirin öz çəkisi sayılmır — BİR tərəfə taxdığın disklərin cəmini yaz. Hər tərəfə 20+10 taxmısansa: 30."},
+  plate:{s:"hər tərəfə", l:"Aparatın öz çəkisi sayılmır — BİR tərəfə taxdığın disklərin cəmini yaz."},
+  smith:{s:"hər tərəfə", l:"Smith ştanqının öz çəkisi sayılmır — BİR tərəfdəki disklərin cəmini yaz."},
   db:{s:"bir hantel", l:"İKİ hantelin cəmini yox, BİR hantelin üzərindəki rəqəmi yaz."},
   db1:{s:"hantel çəkisi", l:"Tək hantellə edilir — hantelin öz rəqəmini yaz."},
   stack:{s:"yığın", l:"Aparatın çəki yığınındakı rəqəmi yaz."},
@@ -1107,38 +1112,48 @@ function loadTag(ex){
 }
 function gymCfg(){
   const p = state.profile || {};
-  return { bar:+p.barKg||20, plate:+p.plate||1.25, db:+p.dbStep||2, stack:+p.stackStep||5 };
+  return { bar:+p.barKg||20, plate:+p.plate||2.5, db:+p.dbStep||2.5, stack:+p.stackStep||5 };
 }
+/* İKİ TƏRƏFLİ yüklənən avadanlıq: xanaya BİR tərəfin çəkisi yazılır, dəmir sayılmır */
+const SIDE_LOADS = ["bar","plate","smith"];
+const isSide = ex => !!ex && SIDE_LOADS.includes(ex.load);
 function incFor(ex){
   const c = gymCfg();
+  /* hərəkətin öz addımı varsa o qalib gəlir — leg press-ə hər tərəfə 10,
+     bench-ə 2.5 lazımdır, hamısına eyni rəqəm uyğun gəlmir */
+  const own = ex && +ex.inc > 0 ? +ex.inc : null;
   switch(ex && ex.load){
-    case "bar": case "plate": case "smith": return c.plate*2;   /* hər tərəfə bir disk */
+    case "bar": case "plate": case "smith": return own || c.plate;   /* HƏR TƏRƏFƏ bir disk */
+    /* hantel və yığın: addım zalın avadanlığından gəlir, kitabxanadakı köhnə
+       rəqəmdən yox — hantellər 2.5-lik, yığınlar 5-lik dəyişir */
     case "db": case "db1": return c.db;
     case "stack": return unitOf(ex)==="lb" ? (+state.profile.stackStepLb || 10) : c.stack;
-    case "bw": return c.plate*2;
-    default: return (ex && ex.inc) || 2.5;
+    case "bw": return own || c.plate*2;
+    default: return own || 2.5;
   }
 }
-/* ştanq/disk hərəkətlərində: cəmi çəki -> hər tərəfə nə taxmalı */
-function plateBreak(total, ex){
-  if(!ex || !["bar","plate","smith"].includes(ex.load)) return null;
+/* Xanadakı rəqəm BİR tərəfin çəkisidir. Burada onu disklərə bölürük və
+   yanında ümumi çəkini (dəmir daxil) məlumat üçün göstəririk. */
+function plateBreak(sideKg, ex){
+  if(!isSide(ex)) return null;
   const c = gymCfg();
-  const barW = ex.load==="bar" ? c.bar : 0;
-  let side = (total - barW)/2;
+  let side = +sideKg;
   if(!(side > 0)) return null;
+  const total = ex.load==="bar" ? side*2 + c.bar : side*2;
   const out = [];
   [25,20,15,10,5,2.5,1.25].filter(p=>p>=c.plate).forEach(p=>{
     const n = Math.floor(side/p + 1e-9);
     if(n){ out.push(n>1 ? `${n}×${p}` : `${p}`); side = Math.round((side - n*p)*1000)/1000; }
   });
   if(side > 0.01 || !out.length) return null;
-  return (barW ? `ştanq ${barW} + ` : "") + `hər tərəfə ${out.join(" + ")}`;
+  return `hər tərəfə ${out.join(" + ")}`
+    + ` · cəmi ${Math.round(total*10)/10} kq${ex.load==="bar" ? ` (dəmir ${c.bar} daxil)` : ""}`;
 }
 function mkEx(sl, D){
   const e = libEx(sl.k) || { name:sl.k, tag:"" };
   return { ...e, key:sl.k, day:D,
     sets:Math.max(1, +sl.sets||1), rMin:Math.max(1, +sl.rMin||1), rMax:Math.max(1, +sl.rMax||1),
-    rest:Math.max(15, +sl.rest||60), inc: e.load ? incFor(e) : (e.inc || 2.5), load: e.load || "stack",
+    rest:Math.max(15, +sl.rest||60), inc: slotInc(sl, e), load: e.load || "stack",
     cues:e.cues || [], mist:e.mist || [],
     /* load:"bw" özü bədən çəkisi deməkdir — ayrıca bayraq unudulsa da (Chest Dips
        belə idi) çəkisiz dövr qadağası səhvən işə düşməsin */
@@ -1239,6 +1254,14 @@ function migrate(s, fromPv){
   if(!s.profile.sex) s.profile.sex = "m";
   if(!Array.isArray(s.profile.days) || !s.profile.days.length) s.profile.days = [1,2,4,6];
   if(!s.userEx || typeof s.userEx !== "object") s.userEx = {};
+  /* v37: çəki qaydası dəyişdi (ştanq/disk = hər tərəfə, dəmir sayılmır) və
+     addımlar böyüdü. Toxunulmamış köhnə standartları yeniləyirik; istifadəçi
+     özü başqa rəqəm yazıbsa ona dəymirik. */
+  if(!s.profile.convV){
+    if(+s.profile.plate === 1.25) s.profile.plate = 2.5;
+    if(+s.profile.dbStep === 2)   s.profile.dbStep = 2.5;
+    s.profile.convV = 2;
+  }
   if(!s.vid || typeof s.vid !== "object") s.vid = {};
   /* köhnə qeydlərə determinist id — hər cihaz eyni id-ni hesablayır, dublikat olmur */
   (s.sessions||[]).forEach(x=>{ if(!x.id) x.id = x.d+"|"+x.day; });
@@ -1623,6 +1646,24 @@ function scheduleStrip(){
    Hanging Knee Raise…). Ştanq/hantel/aparat hərəkətində isə 0 real qeyd deyil —
    sadəcə çəki xanası boş qalıb. Belə dövrlər tarixçədə qalır, amma proqressiya
    və “Son:” sətri onları saymır, əks halda bütün hesabı aşağı çəkir. */
+/* ================= KÖHNƏ QEYDLƏRİN OXUNUŞU =================
+   v37-yə qədər ştanq/disk hərəkətlərində xanaya CƏMİ çəki yazılırdı (dəmir daxil).
+   İstifadəçi köhnə qeydlərin olduğu kimi qalmasını istədi — ona görə saxlanmış
+   rəqəmlərə toxunmuruq, sadəcə OXUYARKƏN yeni qaydaya çeviririk: (cəmi − dəmir)/2.
+   Beləliklə 60 kq bench ilə yeni 20 kq (hər tərəfə) müqayisə edilə bilir və
+   proqressiya “çəkin üç dəfə düşüb” demir. Yeni qeydlərdə conv:2 damğası olur. */
+const CONV = 2;
+function normKg(key, kg, conv){
+  if((conv||1) >= CONV) return kg;
+  const e = EXMAP[key] || (typeof ARCHIVE!=="undefined" && ARCHIVE[key]) || libEx(key) || {};
+  if(!SIDE_LOADS.includes(e.load)) return kg;
+  const bar = e.load==="bar" ? gymCfg().bar : 0;
+  return Math.max(0, Math.round(((kg - bar)/2)*100)/100);
+}
+function normSets(key, sets, conv){
+  if((conv||1) >= CONV) return sets;
+  return (sets||[]).map(x => ({...x, kg: normKg(key, x.kg, conv)}));
+}
 function bwEx(key){
   const e = EXMAP[key] || (typeof ARCHIVE!=="undefined" && ARCHIVE[key]) || libEx(key);
   return !!(e && (e.bodyweight || e.load==="bw"));
@@ -1635,10 +1676,34 @@ function lastPerf(key, opts = {}){
     if(state.sessions[i].foundation && !opts.includeFoundation) continue;
     const f = state.sessions[i].ex.find(e=>e.key===key);
     if(!f) continue;
-    const sets = realSets(key, f.sets);
+    const sets = realSets(key, normSets(key, f.sets, state.sessions[i].conv));
     if(sets.length) return { d:state.sessions[i].d, sets };
   }
   return null;
+}
+/* ================= ALTERNATİV AİLƏSİ =================
+   Zalda aparat dolu olanda alternativə keçirsən. Tətbiq onu tamamilə ayrı hərəkət
+   kimi görürdü: “ilk dəfə” yazır, referens çəki vermir, proqressiya sıfırdan
+   başlayırdı. İndi eyni ailədən (⇄ siyahısı) ən son qeyd referens kimi işlənir.
+   Çəki tarixçələri ayrı qalır — hanteldə 30 kq ilə aparatda 30 kq eyni yük deyil. */
+function famOf(key){
+  const fam = new Set([key]);
+  Object.keys(ALT_OF).forEach(base=>{
+    const alts = ALT_OF[base] || [];
+    if(base === key || alts.includes(key)){ fam.add(base); alts.forEach(a => fam.add(a)); }
+  });
+  return [...fam];
+}
+function famPerf(key){
+  const own = (libEx(key) || {}).load;
+  let best = null;
+  famOf(key).forEach(k=>{
+    if(k === key) return;
+    const p = lastPerf(k);
+    if(p && (!best || p.d > best.d))
+      best = { ...p, key:k, name: exName(k), sameLoad: (libEx(k)||{}).load === own };
+  });
+  return best;
 }
 /* true when the only record we hold for this lift is the foundation session */
 function onlyFoundation(key){
@@ -1666,7 +1731,7 @@ function exSessions(key, limit, withFoundation){
     if(s.foundation && !withFoundation) continue;
     const f = s.ex.find(e=>e.key===key);
     if(!f || !f.sets.length) continue;
-    const sets = realSets(key, f.sets);
+    const sets = realSets(key, normSets(key, f.sets, s.conv));
     if(!sets.length) continue;
     let top = sets[0];
     sets.forEach(x=>{ if(e1rm(x.kg, x.reps) > e1rm(top.kg, top.reps)) top = x; });
@@ -1711,6 +1776,15 @@ function progressPlan(key){
   const RMAX = habit || ex.rMax;       /* hədəf: ya planın tavanı, ya sənin adətin */
   const hNote = habit ? ` <i>Son üç məşqi həmişə ${habit} təkrarda bitirmisən — ona görə ${ex.rMax} gözləmirəm.</i>` : "";
   if(!H.length){
+    const ref = famPerf(key);
+    if(ref && ref.sets.length){
+      const top = ref.sets.reduce((a,x)=> e1rm(x.kg,x.reps) > e1rm(a.kg,a.reps) ? x : a, ref.sets[0]);
+      return { action:"ref", kg: ref.sameLoad ? r05(top.kg) : null,
+        reps: Math.min(ex.rMax, Math.max(ex.rMin, top.reps || ex.rMax)), cls:"",
+        txt: ref.sameLoad
+          ? `Bu variantı ilk dəfə edirsən, amma eyni ailədən qeydin var: <b>${esc(ref.name)}</b> (${fmtD(ref.d)}) — <b>${perfStr(ref)}</b>. Avadanlıq eyni tipdədir, ona görə <b>${r05(top.kg)} ${u}</b> ilə başla; davamını mən aparacam.`
+          : `Bu variantı ilk dəfə edirsən. Referens üçün: <b>${esc(ref.name)}</b> (${fmtD(ref.d)}) — <b>${perfStr(ref)}</b>. Avadanlıq fərqlidir (${esc(loadTag(libEx(ref.key)||{}))} ⇄ ${esc(loadTag(ex))}), ona görə rəqəmi birbaşa köçürmə: həmin çətinliyə uyğun çəki seç.` };
+    }
     const only = onlyFoundation(key);
     return { action:"first", kg:null, reps:ex.rMax, cls:"",
       txt: only
@@ -1893,7 +1967,9 @@ function loggedVolume(days){
 function tonnage(s){
   return s.ex.reduce((a,e)=>{
     const f = unitOf(histEx(e.key)) === "lb" ? 0.4536 : 1;   /* tonajda hamısı kq-a çevrilir */
-    return a + e.sets.reduce((b,st)=>b + (st.kg||0)*f*st.reps, 0);
+    /* iki tərəfli avadanlıqda xanadakı rəqəm bir tərəfdir — tonaj üçün ikiqat */
+    const side = SIDE_LOADS.includes((histEx(e.key)||{}).load) ? 2 : 1;
+    return a + normSets(e.key, e.sets, s.conv).reduce((b,st)=>b + (st.kg||0)*f*side*st.reps, 0);
   }, 0);
 }
 /* bu gün çəki artırılacaq hərəkətlər */
@@ -1931,7 +2007,7 @@ function briefItems(day){
 /* ================= TODAY ================= */
 /* “Bugün” kartındakı qısa siyahı: nə edəcəyəm və hansı çəki ilə — bir baxışda.
    Çəkilər proqressiya alqoritmindən gəlir, yəni məşqi açanda görəcəyinin eynisidir. */
-const PEEK_MARK = { up:"↑", down:"↓", deload:"↓", reps:"→", hold:"→", first:"•" };
+const PEEK_MARK = { up:"↑", down:"↓", deload:"↓", reps:"→", hold:"→", first:"•", ref:"≈" };
 function planPeek(D){
   const list = PROGRAM[D] ? PROGRAM[D].ex : [];
   if(!list.length) return "";
@@ -2121,10 +2197,11 @@ function renderSettings(){
 
     <div class="sect">Zalın avadanlığı</div>
     <div class="card">
-      <div class="small" style="margin-bottom:10px">Çəki artımı təklifləri və disk hesablayıcısı buradan hesablanır. Zalındakı ən kiçik diski düzgün yazsan, tətbiq sənə mümkün olmayan çəki təklif etməyəcək.</div>
+      <div class="small" style="margin-bottom:10px">Çəki artımı təklifləri və disk hesablayıcısı buradan hesablanır.
+        <br><br><b style="color:var(--ink)">Çəki qaydası:</b> ştanq, Smith və disklə yüklənən aparatlarda xanaya <b style="color:var(--ink)">BİR tərəfin</b> çəkisini yaz — dəmirin öz çəkisi sayılmır. Hantellərdə bir hantelin rəqəmi, yığınlı aparatlarda (kəndir, blok) yığındakı rəqəm yazılır.</div>
       <div class="grid2">
-        <div class="field"><label>Ştanqın çəkisi (kq)</label><input id="st-bar" type="number" inputmode="decimal" step="0.5" value="${c.bar}" onchange="saveSet()"></div>
-        <div class="field"><label>Ən kiçik disk (kq)</label><input id="st-plate" type="number" inputmode="decimal" step="0.25" value="${c.plate}" onchange="saveSet()"></div>
+        <div class="field"><label>Dəmirin çəkisi (kq)</label><input id="st-bar" type="number" inputmode="decimal" step="0.5" value="${c.bar}" onchange="saveSet()"></div>
+        <div class="field"><label>Ən kiçik disk (kq)</label><input id="st-plate" type="number" inputmode="decimal" step="0.5" value="${c.plate}" onchange="saveSet()"></div>
       </div>
       <div class="grid2">
         <div class="field"><label>Hantel addımı (kq)</label><input id="st-db" type="number" inputmode="decimal" step="0.5" value="${c.db}" onchange="saveSet()"></div>
@@ -2137,7 +2214,8 @@ function renderSettings(){
         </select></div>
       ${p.stackUnit==="lb" ? `<div class="field"><label>Aparat addımı (lb)</label>
         <input id="st-stacklb" type="number" inputmode="decimal" step="1" value="${esc(+p.stackStepLb||10)}" onchange="saveSet()"></div>` : ""}
-      <div class="hint" style="margin-top:6px">İndiki artımlar: ştanq <b>+${c.plate*2} kq</b> (hər tərəfə ${c.plate}) · hantel <b>+${c.db} kq</b> · aparat <b>+${p.stackUnit==="lb" ? (+p.stackStepLb||10)+" lb" : c.stack+" kq"}</b></div>
+      <div class="hint" style="margin-top:6px">İndiki artımlar: ştanq/disk <b>hər tərəfə +${c.plate} kq</b> · hantel <b>+${c.db} kq</b> · aparat <b>+${p.stackUnit==="lb" ? (+p.stackStepLb||10)+" lb" : c.stack+" kq"}</b>.
+        Ayaq hərəkətlərində addım daha böyükdür (hər tərəfə +10). İstənilən hərəkətin addımını <b>Plan → ⚙</b> bölməsindən ayrıca qura bilərsən.</div>
       ${p.stackUnit==="lb" ? `<div class="small" style="margin-top:8px">Aparatlarda rəqəmi <b style="color:var(--ink)">olduğu kimi lb ilə</b> yaz — çevirmə lazım deyil. Ştanq və hantellər kq olaraq qalır. Ümumi tonajda lb avtomatik kq-a çevrilir.</div>` : ""}
     </div>
 
@@ -2246,8 +2324,8 @@ function saveSet(){
   const p = state.profile, n = (id,d) => { const v = parseFloat($("#"+id).value); return isNaN(v) ? d : v; };
   p.name = ($("#st-name").value || "").replace(/[<>]/g,"").trim() || "İdmançı";
   p.barKg = Math.max(0, n("st-bar", 20));
-  p.plate = Math.max(0.25, n("st-plate", 1.25));
-  p.dbStep = Math.max(0.5, n("st-db", 2));
+  p.plate = Math.max(0.25, n("st-plate", 2.5));
+  p.dbStep = Math.max(0.5, n("st-db", 2.5));
   p.stackStep = Math.max(0.5, n("st-stack", 5));
   const su = $("#st-unit"); if(su) p.stackUnit = su.value === "lb" ? "lb" : "kg";
   const sl = $("#st-stacklb"); if(sl) p.stackStepLb = Math.max(1, n("st-stacklb", 10));
@@ -2507,6 +2585,15 @@ function dayMuscleCard(D){
     </div>
   </div></div>`;
 }
+/* “Son:” sətri. Bu hərəkətin öz qeydi yoxdursa, ailədən referens göstərilir —
+   əks halda alternativə keçəndə kart tamamilə boş qalırdı. */
+function perfLine(key, p){
+  if(p) return `<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`;
+  const ref = famPerf(key);
+  if(!ref) return "";
+  return `<div class="lastline">Referens — <b>${esc(ref.name)}</b> (${fmtD(ref.d)}): <b class="num">${perfStr(ref)}</b>`
+    + `${ref.sameLoad ? "" : " <span class=\"atn\">· fərqli avadanlıq</span>"}</div>`;
+}
 /* ================= TRAIN ================= */
 function renderTrain(){
   if(viewDay===null) viewDay = nextDay();
@@ -2550,7 +2637,16 @@ function renderTrain(){
       }).join("");
       const h = hintFor(eff,p);
       const wk = (st[0] && parseFloat(st[0].kg)) || suggestKg(eff.key);
-      const ramp = (eff.rest>=120 && wk && wk>=30) ? `<div class="ramp">Qızışma dövrləri: <b class="num">${r25(wk*0.4)} × 8 → ${r25(wk*0.6)} × 5 → ${r25(wk*0.8)} × 3</b> — sonra iş dövrləri (sayılmır)</div>` : "";
+      /* Qızışma faizləri ÜMUMİ yükdən hesablanır, sonra yenidən xanadakı vahidə
+         (ştanqda hər tərəfə) çevrilir — əks halda dəmirin öz çəkisi nəzərə alınmır
+         və 40% real 40% olmur. */
+      const rampKg = f => {
+        if(eff.load !== "bar") return r25(wk*f);
+        const bar = gymCfg().bar, tot = wk*2 + bar;
+        return Math.max(0, r25((tot*f - bar)/2));
+      };
+      const rampOK = eff.rest>=120 && wk && (eff.load==="bar" ? (wk*2+gymCfg().bar) >= 40 : wk >= 30);
+      const ramp = rampOK ? `<div class="ramp">Qızışma dövrləri: <b class="num">${rampKg(0.4)} × 8 → ${rampKg(0.6)} × 5 → ${rampKg(0.8)} × 3</b>${eff.load==="bar" ? " <span class=\"atn\">(hər tərəfə — boş dəmir də bir dövrdür)</span>" : ""} — sonra iş dövrləri (sayılmır)</div>` : "";
       const pb = plateBreak(wk, eff);
       const plateLine = pb ? `<div class="ramp"><b class="num">${wk} kq</b> = ${pb}</div>` : "";
       return `<div class="card ex" style="--dc:var(--${D.cls})">
@@ -2561,7 +2657,7 @@ function renderTrain(){
             <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${'$'}{eff.key}')">${loadTag(eff)}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}</div>
           </div>
         </div><div class="exbtns"><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${swapOpts(ex.key).length>1?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}</div></div>
-        ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
+        ${perfLine(eff.key, p)}
         <div class="hint ${h.cls}">${h.txt}</div>
         ${plateLine}
         ${ramp}
@@ -2583,7 +2679,7 @@ function renderTrain(){
               <div class="meta"><span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span><span class="tag">⏱ ${Math.round(ex.rest/60*10)/10} dəq</span><span class="tag lt">${loadTag(ex)}</span></div>
             </div>
           </div><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button></div>
-          ${p?`<div class="lastline">Son (${fmtD(p.d)}): <b class="num">${perfStr(p)}</b></div>`:""}
+          ${perfLine(ex.key, p)}
           <div class="hint ${h.cls}">${h.txt}</div>
         </div>`;
       }).join("") +
@@ -2666,9 +2762,27 @@ function restLineHTML(key){
     return `<div class="restline done">Bu hərəkət bitdi — istirahət etmədən növbəti hərəkətə keç.</div>`;
   const at = sets[last].t + eff.rest*1000;
   const over = Date.now() > at;
+  /* Geri sayım kartın içində də gedir: tam ekran taymerdən çıxsan (və ya onu
+     söndürsən) belə neçə saniyə qaldığını görürsən. Rəqəm dövrün qeyd olunma
+     vaxtından hesablanır, taymerdən asılı deyil. */
   return `<div class="restline ${over?"over":""}">İstirahət <b>${Math.round(eff.rest/60*10)/10} dəq</b> — `
-    + `növbəti dövr:<br><b class="at">${fmtClock(at, false, true)}</b> <span class="atn">zal saatı ilə</span>${over?" · vaxt gəlib":""}</div>`;
+    + `növbəti dövr:<br><b class="at">${fmtClock(at, false, true)}</b> <span class="atn">zal saatı ilə</span>`
+    + ` · <b class="cdn" data-cd="${at}">${cdText(at)}</b></div>`;
 }
+function cdText(at){
+  const left = Math.round((at - Date.now())/1000);
+  if(left <= 0) return "vaxt gəlib";
+  return Math.floor(left/60) + ":" + String(left%60).padStart(2,"0");
+}
+/* bir saniyəlik ümumi sayğac — səhifədəki bütün geri sayımları yeniləyir */
+setInterval(()=>{
+  document.querySelectorAll("[data-cd]").forEach(el=>{
+    const at = +el.dataset.cd;
+    const t = cdText(at);
+    if(el.textContent !== t) el.textContent = t;
+    el.classList.toggle("over", at - Date.now() <= 0);
+  });
+}, 1000);
 function toggleDone(key,i){
   const s = state.active.ex[key][i]; s.done = !s.done;
   if(s.done){
@@ -2741,7 +2855,7 @@ function buildRecord(a){
   /* id olmadan açar “tarix|gün” idi: eyni gün eyni tipdə iki məşq etsən,
      birləşdirmə onlardan yalnız birini saxlayırdı. */
   const sec = sessionSeconds(a, staleHours() ? 0 : TAIL_CAP);
-  const rec = { id: startISO+"|"+a.day+"|"+(a.startedAt||Date.now()), d: startISO, day: a.day, ex: [],
+  const rec = { id: startISO+"|"+a.day+"|"+(a.startedAt||Date.now()), d: startISO, day: a.day, ex: [], conv: CONV,
     foundation: !!a.foundation, min: sec==null ? null : Math.round(sec/60), sec };
   let n = 0, skipped = 0, zero = 0;
   const logged = s => parseFloat(s.reps) > 0 && !(s.auto && !s.done);   /* boz təklif ≠ edilmiş dövr */
@@ -2991,6 +3105,8 @@ function timerAdd(){
   if(!tInt){ $("#timer").classList.add("on"); acquireWakeLock(); tInt=setInterval(tick,1000); }
   tickRender();
 }
+/* Ekranı bağlayır, amma istirahəti ləğv etmir — geri sayım kartda davam edir */
+function timerHide(){ $("#timer").classList.remove("on"); releaseWakeLock(); }
 function timerSkip(){ clearInterval(tInt); tInt=null; tEnd=0; tTotal=0; $("#timer").classList.remove("on"); releaseWakeLock(); if(state.active) delete state.active.rest; }
 /* səhifə yenidən açılanda davam edən istirahəti bərpa et */
 function resumeTimer(){
@@ -3157,7 +3273,7 @@ function renderProg(){
   const volMax = Math.max(10, ...volRows.map(r=>r.v));
 
   const prs = []; const best = {};
-  state.sessions.forEach(s=>s.ex.forEach(e=>e.sets.forEach(st=>{
+  state.sessions.forEach(s=>s.ex.forEach(e=>normSets(e.key, e.sets, s.conv).forEach(st=>{
     if(!(st.kg>0)) return;
     const v = e1rm(st.kg, st.reps);
     if(!best[e.key] || v > best[e.key].v + 0.01){ best[e.key] = {v, kg:st.kg, reps:st.reps, d:s.d, name:e.name}; prs.push({...best[e.key], key:e.key}); }
@@ -3169,6 +3285,8 @@ function renderProg(){
     const n = s.ex.reduce((a,e)=>a+e.sets.length,0);
     const durTxt = s.sec!=null ? hms(s.sec) : (s.min!=null ? hm(s.min) : null);
     return `<details class="hist"><summary><span><span class="mini-plate mp-${dayMeta(s.day).cls}"></span><b>${dayMeta(s.day).name}</b>${s.foundation?` <span class="prbadge">TƏMƏL</span>`:""} · ${fmtD(s.d)}</span><span class="hs num">${n} dövr${durTxt?` · ${durTxt}`:""}</span></summary>
+      ${(s.conv||1) < CONV && s.ex.some(e=>SIDE_LOADS.includes((histEx(e.key)||{}).load))
+        ? `<div class="histnote" style="color:var(--dim)">Köhnə qayda ilə yazılıb: ştanq/disk hərəkətlərində rəqəm <b>cəmi çəkidir</b> (dəmir daxil). Qrafiklər və proqressiya onu avtomatik hər tərəfə çevirir.</div>` : ""}
       ${s.note ? `<div class="histnote">“${esc(s.note)}”</div>` : ""}
       ${s.ex.map(e=>`<div class="histset"><b>${esc(e.name)}</b> — <span class="num">${perfStr(e)}</span></div>`).join("")}
       <button class="btn sm danger" style="margin:8px 0 10px" onclick="delSession(${i})">Məşqi sil</button>
@@ -3802,7 +3920,10 @@ function openSlotEdit(D,i){
       <div class="field"><label>Təkrar — min</label><input id="sl-rmin" type="number" inputmode="numeric" min="1" max="50" value="${esc(ex.rMin)}"></div>
       <div class="field"><label>Təkrar — maks</label><input id="sl-rmax" type="number" inputmode="numeric" min="1" max="50" value="${esc(ex.rMax)}"></div>
     </div>
-    <div class="small">Maks təkrara bütün dövrlərdə çatdıqda tətbiq çəkini +${ex.inc} kq artırmağı təklif edir.</div>
+    <div class="field"><label>Artım addımı (${esc(unitOf(ex))}${isSide(ex) ? " — hər tərəfə" : ""})</label>
+      <input id="sl-inc" type="number" inputmode="decimal" min="0.5" max="50" step="0.5" value="${esc(ex.inc)}"></div>
+    <div class="small">Bu aparat neçə-neçə artırsa, onu yaz. ${isSide(ex) ? "Rəqəm bir tərəfə düşən artımdır — hər tərəfə 10-luq disk əlavə edirsənsə 10 yaz." : ""}</div>
+    <div class="small">Maks təkrara bütün dövrlərdə çatdıqda tətbiq çəkini <b>+${ex.inc} ${esc(unitOf(ex))}</b>${isSide(ex) ? " (hər tərəfə)" : ""} artırmağı təklif edir.</div>
     <button class="btn block" style="margin-top:12px" onclick="applySlot('${D}',${i})">Yadda saxla</button>
     <button class="btn block ghost" style="margin-top:8px" onclick="openLibPick('${D}',${i})">⇄ Başqa hərəkətlə əvəz et</button>
     <button class="btn block danger" style="margin-top:8px" onclick="closeSheet();planRemove('${D}',${i})">Bu gündən çıxar</button>`;
@@ -3817,6 +3938,8 @@ function applySlot(D,i){
   let a = n("sl-rmin",1,50,cur.rMin), b = n("sl-rmax",1,50,cur.rMax);
   if(a > b){ const t=a; a=b; b=t; }
   cur.rMin = a; cur.rMax = b;
+  const iv = parseFloat($("#sl-inc").value);
+  cur.inc = (!isNaN(iv) && iv >= 0.5 && iv <= 50) ? iv : cur.inc;
   closeSheet(); planTouch(); toast("Yadda saxlanıldı");
 }
 
