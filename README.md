@@ -36,6 +36,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Plan buludda öz vaxt damğası ilə saxlanılır** — planı yalnız DAHA YENİ plan əvəz edə bilər. Əvvəl ümumi `ts` həll edirdi və ts hər yadda saxlamada yenilənirdi, ona görə planı olmayan köhnə nüsxə səninkini silə bilirdi. Plan dəyişikliyi dərhal göndərilir, düymə basmaq lazım deyil
 - **Silmək həqiqətən silir** — silinən məşq/çəki üçün damğa saxlanılır; birləşdirmə iki tərəfi birləşdirdiyi üçün əvvəl silinən qeyd növbəti sinxronda geri qayıdırdı
 - **Tarixçə təmizliyi** — gələcək tarixli, sınaq id-li və ya bütün dövrləri eyni olan qeydləri tapıb siyahı ilə göstərir, işarələyib birdəfəyə silirsən (Ayarlar)
+- **Vergüllü onluq** — iPhone klaviaturası onluq ayırıcı kimi vergül verir; `type="number"` xanası belə dəyəri etibarsız sayıb boş qaytarırdı və çəki qeyd olunmurdu. Bütün rəqəm xanaları `inputmode` ilə mətn xanasıdır (klaviatura eynidir), oxunuş `numVal()`-dən keçir: “78,5” = “78.5”
 - **Yaddaş**: localStorage + istəyə bağlı Supabase bulud sinxronizasiyası. Bulud heç vaxt kor-koranə üzərinə yazılmır — hər yazıdan əvvəl oxunub birləşdirilir, ona görə köhnə nüsxəli cihaz başqa cihazın qeydlərini silə bilmir. Hər məşqin sabit id-si var. + .json ixrac/idxal
 
 Bütün təsdiq pəncərələri tətbiqin özündədir — brauzerin `confirm()`/`alert()` pəncərələri PWA və daxili brauzerlərdə bloklana bildiyi üçün istifadə olunmur.
@@ -54,7 +55,7 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v24` → `forge-v38`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v24` → `forge-v39`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
 
 `supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
 

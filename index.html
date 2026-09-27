@@ -1037,7 +1037,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v38";
+const APP_VERSION = "forge-v39";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1050,6 +1050,18 @@ let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
 const $ = s => document.querySelector(s);
+/* iPhone-da Azərbaycan klaviaturası onluq ayırıcı kimi VERGÜL verir. type="number"
+   xanası vergüllü dəyəri etibarsız sayır və .value BOŞ qayıdır — ona görə “78,5”
+   yazanda çəki ümumiyyətlə qeyd olunmurdu. Rəqəm xanaları artıq mətn xanasıdır
+   (inputmode ilə eyni klaviatura açılır) və bütün oxunuşlar buradan keçir. */
+function numVal(v){
+  const n = parseFloat(String(v == null ? "" : v).replace(",", ".").trim());
+  return isNaN(n) ? NaN : n;
+}
+function intVal(v){
+  const n = parseInt(String(v == null ? "" : v).replace(",", ".").trim(), 10);
+  return isNaN(n) ? NaN : n;
+}
 /* hər vərəqin yuxarısında qalan bağla düyməsi — uzun vərəqdə aşağı sürüşdürmək lazım deyil */
 /* Bağlama düyməsi SVG-dir: “✕” simvolu bəzi telefonlarda (iOS Safari) şriftdə
    olmadığı üçün boş görünürdü. SVG hər yerdə eyni çəkilir. */
@@ -2049,7 +2061,7 @@ function renderToday(){
       <div class="sub" style="margin-top:2px">İki xana — proqres izlənməsi bununla işə düşür.</div>
       <div class="grid2">
         <div class="field"><label>Ad</label><input id="su-name" value="${esc(p.name)}"></div>
-        <div class="field"><label>Çəki (kq) — istəyə bağlı</label><input id="su-w" type="number" inputmode="decimal" step="0.1" value="${esc(p.w)}" placeholder="70"></div>
+        <div class="field"><label>Çəki (kq) — istəyə bağlı</label><input id="su-w" type="text" inputmode="decimal" step="0.1" value="${esc(p.w)}" placeholder="70"></div>
       </div>
       <button class="btn block" onclick="saveSetup()">Yadda saxla və başla</button>
     </div>`;
@@ -2095,7 +2107,7 @@ function renderToday(){
 
     ${profileDone() && !wLoggedToday() ? `<div class="card tight wlog">
       <div class="inline-log">
-        <input id="qw" type="number" inputmode="decimal" step="0.1" placeholder="Bugünkü çəki (kq)${w?" · son "+w.toFixed(1).replace(/\.0$/,""):""}">
+        <input id="qw" type="text" inputmode="decimal" step="0.1" placeholder="Bugünkü çəki (kq)${w?" · son "+w.toFixed(1).replace(/\.0$/,""):""}">
         <button class="btn sm" onclick="addWeight('qw')">Qeyd et</button>
       </div>
       <div class="small" style="margin-top:8px">Səhər, yeməkdən əvvəl çəkil. Qeyd etdikdən sonra bu sahə bu günlük yığılır.</div>
@@ -2109,7 +2121,7 @@ function renderToday(){
 
     ${profileDone() ? `<div class="sect">Bədən çəkisini qeyd et</div>
     <div class="card tight"><div class="inline-log">
-      <input id="qw" type="number" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"kq"}">
+      <input id="qw" type="text" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"kq"}">
       <button class="btn sm" onclick="addWeight('qw')">Qeyd et</button>
     </div><div class="small" style="margin-top:8px">Həftədə 2-3 dəfə, səhərlər, yeməkdən əvvəl çəkilin. Kütlə dövründə hədəf: <b style="color:var(--ink)">+0.25-0.5 kq/həftə</b>.</div></div>` : ""}
 
@@ -2190,7 +2202,7 @@ function renderSettings(){
         <div class="field"><label>Həftədə məşq</label><input value="${weeklyTarget()} gün" disabled></div>
       </div>
       <div class="inline-log" style="margin-top:4px">
-        <input id="st-w" type="number" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"bugünkü çəki (kq)"}">
+        <input id="st-w" type="text" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"bugünkü çəki (kq)"}">
         <button class="btn sm" onclick="addWeight('st-w')">Çəkini qeyd et</button>
       </div>
     </div>
@@ -2200,12 +2212,12 @@ function renderSettings(){
       <div class="small" style="margin-bottom:10px">Çəki artımı təklifləri və disk hesablayıcısı buradan hesablanır.
         <br><br><b style="color:var(--ink)">Çəki qaydası:</b> ştanq, Smith və disklə yüklənən aparatlarda xanaya <b style="color:var(--ink)">BİR tərəfin</b> çəkisini yaz — dəmirin öz çəkisi sayılmır. Hantellərdə bir hantelin rəqəmi, yığınlı aparatlarda (kəndir, blok) yığındakı rəqəm yazılır.</div>
       <div class="grid2">
-        <div class="field"><label>Dəmirin çəkisi (kq)</label><input id="st-bar" type="number" inputmode="decimal" step="0.5" value="${c.bar}" onchange="saveSet()"></div>
-        <div class="field"><label>Ən kiçik disk (kq)</label><input id="st-plate" type="number" inputmode="decimal" step="0.5" value="${c.plate}" onchange="saveSet()"></div>
+        <div class="field"><label>Dəmirin çəkisi (kq)</label><input id="st-bar" type="text" inputmode="decimal" step="0.5" value="${c.bar}" onchange="saveSet()"></div>
+        <div class="field"><label>Ən kiçik disk (kq)</label><input id="st-plate" type="text" inputmode="decimal" step="0.5" value="${c.plate}" onchange="saveSet()"></div>
       </div>
       <div class="grid2">
-        <div class="field"><label>Hantel addımı (kq)</label><input id="st-db" type="number" inputmode="decimal" step="0.5" value="${c.db}" onchange="saveSet()"></div>
-        <div class="field"><label>Aparat addımı (kq)</label><input id="st-stack" type="number" inputmode="decimal" step="0.5" value="${c.stack}" onchange="saveSet()"></div>
+        <div class="field"><label>Hantel addımı (kq)</label><input id="st-db" type="text" inputmode="decimal" step="0.5" value="${c.db}" onchange="saveSet()"></div>
+        <div class="field"><label>Aparat addımı (kq)</label><input id="st-stack" type="text" inputmode="decimal" step="0.5" value="${c.stack}" onchange="saveSet()"></div>
       </div>
       <div class="field"><label>Aparat yığınının vahidi</label>
         <select id="st-unit" onchange="saveSet()">
@@ -2213,7 +2225,7 @@ function renderSettings(){
           <option value="lb" ${p.stackUnit==="lb"?"selected":""}>lb — yığında funt (lbs) yazılıb</option>
         </select></div>
       ${p.stackUnit==="lb" ? `<div class="field"><label>Aparat addımı (lb)</label>
-        <input id="st-stacklb" type="number" inputmode="decimal" step="1" value="${esc(+p.stackStepLb||10)}" onchange="saveSet()"></div>` : ""}
+        <input id="st-stacklb" type="text" inputmode="decimal" step="1" value="${esc(+p.stackStepLb||10)}" onchange="saveSet()"></div>` : ""}
       <div class="hint" style="margin-top:6px">İndiki artımlar: ştanq/disk <b>hər tərəfə +${c.plate} kq</b> · hantel <b>+${c.db} kq</b> · aparat <b>+${p.stackUnit==="lb" ? (+p.stackStepLb||10)+" lb" : c.stack+" kq"}</b>.
         Ayaq hərəkətlərində addım daha böyükdür (hər tərəfə +10). İstənilən hərəkətin addımını <b>Plan → ⚙</b> bölməsindən ayrıca qura bilərsən.</div>
       ${p.stackUnit==="lb" ? `<div class="small" style="margin-top:8px">Aparatlarda rəqəmi <b style="color:var(--ink)">olduğu kimi lb ilə</b> yaz — çevirmə lazım deyil. Ştanq və hantellər kq olaraq qalır. Ümumi tonajda lb avtomatik kq-a çevrilir.</div>` : ""}
@@ -2321,7 +2333,7 @@ function toggleTimerScreen(){
   save(); cloudPush(); renderSettings();
 }
 function saveSet(){
-  const p = state.profile, n = (id,d) => { const v = parseFloat($("#"+id).value); return isNaN(v) ? d : v; };
+  const p = state.profile, n = (id,d) => { const v = numVal($("#"+id).value); return isNaN(v) ? d : v; };
   p.name = ($("#st-name").value || "").replace(/[<>]/g,"").trim() || "İdmançı";
   p.barKg = Math.max(0, n("st-bar", 20));
   p.plate = Math.max(0.25, n("st-plate", 2.5));
@@ -2386,7 +2398,7 @@ function skipFoundation(){
 function saveSetup(){
   const p = state.profile;
   p.name = ($("#su-name").value || "").replace(/[<>]/g,"").trim() || "İdmançı";
-  const w = parseFloat($("#su-w").value);
+  const w = numVal($("#su-w").value);
   if(w > 0 && !setWeight(w)){ toast("Çəki 25-350 kq arasında olmalıdır"); return; }
   /* “Yadda saxla” basıldısa kart bir daha çıxmır — çəki xanası boş qalsa belə.
      Əvvəl şərt “ad VƏ çəki” idi: çəkini yazmadan yadda saxlayan adam eyni kartı
@@ -2395,7 +2407,7 @@ function saveSetup(){
   save(); cloudPush(); toast("Hazırdır 💪"); renderToday();
 }
 function addWeight(inputId){
-  const v = parseFloat($("#"+inputId).value);
+  const v = numVal($("#"+inputId).value);
   if(!setWeight(v)){ toast("Kiloqramla çəki daxil edin"); return; }
   save(); cloudPush(); toast(`${v} kq qeyd edildi`); refresh();
 }
@@ -2624,12 +2636,12 @@ function renderTrain(){
           <div class="idx num">${si+1}</div>
           <div class="stepper">
             <button onclick="stepVal('${ex.key}',${si},'kg',-1)" aria-label="minus kg">−</button>
-            <input id="in-${ex.key}-${si}-kg" type="number" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
+            <input id="in-${ex.key}-${si}-kg" type="text" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
             <button onclick="stepVal('${ex.key}',${si},'kg',1)" aria-label="plus kg">+</button>
           </div>
           <div class="stepper">
             <button onclick="stepVal('${ex.key}',${si},'reps',-1)" aria-label="minus reps">−</button>
-            <input id="in-${ex.key}-${si}-reps" type="number" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
+            <input id="in-${ex.key}-${si}-reps" type="text" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
             <button onclick="stepVal('${ex.key}',${si},'reps',1)" aria-label="plus reps">+</button>
           </div>
           <button id="ck-${ex.key}-${si}" class="check ${s.done?"done":""}" onclick="toggleDone('${ex.key}',${si})" aria-label="set done">✓</button>
@@ -2720,7 +2732,9 @@ function startSession(day){
 }
 function setVal(key,i,f,v){
   const s = state.active.ex[key][i];
-  s[f] = v; delete s.auto;              /* əl ilə yazıldı — artıq təklif deyil */
+  /* “22,5” kimi yazılanı nöqtəli saxlayırıq — hesablamalar hamısı parseFloat ilədir */
+  s[f] = String(v).replace(",", ".");
+  delete s.auto;                        /* əl ilə yazıldı — artıq təklif deyil */
   const row = document.getElementById(`in-${key}-${i}-${f}`);
   if(row) row.classList.remove("gh");
   save();
@@ -2740,7 +2754,7 @@ function smartReps(key,i){
 function stepVal(key,i,f,dir){
   const s = state.active.ex[key][i];
   const step = f==="kg" ? (EXMAP[key].inc || 2.5) : 1;
-  let v = parseFloat(s[f]);
+  let v = numVal(s[f]);
   if(!v){ v = f==="kg" ? (smartKg(key,i) ?? step) : smartReps(key,i); } /* first tap = accept suggestion */
   else v += dir*step;
   v = Math.max(0, Math.round(v*10)/10);
@@ -3345,7 +3359,7 @@ function renderProg(){
     <div class="card">
       <div class="chartbox">${chartSVG(wPts,"#4a7dff"," kq")}</div>
       <div class="inline-log" style="margin-top:10px">
-        <input id="pw" type="number" inputmode="decimal" step="0.1" placeholder="Bugünkü çəkini qeyd et (kq)">
+        <input id="pw" type="text" inputmode="decimal" step="0.1" placeholder="Bugünkü çəkini qeyd et (kq)">
         <button class="btn sm" onclick="addWeight('pw')">Qeyd et</button>
       </div>
       ${state.weights.length?`<div class="loglist">${state.weights.slice(-6).reverse().map(x=>{
@@ -3913,15 +3927,15 @@ function openSlotEdit(D,i){
     ${exImg(ex,"exanim big")}
     <h3>${esc(ex.name)}</h3><div class="stag">${esc(ex.tag||"")}</div>
     <div class="grid2">
-      <div class="field"><label>Dövr sayı</label><input id="sl-sets" type="number" inputmode="numeric" min="1" max="10" value="${esc(ex.sets)}"></div>
-      <div class="field"><label>İstirahət (san)</label><input id="sl-rest" type="number" inputmode="numeric" min="15" max="300" step="15" value="${esc(ex.rest)}"></div>
+      <div class="field"><label>Dövr sayı</label><input id="sl-sets" type="text" inputmode="numeric" min="1" max="10" value="${esc(ex.sets)}"></div>
+      <div class="field"><label>İstirahət (san)</label><input id="sl-rest" type="text" inputmode="numeric" min="15" max="300" step="15" value="${esc(ex.rest)}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>Təkrar — min</label><input id="sl-rmin" type="number" inputmode="numeric" min="1" max="50" value="${esc(ex.rMin)}"></div>
-      <div class="field"><label>Təkrar — maks</label><input id="sl-rmax" type="number" inputmode="numeric" min="1" max="50" value="${esc(ex.rMax)}"></div>
+      <div class="field"><label>Təkrar — min</label><input id="sl-rmin" type="text" inputmode="numeric" min="1" max="50" value="${esc(ex.rMin)}"></div>
+      <div class="field"><label>Təkrar — maks</label><input id="sl-rmax" type="text" inputmode="numeric" min="1" max="50" value="${esc(ex.rMax)}"></div>
     </div>
     <div class="field"><label>Artım addımı (${esc(unitOf(ex))}${isSide(ex) ? " — hər tərəfə" : ""})</label>
-      <input id="sl-inc" type="number" inputmode="decimal" min="0.5" max="50" step="0.5" value="${esc(ex.inc)}"></div>
+      <input id="sl-inc" type="text" inputmode="decimal" min="0.5" max="50" step="0.5" value="${esc(ex.inc)}"></div>
     <div class="small">Bu aparat neçə-neçə artırsa, onu yaz. ${isSide(ex) ? "Rəqəm bir tərəfə düşən artımdır — hər tərəfə 10-luq disk əlavə edirsənsə 10 yaz." : ""}</div>
     <div class="small">Maks təkrara bütün dövrlərdə çatdıqda tətbiq çəkini <b>+${ex.inc} ${esc(unitOf(ex))}</b>${isSide(ex) ? " (hər tərəfə)" : ""} artırmağı təklif edir.</div>
     <button class="btn block" style="margin-top:12px" onclick="applySlot('${D}',${i})">Yadda saxla</button>
@@ -3931,14 +3945,14 @@ function openSlotEdit(D,i){
 }
 function applySlot(D,i){
   const p = ensurePlan(D);
-  const n = (id,min,max,dflt) => { const v = parseInt($("#"+id).value); return (isNaN(v)||v<min||v>max) ? dflt : v; };
+  const n = (id,min,max,dflt) => { const v = intVal($("#"+id).value); return (isNaN(v)||v<min||v>max) ? dflt : v; };
   const cur = p[i];
   cur.sets = n("sl-sets",1,10,cur.sets);
   cur.rest = n("sl-rest",15,300,cur.rest);
   let a = n("sl-rmin",1,50,cur.rMin), b = n("sl-rmax",1,50,cur.rMax);
   if(a > b){ const t=a; a=b; b=t; }
   cur.rMin = a; cur.rMax = b;
-  const iv = parseFloat($("#sl-inc").value);
+  const iv = numVal($("#sl-inc").value);
   cur.inc = (!isNaN(iv) && iv >= 0.5 && iv <= 50) ? iv : cur.inc;
   closeSheet(); planTouch(); toast("Yadda saxlanıldı");
 }
@@ -3955,13 +3969,13 @@ function openCustom(key){
       <div class="field"><label>İşləyən əzələ</label><input id="cx-tag" value="${esc(e.tag)}" placeholder="Döş · Triseps"></div>
     </div>
     <div class="grid3">
-      <div class="field"><label>Dövr</label><input id="cx-sets" type="number" inputmode="numeric" value="${esc(e.sets)}"></div>
-      <div class="field"><label>Təkrar min</label><input id="cx-rmin" type="number" inputmode="numeric" value="${esc(e.rMin)}"></div>
-      <div class="field"><label>Təkrar maks</label><input id="cx-rmax" type="number" inputmode="numeric" value="${esc(e.rMax)}"></div>
+      <div class="field"><label>Dövr</label><input id="cx-sets" type="text" inputmode="numeric" value="${esc(e.sets)}"></div>
+      <div class="field"><label>Təkrar min</label><input id="cx-rmin" type="text" inputmode="numeric" value="${esc(e.rMin)}"></div>
+      <div class="field"><label>Təkrar maks</label><input id="cx-rmax" type="text" inputmode="numeric" value="${esc(e.rMax)}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>İstirahət (san)</label><input id="cx-rest" type="number" inputmode="numeric" step="15" value="${esc(e.rest)}"></div>
-      <div class="field"><label>Çəki addımı (kq)</label><input id="cx-inc" type="number" inputmode="decimal" step="0.5" value="${esc(e.inc)}"></div>
+      <div class="field"><label>İstirahət (san)</label><input id="cx-rest" type="text" inputmode="numeric" step="15" value="${esc(e.rest)}"></div>
+      <div class="field"><label>Çəki addımı (kq)</label><input id="cx-inc" type="text" inputmode="decimal" step="0.5" value="${esc(e.inc)}"></div>
     </div>
     <div class="field"><label>Əsas işləyən əzələlər</label>
       <div class="chips fil" id="cx-pri">${Object.keys(MUSN).map(m=>`<span class="pick ${(e.pri||[]).includes(m)?"on":""}" data-m="${m}" onclick="this.classList.toggle('on')">${MUSN[m]}</span>`).join("")}</div></div>
@@ -3976,7 +3990,7 @@ function openCustom(key){
 function saveCustom(key){
   const name = clean($("#cx-name").value);
   if(!name){ toast("Ad yazın"); return; }
-  const num = (id,d,min,max) => { const v = parseFloat($("#"+id).value); return (isNaN(v)||v<min||v>max) ? d : v; };
+  const num = (id,d,min,max) => { const v = numVal($("#"+id).value); return (isNaN(v)||v<min||v>max) ? d : v; };
   const img = clean($("#cx-img").value);
   const k = key || ("u" + Date.now().toString(36));
   state.userEx = state.userEx || {};
