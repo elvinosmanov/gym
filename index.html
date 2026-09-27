@@ -1037,7 +1037,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v39";
+const APP_VERSION = "forge-v40";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1927,6 +1927,37 @@ function weeklyTarget(){ return trainDays().length || 4; }
    Ayrı-ayrı hərəkətdə üç məşq irəliləmə olmayanda verilən yüngülləşdirmə
    təklifi (progressPlan → action:"deload") yerində qalır: o, həftə deyil,
    bir hərəkətin durğunluğunu qırmaq üçündür. */
+/* ================= AÇILIŞ REJİMİ =================
+   iOS-da yalnız SAFARI-nin “Ana ekrana əlavə et” əmri əsl tətbiq yaradır.
+   Chrome/Brave-dən əlavə edilən qısayol həmin brauzerin içində, ünvan sətri ilə
+   açılır — “yenə brauzer kimi açılır” şikayətinin adətən səbəbi budur. */
+function isStandalone(){
+  return !!(window.navigator.standalone
+    || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches));
+}
+function isIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+function isIOSSafari(){
+  return isIOS() && /Safari/i.test(navigator.userAgent)
+    && !/CriOS|FxiOS|EdgiOS|OPiOS|Brave/i.test(navigator.userAgent) && !window.brave;
+}
+function installCard(){
+  if(isStandalone() || state.profile.hideInstall) return "";
+  if(!isIOS()) return "";
+  const url = location.origin + location.pathname.replace(/[^/]*$/, "");
+  return `<div class="card tight" style="margin-top:12px">
+    <div class="h-big" style="font-size:19px">Tam ekranda aç</div>
+    ${isIOSSafari()
+      ? `<div class="small" style="margin-top:6px">Aşağıdakı <b style="color:var(--ink)">Paylaş</b> düyməsi → <b style="color:var(--ink)">“Ana ekrana əlavə et”</b>. Sonra tətbiqi həmişə həmin ikondan aç — ünvan sətri və brauzer düymələri yox olur, oflayn da işləyir.</div>`
+      : `<div class="small" style="margin-top:6px">Bu brauzerdən əlavə etsən yenə brauzer kimi açılacaq — iOS-da tam ekran tətbiq yalnız <b style="color:var(--ink)">Safari</b>-dən yaranır. Ünvanı Safari-də aç, sonra Paylaş → “Ana ekrana əlavə et”.
+         <br><br><b style="color:var(--ink)">${esc(url)}</b></div>`}
+    <div class="small" style="margin-top:8px">Ana ekran tətbiqinin yaddaşı brauzer tabından ayrıdır — açandan sonra Ayarlardan bulud hesabına daxil ol ki, qeydlərin oraya gəlsin.</div>
+    <button class="btn sm ghost" style="margin-top:10px;width:100%" onclick="hideInstall()">Bağla</button>
+  </div>`;
+}
+function hideInstall(){ state.profile.hideInstall = true; save(); renderToday(); }
 function profileDone(){ const p=state.profile; return !!(p.setupDone || (p.name && (p.w || state.weights.length))); }
 function isFirstEver(){ return state.sessions.length===0 && !state.profile.skipFoundation; }
 function isoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -2071,6 +2102,7 @@ function renderToday(){
     ${migrationNote ? `<div class="warnnote" style="margin-top:12px">${migrationNote}
       <button class="btn sm ghost" style="margin-top:10px" onclick="migrationNote='';renderToday()">Başa düşdüm</button></div>` : ""}
     ${staleCard()}
+    ${installCard()}
     ${p.name && profileDone() ? `<div class="h-big" style="margin:8px 2px 0">Hazırsınız, ${esc(p.name)}.</div>` : ""}
     ${setup}
     <div class="sect">Növbəti məşq</div>
@@ -2279,7 +2311,8 @@ function renderSettings(){
          </div>` }</div>` : ""}
 
     <div class="sect">Versiya</div>
-    <div class="card tight"><div class="small">Bu cihazda işləyən nüsxə: <b style="color:var(--ink)">${APP_VERSION}</b>.
+    <div class="card tight"><div class="small">Rejim: <b style="color:${isStandalone()?"var(--green)":"var(--c)"}">${isStandalone() ? "ana ekran tətbiqi" : "brauzer tabı"}</b>${isStandalone() ? "" : " — tam ekran üçün Safari-dən “Ana ekrana əlavə et”"}.
+      <br>Bu cihazda işləyən nüsxə: <b style="color:var(--ink)">${APP_VERSION}</b>.
       Səhifəni yeniləsən və rəqəm dəyişməsə, köhnə nüsxə keşdən açılır — brauzeri tam bağlayıb yenidən aç.</div></div>
 
     ${junkList().length ? `<div class="sect">Tarixçə təmizliyi</div>
