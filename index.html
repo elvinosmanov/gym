@@ -1037,7 +1037,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v43";
+const APP_VERSION = "forge-v44";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1100,6 +1100,25 @@ function slotInc(sl, e){ return (sl && exStep(sl.k)) || ((sl && +sl.inc > 0) ? +
 function exStep(key){
   const m = state.profile && state.profile.exStep;
   return (m && +m[key] > 0) ? +m[key] : 0;
+}
+/* "52 kq" → " (8 daş)". Daşın misli deyilsə null — o çəki bu aparatda yoxdur. */
+function dasN(key, kg){
+  const st = exStep(key);
+  if(!st || !(kg > 0)) return undefined;
+  const n = kg / st;
+  return Math.abs(n - Math.round(n)) < 0.02 ? Math.round(n) : null;
+}
+function dasTxt(key, kg){
+  const n = dasN(key, kg);
+  return n ? ` (${n} daş)` : "";
+}
+/* Köhnə versiya daş çəkisini bilmirdi və 5-5 addımla 55 kimi rəqəm təklif edirdi;
+   ✓ basılanda o rəqəm tarixçəyə düşüb. Belə qeyd üçün izah: aparatda nə var. */
+function offStepNote(key, kg){
+  if(dasN(key, kg) !== null) return "";
+  const st = exStep(key), lo = Math.floor(kg/st), hi = lo + 1;
+  const f = n => Math.round(n*st*100)/100;
+  return `${kg} kq bu aparatda mümkün deyil (bir daş ${st} kq): ${lo} daş = ${f(lo)}, ${hi} daş = ${f(hi)}. Ən yaxını — ${snapKg(key, kg)} kq — götürülür.`;
 }
 /* çəkini aparatda mövcud olan rəqəmə yuvarlaq: daş çəkisi varsa onun mislinə,
    yoxsa 0.5-ə */
@@ -1698,8 +1717,12 @@ function normKg(key, kg, conv){
   return Math.max(0, Math.round(((kg - bar)/2)*100)/100);
 }
 function normSets(key, sets, conv){
-  if((conv||1) >= CONV) return sets;
-  return (sets||[]).map(x => ({...x, kg: normKg(key, x.kg, conv)}));
+  let out = (conv||1) >= CONV ? (sets||[]) : (sets||[]).map(x => ({...x, kg: normKg(key, x.kg, conv)}));
+  /* daş çəkisi olan aparatda mümkün olmayan qeydi (55, daş 6.5) ən yaxın real
+     çəki (52) kimi oxuyuruq — 1TM, trend və təklif eyni rəqəmə baxsın. Saxlanmış
+     rəqəmə toxunmuruq; raw = qeyddə yazılan. */
+  if(exStep(key)) out = out.map(x => (x.kg > 0 && dasN(key, x.kg) === null) ? {...x, kg: snapKg(key, x.kg), raw: x.kg} : x);
+  return out;
 }
 function bwEx(key){
   const e = EXMAP[key] || (typeof ARCHIVE!=="undefined" && ARCHIVE[key]) || libEx(key);
@@ -1802,6 +1825,15 @@ function habitReps(key, ex){
 }
 /* əsas qərar funksiyası — bütün təkliflər buradan çıxır */
 function progressPlan(key){
+  const pl = progressPlanCore(key);
+  /* son qeyd aparatda mümkün olmayan çəkidirsə, hesab yuvarlaqlaşdırılmış çəki ilədir —
+     bunu açıq deyirik, yoxsa “55 × 9-dan sonra 52” səbəbsiz düşüş kimi görünür */
+  const H = exSessions(key, 1);
+  const note = H.length && !H[0].bw && H[0].top.raw ? offStepNote(key, H[0].top.raw) : "";
+  if(pl && note) pl.txt = `<i>${note}</i> ` + pl.txt;
+  return pl;
+}
+function progressPlanCore(key){
   /* Kitabxanadan çıxarılmış hərəkət tarixçədə qala bilər (məsələn deadlift silindi).
      Belə açar üçün minimal təsvir qururuq — əks halda bütün Proqres səhifəsi çökürdü. */
   const ex = EXMAP[key] || { ...(ARCHIVE[key] || {}), key, name: exName(key),
@@ -1834,13 +1866,17 @@ function progressPlan(key){
   const L = H[0];                       /* sonuncu məşq */
   const best = Math.max(...H.map(h=>h.e1));
   const prevBest = H.length>1 ? Math.max(...H.slice(1).map(h=>h.e1)) : 0;
-  const T = L.top.kg, R = L.top.reps;
+  const T = exStep(key) && L.top.kg > 0 ? snapKg(key, L.top.kg) : L.top.kg, R = L.top.reps;
   const bw = ex.bodyweight && !(T>0);
   const pr = L.e1 >= best - 0.01;       /* sonuncu məşq ən yaxşısıdır */
   const near = L.e1 >= prevBest * 0.985; /* 1.5% həddində — praktiki olaraq bərabər */
   /* durğunluq: son üç məşqdə ən yaxşı nəticə ondan əvvəlkiləri keçməyib */
   let stalled = false;
-  if(H.length >= 5){
+  /* tarixçədə aparatda mümkün olmayan çəki varsa (köhnə 5-lik addımla yazılmış 50,
+     52.5, 55 hamısı 52-yə yuvarlanır) məşqlər süni olaraq bərabər görünür —
+     belə qeydlərdən “durğunluq” nəticəsi çıxarmırıq */
+  const fuzzy = H.some(h => h.sets.some(x => x.raw));
+  if(H.length >= 5 && !fuzzy){
     const last3 = Math.max(...H.slice(0,3).map(h=>h.e1));
     const older = Math.max(...H.slice(3).map(h=>h.e1));
     stalled = last3 < older * 1.005;
@@ -1859,7 +1895,7 @@ function progressPlan(key){
   }
 
   /* 1) hamısı yuxarı hədə çatıb -> çəki artır */
-  if(L.sets.every(s=>s.reps>=RMAX) && L.sets.every(s=>s.kg>=T-0.01)){
+  if(L.sets.every(s=>s.reps>=RMAX) && L.sets.every(s=>r05(s.kg)>=T-0.01)){
     return { action:"up", kg:r05(T+inc), reps:ex.rMin, cls:"up",
       txt:`Keçən dəfə <b>${T} ${u}</b> ilə bütün dövrlərdə ${RMAX} təkrar. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}) — ${ex.rMin} təkrardan başla.${hNote}` };
   }
@@ -3374,14 +3410,15 @@ function renderProg(){
         ${st ? `<span class="lbadge ${st.c}">${st.t}</span>` : `<span class="lbadge">${r.last.foundation?"təməl":"yeni"}</span>`}
       </div>
       <div class="lrow">
-        <div class="lnum"><b class="num">${r.last.bw ? `${r.last.top.reps} təkrar` : `${r.last.top.kg}${r.u==="lb"?" lb":""} × ${r.last.top.reps}`}</b><small>son ən güclü dövr · ${fmtD(r.last.d)}</small></div>
+        <div class="lnum"><b class="num">${r.last.bw ? `${r.last.top.reps} təkrar` : `${r.last.top.kg}${r.u==="lb"?" lb":""} × ${r.last.top.reps}`}</b><small>son ən güclü dövr · ${fmtD(r.last.d)}${r.last.bw ? "" : (r.last.top.raw ? ` · <span style="color:var(--c)">qeyddə ${r.last.top.raw} yazılıb</span>` : dasN(r.k, r.last.top.kg) ? ` · ${dasN(r.k, r.last.top.kg)} daş` : "")}</small></div>
         ${spark(vals, r.t && r.t.status==="down" ? "#e0484e" : "#3ecf8e")}
       </div>
       ${r.t ? `<div class="lmeta">${r.last.bw
           ? `Ən yaxşı dövr <b class="num">${Math.round(r.t.e1)}</b> təkrar · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} təkrar${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""}`
           : `Təxmini 1TM <b class="num">${Math.round(r.t.e1)}</b> ${r.u} · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} ${r.u}${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""} · həftədə <b>${r.t.perWeek>=0?"+":""}${Math.round(r.t.perWeek*10)/10}</b>`}</div>` : ""}
-      <div class="lnext ${r.pl.cls}">Növbəti: <b>${r.pl.kg==null?"iş çəkisini seç":(r.last.bw && !(r.pl.kg>0) ? `${r.pl.reps} təkrar` : `${r.pl.kg} ${r.u} × ${r.pl.reps}`)}</b>${
+      <div class="lnext ${r.pl.cls}">Növbəti: <b>${r.pl.kg==null?"iş çəkisini seç":(r.last.bw && !(r.pl.kg>0) ? `${r.pl.reps} təkrar` : `${r.pl.kg} ${r.u}${dasTxt(r.k, r.pl.kg)} × ${r.pl.reps}`)}</b>${
         r.pl.action==="up"?" — çəki artır":r.pl.action==="deload"?" — yüngülləşdir":r.pl.action==="down"?" — geri qayıt":r.pl.action==="reps"?" — təkrar artır":""}</div>
+      ${!r.last.bw && r.last.top.raw ? `<div class="small" style="margin-top:6px">${offStepNote(r.k, r.last.top.raw)}</div>` : ""}
       ${r.pj ? `<div class="lproj">Bu tempi saxlasan <b>${r.pj.target} ${r.pj.unit}</b>-a təxminən <b>${r.pj.weeks} həftəyə</b> çatırsan.</div>` : ""}
     </div>`;
   }).join("") : `<div class="empty">İki məşq qeyd et — analiz burada özü qurulacaq.</div>`;
