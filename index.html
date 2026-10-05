@@ -1037,7 +1037,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v41";
+const APP_VERSION = "forge-v42";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1850,8 +1850,11 @@ function progressPlan(key){
   }
   /* 3) çəki çox ağırdır: ən yaxşı dövr belə minimumdan aşağı */
   if(R < ex.rMin){
+    /* Əvvəl diapazonda qalan İSTƏNİLƏN köhnə məşqin çəkisi götürülürdü — 8 məşq
+       əvvəlki yüngül çəki ola bilərdi (50 × 7-dən sonra 20 kq təklif edirdi).
+       İndi geri addım ən çox bir artım qədərdir. */
     const ok = H.find(h => h.top.reps >= ex.rMin);
-    const back = ok ? ok.top.kg : r05(Math.max(inc, T - inc));
+    const back = Math.max(inc, Math.min(T, Math.max(T - inc, ok ? ok.top.kg : 0)));
     return { action:"down", kg:r05(back), reps:ex.rMin, cls:"warn",
       txt:`Keçən dəfə <b>${T} ${u} × ${R}</b> — diapazonun altında qaldı, yəni çəki hələ tezdir. Bu gün <b>${r05(back)} ${u}</b> ilə ${ex.rMin}-${RMAX} təkrara qayıt, sonra yenidən qalx.` };
   }
@@ -2160,8 +2163,8 @@ function renderToday(){
 
     ${profileDone() ? `<div class="sect">Bədən çəkisini qeyd et</div>
     <div class="card tight"><div class="inline-log">
-      <input id="qw" type="text" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"kq"}">
-      <button class="btn sm" onclick="addWeight('qw')">Qeyd et</button>
+      <input id="qw2" type="text" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"kq"}">
+      <button class="btn sm" onclick="addWeight('qw2')">Qeyd et</button>
     </div><div class="small" style="margin-top:8px">Həftədə 2-3 dəfə, səhərlər, yeməkdən əvvəl çəkilin. Kütlə dövründə hədəf: <b style="color:var(--ink)">+0.25-0.5 kq/həftə</b>.</div></div>` : ""}
 
     <div class="sect">Əlavələr</div>
@@ -2447,8 +2450,13 @@ function saveSetup(){
   save(); cloudPush(); toast("Hazırdır 💪"); renderToday();
 }
 function addWeight(inputId){
-  const v = numVal($("#"+inputId).value);
-  if(!setWeight(v)){ toast("Kiloqramla çəki daxil edin"); return; }
+  /* Bugün səhifəsində iki çəki xanası var idi və hər ikisinin id-si "qw" idi:
+     aşağıdakına yazanda düymə yuxarıdakı BOŞ xananı oxuyurdu və çəki heç vaxt
+     qeyd olunmurdu. İndi id-lər fərqlidir. */
+  const el = $("#"+inputId), raw = el ? el.value.trim() : "";
+  const v = numVal(raw);
+  if(!raw){ toast("Əvvəlcə çəkini yaz, məs. 78.5"); if(el) el.focus(); return; }
+  if(!setWeight(v)){ toast(`“${raw}” qəbul olunmadı — 25 ilə 350 arasında rəqəm yaz, məs. 78.5`); return; }
   save(); cloudPush(); toast(`${v} kq qeyd edildi`); refresh();
 }
 
