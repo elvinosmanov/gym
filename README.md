@@ -17,6 +17,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Məşqə baxış** — “Bugün” kartında növbəti məşqin bütün hərəkətləri bir siyahıda: dövr×təkrar və bu gün qaldırılacaq çəki, yanında ↑ artım / → eyni çəki / ↓ yüngülləşdirmə işarəsi. Zala girməzdən əvvəl 10 saniyəlik oxu
 - **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
 - **Video** — hər hərəkət üçün YouTube axtarışı, istəsən öz videonu təyin edirsən
+- **Məşq zamanı əlavə** — məşq başlayandan sonra “＋ Bu məşqə hərəkət əlavə et” ilə kitabxanadan istənilən hərəkəti əlavə edirsən (plana yazılmır, yalnız bu məşqin qeydinə düşür, ✕ ilə çıxarılır). Hər kartda “＋ Dövr əlavə et” planlanandan artıq dövrü qeyd etməyə imkan verir
 - **Məşq qeydləri** — məşqin sonunda qeyd yazırsan, növbəti dəfə həmin gün açılanda qarşına çıxır
 - **Adət tanıma** — plan 8-12 desə də, son üç məşqi həmişə 10-da bitirmisənsə, alqoritm 12 gözləmir: 10-a çatanda çəkini artırır. Plan doktoru diapazonu da düzəltməyi təklif edir
 - **Aşağı doldurma** — dövrü ✓ etdikdə çəki və təkrar altındakı toxunulmamış dövrlərə keçir (10 etdinsə altındakılar 10; sonrakını 8 etsən, ondan aşağısı 8). Tətbiqin yazdığı rəqəmlər boz göstərilir və ✓ basılmayana qədər qeyd edilmir

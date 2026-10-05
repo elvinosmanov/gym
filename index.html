@@ -1037,7 +1037,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v40";
+const APP_VERSION = "forge-v41";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1218,7 +1218,14 @@ function effEx(slotKey){
 /* günün sonunda faktiki ediləcək hərəkətlər (⇄ ilə dəyişdirilənlər nəzərə alınır) */
 function dayEffKeys(D){
   const sw = (state.active && state.active.day===D && state.active.swap) || {};
-  return daySlots(D).map(s => sw[s.k] || s.k);
+  return daySlots(D).map(s => sw[s.k] || s.k).concat(activeExtras(D));
+}
+/* Məşq başlayandan sonra əlavə edilən hərəkətlər — yalnız bu məşqə aiddir,
+   plana yazılmır. Açarlar state.active.extra-da, dövrləri a.ex[key]-dədir. */
+function activeExtras(D){
+  const a = state.active;
+  if(!a || (D && a.day!==D) || !Array.isArray(a.extra)) return [];
+  return a.extra.filter(k => EXMAP[k]);
 }
 /* Bir slot üçün seçilə bilən hərəkətlər: əsas + günün BAŞQA slotlarında olmayan
    alternativlər. Əvvəl siyahı xam ALT_OF idi və məsələn Tyaqın alternativi kimi
@@ -2656,8 +2663,10 @@ function renderTrain(){
 
   let body;
   if(state.active && state.active.day===viewDay){
-    body = D.ex.map((ex,i)=>{
-      const eff = effEx(ex.key), swapped = eff.key!==ex.key;
+    const extras = activeExtras(viewDay);
+    body = D.ex.concat(extras.map(k => EXMAP[k])).map((ex,i)=>{
+      const extra = i >= D.ex.length;
+      const eff = extra ? ex : effEx(ex.key), swapped = eff.key!==ex.key;
       /* plan məşq gedərkən dəyişdirilibsə açar əskik ola bilər — çökmək əvəzinə qururuq */
       if(!Array.isArray(state.active.ex[ex.key]) || !state.active.ex[ex.key].length)
         state.active.ex[ex.key] = Array.from({length:ex.sets}, ()=>({ kg:"", reps:"", done:false, auto:true }));
@@ -2699,19 +2708,24 @@ function renderTrain(){
           ${exImg(eff,"exanim sm")}
           <div>
             <div class="name">${i+1}. ${esc(eff.name)}</div>
-            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${'$'}{eff.key}')">${loadTag(eff)}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}</div>
+            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${'$'}{eff.key}')">${loadTag(eff)}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}${extra?`<span class="tag swp">əlavə</span>`:""}</div>
           </div>
-        </div><div class="exbtns"><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${swapOpts(ex.key).length>1?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}</div></div>
+        </div><div class="exbtns">${extra
+          ? `<button class="techbtn" onclick="openTech('${viewDay}',null,'${ex.key}')">Texnika</button><button class="techbtn" onclick="sessRemove('${ex.key}')" aria-label="məşqdən çıxar">✕ Çıxar</button>`
+          : `<button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${swapOpts(ex.key).length>1?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}`}</div></div>
         ${perfLine(eff.key, p)}
         <div class="hint ${h.cls}">${h.txt}</div>
         ${plateLine}
         ${ramp}
         <div class="sethdr"><div>Dövr</div><div>${unitOf(eff)}</div><div>Təkrar</div><div>✓</div></div>
         ${rows}
+        <button class="techbtn" style="margin-top:8px" onclick="sessAddSet('${ex.key}')">＋ Dövr əlavə et</button>
         <div id="rl-${ex.key}">${restLineHTML(ex.key)}</div>
       </div>`;
     }).join("");
-    body += `<button class="btn block" style="margin-top:6px" onclick="finishSession()">Bitir və yadda saxla</button>
+    body += `<button class="btn block ghost" style="margin-top:6px" onclick="openLibPick('${viewDay}',null,'sess')">＋ Bu məşqə hərəkət əlavə et</button>
+             <div class="small" style="margin:6px 0 10px;text-align:center">Plana yazılmır — yalnız bu məşqin qeydinə düşür.</div>
+             <button class="btn block" style="margin-top:6px" onclick="finishSession()">Bitir və yadda saxla</button>
              <button class="btn block danger" style="margin-top:10px" onclick="cancelSession()">Məşqi ləğv et</button>`;
   } else {
     body = D.ex.map((ex,i)=>{
@@ -2762,6 +2776,45 @@ function startSession(day){
   state.active = { day, started: todayISO(), startedAt: Date.now(), warmDone: false, ex: exState, foundation };
   viewDay = day; save(); switchTab("train");
   toast(foundation ? "Təməl məşqi başladı — yüngül saxlayın." : `${PROGRAM[day].name} başladı · saat işə düşdü.`);
+}
+/* Məşq gedərkən plandan kənar hərəkət: plan kilidli qalır (başqa məşqlərə təsir
+   etmir), hərəkət yalnız bu məşqin dövrlərinə əlavə olunur və buildRecord onu
+   tarixçəyə yazır. Çəki/təkrar təklifi adi hərəkətdəki kimidir. */
+/* Məşqdə “tutulmuş” açarlar: faktiki hərəkətlər + ⇄ ilə dəyişdirilmiş slotun öz
+   açarı (onun dövrləri a.ex[slotKey]-dədir, əlavə hərəkət onları üzərinə yazardı) */
+function sessTaken(D){
+  return new Set(dayEffKeys(D).concat(daySlots(D).map(s => s.k)));
+}
+function sessAdd(key){
+  const a = state.active; if(!a || !EXMAP[key]) return;
+  if(sessTaken(a.day).has(key)){ toast("Bu hərəkət artıq bu məşqdədir"); return; }
+  a.extra = Array.isArray(a.extra) ? a.extra : [];
+  a.extra.push(key);
+  if(!Array.isArray(a.ex[key]) || !a.ex[key].length){
+    const sug = suggestKg(key), rep = suggestReps(key);
+    a.ex[key] = Array.from({length:EXMAP[key].sets}, ()=>(
+      { kg: sug ?? "", reps: rep>0 ? String(rep) : "", done:false, auto:true }));
+  }
+  closeSheet(); save(); cloudPush(); renderTrain();
+  toast(`Əlavə edildi: ${EXMAP[key].name}`);
+}
+function sessRemove(key){
+  const a = state.active; if(!a || !Array.isArray(a.extra)) return;
+  const drop = () => {
+    a.extra = a.extra.filter(k => k!==key);
+    delete a.ex[key];
+    save(); cloudPush(); renderTrain(); toast("Məşqdən çıxarıldı");
+  };
+  const done = (a.ex[key]||[]).filter(s => s.done).length;
+  if(done) ask("Hərəkət məşqdən çıxarılsın?", `“${esc(EXMAP[key].name)}” üçün qeyd etdiyin ${done} dövr itəcək.`, "Çıxar", drop, true);
+  else drop();
+}
+/* planlanandan artıq dövr etdinsə — əlavə sətir. Boz təklif kimi başlayır, ✓ basılmasa qeyd olunmur. */
+function sessAddSet(key){
+  const st = state.active && state.active.ex[key]; if(!st) return;
+  const last = st[st.length-1] || {};
+  st.push({ kg: last.kg ?? "", reps: last.reps ?? "", done:false, auto:true });
+  save(); renderTrain();
 }
 function setVal(key,i,f,v){
   const s = state.active.ex[key][i];
@@ -2998,10 +3051,11 @@ function saveSession(rec){
 function cancelSession(){ ask("Məşq ləğv edilsin?", "Bu məşqdə qeyd etdiyiniz dövrlər itiriləcək. Tarixçəyə heç nə yazılmayacaq.", "Bəli, ləğv et", ()=>{ endActive(); timerSkip(); save(); cloudPush(true); renderTrain(); toast("Məşq ləğv edildi"); }, true); }
 
 /* ================= technique sheet ================= */
-function openTech(day,i){
-  const base = PROGRAM[day].ex[i];
-  const ex = (state.active && state.active.day===day) ? effEx(base.key) : base;
-  const alts = swapOpts(base.key).slice(1);   /* günün başqa slotlarında olanlar çıxarılıb */
+function openTech(day,i,extraKey){
+  /* extraKey: məşqə sonradan əlavə edilmiş hərəkət — planda indeksi yoxdur, alternativi də */
+  const base = extraKey ? EXMAP[extraKey] : PROGRAM[day].ex[i];
+  const ex = (!extraKey && state.active && state.active.day===day) ? effEx(base.key) : base;
+  const alts = extraKey ? [] : swapOpts(base.key).slice(1);   /* günün başqa slotlarında olanlar çıxarılıb */
   const nf = frames(ex).length;
   $("#sheet").innerHTML = `${SHEETHEAD}
     ${exImg(ex,"exanim big")}
@@ -3907,18 +3961,21 @@ function planPick(D, key, idx){
 const GRP = { push:"İtələmə (döş · çiyin · triseps)", pull:"Çəkmə (kürək · biseps)", legs:"Ayaq", core:"Qarın · Bel", mine:"Mənim hərəkətlərim" };
 function libSetFilter(g){ libFilter = g; renderLibList(); }
 function libSearch(v){ libQuery = (v||"").toLowerCase(); renderLibList(); }
-function openLibPick(D, idx){
-  if(planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
+/* mode "sess": aktiv məşqə əlavə (plan kilidi tətbiq olunmur, plana yazılmır) */
+function openLibPick(D, idx, mode){
+  const sess = mode==="sess";
+  if(sess ? !(state.active && state.active.day===D) : planLocked(D)){ toast("Aktiv məşq var — əvvəlcə onu bitirin"); return; }
   libFilter = { P:"push", L:"pull", G:"legs" }[D] || "all";   /* günün qrupu ilə başla */
   libQuery = "";
   $("#sheet").innerHTML = `${SHEETHEAD}
-    <h3>${idx===null?"Hərəkət əlavə et":"Hərəkəti əvəz et"}</h3>
-    <div class="stag">${DAY_META[D].name}</div>
+    <h3>${sess?"Bu məşqə hərəkət əlavə et":idx===null?"Hərəkət əlavə et":"Hərəkəti əvəz et"}</h3>
+    <div class="stag">${DAY_META[D].name}${sess?" · yalnız bu məşq":""}</div>
     <input class="srch" id="libq" placeholder="Axtar: bench, hantel, triseps, fly..." oninput="libSearch(this.value)">
     <div class="chips fil" id="libfil"></div>
     <div id="liblist" class="swaplist"></div>
     <button class="btn block ghost" style="margin-top:6px" onclick="closeSheet()">Bağla</button>`;
   $("#sheet").dataset.d = D; $("#sheet").dataset.i = (idx===null||idx===undefined) ? "" : String(idx);
+  $("#sheet").dataset.mode = sess ? "sess" : "";
   renderLibList();
   $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
 }
@@ -3941,11 +3998,14 @@ function renderLibList(){
   if(!keys.length){ box.innerHTML = `<div class="empty">Tapılmadı.</div>`; return; }
   /* həmin gündə artıq olan hərəkətlər əlçatmaz göstərilir — əvvəl ＋ ilə təklif
      edilir, basdıqda isə rədd edilirdi */
-  const inDay = new Set(daySlots(D).map((s,i)=> i===idx ? null : s.k).filter(Boolean));
+  const sess = $("#sheet").dataset.mode === "sess";
+  /* aktiv məşqdə ⇄ ilə seçilmiş alternativlər və əvvəl əlavə edilənlər də “var” sayılır */
+  const inDay = sess ? sessTaken(D) : new Set(daySlots(D).map((s,i)=> i===idx ? null : s.k).filter(Boolean));
   box.innerHTML = keys.map(k=>{
     const e = mkEx(defSlot(k), null);
     const dup = inDay.has(k);
-    return `<button class="swopt${dup?" dis":""}" ${dup?`onclick="toast('Bu hərəkət artıq ${esc(DAY_META[D].name)} günündədir')"`:`onclick="planPick('${D}','${k}',${idx===null?"null":idx})"`}>
+    const pick = sess ? `sessAdd('${k}')` : `planPick('${D}','${k}',${idx===null?"null":idx})`;
+    return `<button class="swopt${dup?" dis":""}" ${dup?`onclick="toast('Bu hərəkət artıq ${sess?"bu məşqdədir":esc(DAY_META[D].name)+" günündədir"}')"`:`onclick="${pick}"`}>
       ${exImg(e,"exanim sm still")}
       <span class="swtxt"><b>${esc(e.name)}</b><small>${dup?"bu gündə var":`${esc(e.tag||"")} · ${e.sets}×${e.rMin}-${e.rMax}`}</small></span>
       <span class="swck">${dup?"✓":"＋"}</span>
