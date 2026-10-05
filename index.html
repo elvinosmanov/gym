@@ -1037,7 +1037,7 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v42";
+const APP_VERSION = "forge-v43";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
@@ -1091,7 +1091,23 @@ function libEx(k){ return (state.userEx && state.userEx[k]) || LIB[k] || null; }
 function libKeys(){ return Object.keys(LIB).concat(Object.keys(state.userEx||{})); }
 function defSlot(k){ const e = libEx(k) || {}; return { k, sets:e.sets||3, rMin:e.rMin||10, rMax:e.rMax||12, rest:e.rest||90 }; }
 /* slotda öz artım addımı varsa o işləyir (⚙ redaktorundan) */
-function slotInc(sl, e){ return (sl && +sl.inc > 0) ? +sl.inc : incFor(e); }
+function slotInc(sl, e){ return (sl && exStep(sl.k)) || ((sl && +sl.inc > 0) ? +sl.inc : incFor(e)); }
+/* HƏRƏKƏTİN ÖZ DAŞ ÇƏKİSİ: zaldakı aparatların yığını eyni deyil — cable row-da
+   hər daş 6.5 kq, lat pulldown-da 7.5 kq ola bilər. Belə aparatda çəki yalnız
+   daşın misli ola bilər (6.5, 13, 19.5 …). Ümumi “aparat addımı” (5) bunu bilmir
+   və 25 kimi aparatda olmayan rəqəm təklif edirdi. Bu dəyər hərəkətə bağlıdır
+   (hansı gündə, alternativ və ya əlavə kimi edilməsindən asılı olmayaraq). */
+function exStep(key){
+  const m = state.profile && state.profile.exStep;
+  return (m && +m[key] > 0) ? +m[key] : 0;
+}
+/* çəkini aparatda mövcud olan rəqəmə yuvarlaq: daş çəkisi varsa onun mislinə,
+   yoxsa 0.5-ə */
+function snapKg(key, v){
+  const st = exStep(key);
+  if(!st) return Math.round(v*2)/2;
+  return Math.round(Math.max(1, Math.round(v/st)) * st * 100) / 100;
+}
 function daySlots(D){
   const custom = state.plan && state.plan[D];
   if(Array.isArray(custom)) return custom.filter(s => libEx(s.k));
@@ -1281,6 +1297,8 @@ function migrate(s, fromPv){
     if(+s.profile.dbStep === 2)   s.profile.dbStep = 2.5;
     s.profile.convV = 2;
   }
+  /* istifadəçinin zalı: cable row daşı 6.5, lat pulldown daşı 7.5 kq (bir dəfə) */
+  if(!s.profile.exStep) s.profile.exStep = { row:6.5, lp:7.5 };
   if(!s.vid || typeof s.vid !== "object") s.vid = {};
   /* köhnə qeydlərə determinist id — hər cihaz eyni id-ni hesablayır, dublikat olmur */
   (s.sessions||[]).forEach(x=>{ if(!x.id) x.id = x.d+"|"+x.day; });
@@ -1790,7 +1808,10 @@ function progressPlan(key){
     rMin:8, rMax:12, sets:3, inc:(ARCHIVE[key] && ARCHIVE[key].inc) || 2.5, bodyweight:false };
     /* load qəsdən verilmir: unitOf "kq", incFor isə yuxarıdakı inc-i götürsün */
   const H = exSessions(key, 8);
-  const inc = incFor(ex), u = unitOf(ex);
+  /* addım EXMAP-dəki reseptdən gəlir (⚙ və daş çəkisi daxil). Əvvəl burada
+     incFor() idi və yığınlı aparatda ⚙-də yazdığın addıma baxmırdı. */
+  const inc = +ex.inc > 0 ? +ex.inc : incFor(ex), u = unitOf(ex);
+  const r05 = v => snapKg(key, v);
   const habit = habitReps(key, ex);
   const RMAX = habit || ex.rMax;       /* hədəf: ya planın tavanı, ya sənin adətin */
   const hNote = habit ? ` <i>Son üç məşqi həmişə ${habit} təkrarda bitirmisən — ona görə ${ex.rMax} gözləmirəm.</i>` : "";
@@ -1860,7 +1881,7 @@ function progressPlan(key){
   }
   /* 4) üç məşqdir yerində sayır -> yüngülləşdirmə */
   if(stalled){
-    const dl = r05(Math.max(inc, T*0.9));
+    const dl = Math.max(inc, Math.min(r05(T*0.9), T - inc));   /* ən azı bir addım (bir daş) aşağı */
     return { action:"deload", kg:dl, reps:RMAX, cls:"warn",
       txt:`Üç məşqdir bu hərəkətdə irəliləmə yoxdur (ən yaxşı ${fmt(best)} ${u} 1TM). Bu gün <b>${dl} ${u}</b>-a en, ${RMAX} təkrarı asanlıqla vur, sonra yenidən yüksəl — bu, dayanmanı qırmağın ən qısa yoludur.` };
   }
@@ -2709,8 +2730,9 @@ function renderTrain(){
       };
       const rampOK = eff.rest>=120 && wk && (eff.load==="bar" ? (wk*2+gymCfg().bar) >= 40 : wk >= 30);
       const ramp = rampOK ? `<div class="ramp">Qızışma dövrləri: <b class="num">${rampKg(0.4)} × 8 → ${rampKg(0.6)} × 5 → ${rampKg(0.8)} × 3</b>${eff.load==="bar" ? " <span class=\"atn\">(hər tərəfə — boş dəmir də bir dövrdür)</span>" : ""} — sonra iş dövrləri (sayılmır)</div>` : "";
-      const pb = plateBreak(wk, eff);
-      const plateLine = pb ? `<div class="ramp"><b class="num">${wk} kq</b> = ${pb}</div>` : "";
+      const pb = plateBreak(wk, eff), dst = exStep(eff.key);
+      const plateLine = pb ? `<div class="ramp"><b class="num">${wk} kq</b> = ${pb}</div>`
+        : (dst && wk > 0) ? `<div class="ramp"><b class="num">${wk} ${unitOf(eff)}</b> = ${Math.round(wk/dst*10)/10} daş × ${dst}</div>` : "";
       return `<div class="card ex" style="--dc:var(--${D.cls})">
         <div class="exhead"><div class="exname">
           ${exImg(eff,"exanim sm")}
@@ -3118,7 +3140,7 @@ function saveVid(key){
 function loadInfo(key){
   const ex = EXMAP[key]; if(!ex) return;
   const d = LOAD_LBL[ex.load] || {s:"kq", l:"Qaldırdığın çəkini yaz."};
-  info(`Çəki xanası: ${loadTag(ex)}`, `${esc(ex.name)}\n\n${d.l}\n\nArtım addımı: +${incFor(ex)} ${unitOf(ex)} (Ayarlar bölməsindən dəyişdirilir).`);
+  info(`Çəki xanası: ${loadTag(ex)}`, `${esc(ex.name)}\n\n${d.l}\n\nArtım addımı: +${ex.inc || incFor(ex)} ${unitOf(ex)}${exStep(ex.key) ? " (bir daşın çəkisi — Plan → ⚙)" : " (Ayarlar və ya Plan → ⚙ bölməsindən dəyişdirilir)"}.`);
 }
 /* Başlıqdan aşağı dartıb bağlamaq — düyməyə çatmaq çətin olanda da çıxış yolu var */
 (function sheetSwipe(){
@@ -4035,9 +4057,11 @@ function openSlotEdit(D,i){
       <div class="field"><label>Təkrar — min</label><input id="sl-rmin" type="text" inputmode="numeric" min="1" max="50" value="${esc(ex.rMin)}"></div>
       <div class="field"><label>Təkrar — maks</label><input id="sl-rmax" type="text" inputmode="numeric" min="1" max="50" value="${esc(ex.rMax)}"></div>
     </div>
-    <div class="field"><label>Artım addımı (${esc(unitOf(ex))}${isSide(ex) ? " — hər tərəfə" : ""})</label>
+    <div class="field"><label>${ex.load==="stack" ? `Bir daşın çəkisi (${esc(unitOf(ex))})` : `Artım addımı (${esc(unitOf(ex))}${isSide(ex) ? " — hər tərəfə" : ""})`}</label>
       <input id="sl-inc" type="text" inputmode="decimal" min="0.5" max="50" step="0.5" value="${esc(ex.inc)}"></div>
-    <div class="small">Bu aparat neçə-neçə artırsa, onu yaz. ${isSide(ex) ? "Rəqəm bir tərəfə düşən artımdır — hər tərəfə 10-luq disk əlavə edirsənsə 10 yaz." : ""}</div>
+    <div class="small">${ex.load==="stack"
+      ? "Aparatın yığınında hər daş neçə kq-dırsa onu yaz (məs. 6.5). Təkliflər həmişə onun misli olacaq: 6.5, 13, 19.5, 26 … Bu hərəkət hansı gündə olursa olsun işləyir."
+      : `Bu aparat neçə-neçə artırsa, onu yaz. ${isSide(ex) ? "Rəqəm bir tərəfə düşən artımdır — hər tərəfə 10-luq disk əlavə edirsənsə 10 yaz." : ""}`}</div>
     <div class="small">Maks təkrara bütün dövrlərdə çatdıqda tətbiq çəkini <b>+${ex.inc} ${esc(unitOf(ex))}</b>${isSide(ex) ? " (hər tərəfə)" : ""} artırmağı təklif edir.</div>
     <button class="btn block" style="margin-top:12px" onclick="applySlot('${D}',${i})">Yadda saxla</button>
     <button class="btn block ghost" style="margin-top:8px" onclick="openLibPick('${D}',${i})">⇄ Başqa hərəkətlə əvəz et</button>
@@ -4054,7 +4078,13 @@ function applySlot(D,i){
   if(a > b){ const t=a; a=b; b=t; }
   cur.rMin = a; cur.rMax = b;
   const iv = numVal($("#sl-inc").value);
-  cur.inc = (!isNaN(iv) && iv >= 0.5 && iv <= 50) ? iv : cur.inc;
+  if(!isNaN(iv) && iv >= 0.5 && iv <= 50){
+    cur.inc = iv;
+    /* yığınlı aparatda bu, daşın çəkisidir — hərəkətə bağlı saxlanılır */
+    if((libEx(cur.k)||{}).load === "stack"){
+      state.profile.exStep = { ...(state.profile.exStep||{}), [cur.k]: iv };
+    }
+  }
   closeSheet(); planTouch(); toast("Yadda saxlanıldı");
 }
 

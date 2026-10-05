@@ -27,6 +27,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Real vaxt sayğacı** — vaxt qeydlərdən hesablanır: dövrlər arası 20 dəqiqədən uzun boşluqlar sayılmır. "Bitir"i unutsan, 3 saatdan sonra məşq özü bağlanır və düzgün müddətlə yadda saxlanılır
 - **Çəki qaydası: hər tərəfə** — ştanq, Smith və disklə yüklənən aparatlarda xanaya BİR tərəfin diskləri yazılır, dəmirin öz çəkisi sayılmır (kartda “hər tərəfə 20 + 2.5 · cəmi 65 kq” kimi açılır). Hanteldə bir hantelin rəqəmi, yığınlı aparatda yığın rəqəmi. Köhnə qeydlər olduğu kimi qalır — oxunarkən avtomatik çevrilir (conv damğası)
 - **Avadanlığa uyğun artım** — ştanq/disk hər tərəfə +2.5, ayaq compoundları +10, hantel +2.5, yığın +5; istənilən hərəkətin addımı Plan → ⚙ bölməsindən ayrıca qurulur
+- **Aparatın daş çəkisi** — yığınlı aparatda hər daşın çəkisi fərqli ola bilər (cable row 6.5, lat pulldown 7.5). Plan → ⚙ → “Bir daşın çəkisi” yazılır; bütün təkliflər və ± düymələri onun misli ilə gedir (6.5 → 13 → 19.5 → 26), kartda “26 kq = 4 daş × 6.5” görünür
 - **Alternativ ailəsi** — aparat dolu olanda alternativə keçəndə tətbiq artıq “ilk dəfə” demir: eyni ailədən son qeydi referens göstərir, avadanlıq tipi eynidirsə çəkini də təklif edir
 - **Yük tipi** — hər hərəkət kq xanasının nəyi ölçdüyünü bilir (ştanq cəmi / bir hantel / yığın / əlavə disk) və ştanq hərəkətlərində hər tərəfə hansı diskləri taxmalı olduğunu göstərir
 - **Geri sayım kartda da işləyir** — tam ekran taymeri kiçiltsən və ya istirahəti keçsən belə, kartdakı sayğac dövrün qeyd vaxtından hesablanıb işləməyə davam edir
