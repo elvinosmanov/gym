@@ -260,24 +260,16 @@ function renderTrain(){
       const pb = plateBreak(wk, eff), dst = exStep(eff.key);
       const plateLine = pb ? `<div class="ramp"><b class="num">${wk} kq</b> = ${pb}</div>`
         : (dst && wk > 0) ? `<div class="ramp"><b class="num">${wk} ${unitOf(eff)}</b> = ${Math.round(wk/dst*10)/10} daş × ${dst}</div>` : "";
-      return `<div class="card ex" id="exc-${ex.key}" style="--dc:var(--${D.cls})">
-        <div class="exhead"><div class="exname">
-          ${exImg(eff,"exanim sm")}
-          <div>
-            <div class="name">${i+1}. ${esc(eff.name)}</div>
-            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><button type="button" class="tag lt"${act("loadInfo",eff.key)} aria-label="Çəki xanası: ${esc(loadTag(eff))} — izah">${esc(loadTag(eff))}</button>${swapped?`<span class="tag swp">alternativ</span>`:""}${extra?`<span class="tag swp">əlavə</span>`:""}</div>
-          </div>
-        </div><div class="exbtns">${extra
-          ? `<button class="techbtn"${act("openTech",viewDay,null,ex.key)}>Texnika</button><button class="techbtn"${act("sessRemove",ex.key)} aria-label="məşqdən çıxar">✕ Çıxar</button>`
-          : `<button class="techbtn"${act("openTech",viewDay,i)}>Texnika</button>${swapOpts(ex.key).length>1?`<button class="techbtn"${act("openSwap",ex.key)} aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}`}</div></div>
-        ${perfLine(eff.key, p)}
-        <div class="hint ${h.cls}">${h.txt}</div>
-        ${plateLine}
-        ${ramp}
-        <div class="sethdr"><div>Dövr</div><div>${unitOf(eff)}</div><div>Təkrar</div><div>✓</div></div>
+      const btns = extra
+        ? `<button class="techbtn ic"${act("openTech",viewDay,null,ex.key)} aria-label="Texnika">ℹ</button><button class="techbtn ic"${act("sessRemove",ex.key)} aria-label="məşqdən çıxar">✕</button>`
+        : `<button class="techbtn ic"${act("openTech",viewDay,i)} aria-label="Texnika">ℹ</button>${swapOpts(ex.key).length>1?`<button class="techbtn ic"${act("openSwap",ex.key)} aria-label="alternativ hərəkət seç">⇄</button>`:""}`;
+      return `<div class="card ex cmp" id="exc-${ex.key}" style="--dc:var(--${D.cls})">
+        ${exHeadHTML(eff, i, btns, (swapped?`<span class="tag swp">alt</span>`:"") + (extra?`<span class="tag swp">əlavə</span>`:""), true)}
+        ${targetHTML(eff, p, h, plateLine + ramp)}
+        <div class="sethdr"><div>#</div><div>${unitOf(eff)}</div><div>Təkrar</div><div>✓</div></div>
         ${rows}
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="techbtn"${act("sessAddSet",ex.key)}>＋ Dövr əlavə et</button>
+        <div class="exfoot">
+          <button class="techbtn"${act("sessAddSet",ex.key)}>＋ Dövr</button>
           ${allDone ? `<button class="techbtn"${act("toggleExCard",ex.key)} aria-expanded="true">▴ Yığ</button>` : ""}
         </div>
         <div id="rl-${ex.key}">${restLineHTML(ex.key)}</div>
@@ -290,33 +282,61 @@ function renderTrain(){
   } else {
     body = D.ex.map((ex,i)=>{
         const p = lastPerf(ex.key), h = hintFor(ex,p);
-        return `<div class="card ex" style="--dc:var(--${D.cls})">
-          <div class="exhead"><div class="exname">
-            ${exImg(ex,"exanim sm")}
-            <div>
-              <div class="name">${i+1}. ${esc(ex.name)}</div>
-              <div class="meta"><span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span><span class="tag">⏱ ${Math.round(ex.rest/60*10)/10} dəq</span><span class="tag lt">${esc(loadTag(ex))}</span></div>
-            </div>
-          </div><button class="techbtn"${act("openTech",viewDay,i)}>Texnika</button></div>
-          ${perfLine(ex.key, p)}
-          <div class="hint ${h.cls}">${h.txt}</div>
+        return `<div class="card ex cmp" style="--dc:var(--${D.cls})">
+          ${exHeadHTML(ex, i, `<button class="techbtn ic"${act("openTech",viewDay,i)} aria-label="Texnika">ℹ</button>`, "", false)}
+          ${targetHTML(ex, p, h, "")}
         </div>`;
       }).join("") +
       `<button class="btn block" style="margin-top:6px"${act("startSession",viewDay)}>${D.name} başla</button>`;
   }
 
+  $("#view-train").classList.toggle("live", !!(state.active && state.active.day===viewDay));
   $("#view-train").innerHTML = `
-    <div class="dayrow">${days}</div>
+    ${state.active && state.active.day===viewDay ? "" : `<div class="dayrow">${days}</div>`}
     ${state.active && state.active.day===viewDay ? clockChip() : ""}
     ${staleCard()}
     ${(state.active && state.active.day===viewDay) ? "" : dayMuscleCard(viewDay)}
-    ${rules}
+    ${state.active && state.active.day===viewDay ? "" : rules}
     <div class="sect">${D.name} · ${D.sub}</div>
     ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote">${FOUNDATION_NOTE}</div>` : ""}
     ${lastNote(viewDay) ? `<div class="card tight"><div class="small" style="letter-spacing:.12em;text-transform:uppercase;font-size:10px;color:var(--dim)">Keçən ${D.name} məşqindən qeydin</div>
       <div style="font-size:13.5px;margin-top:6px">${esc(lastNote(viewDay))}</div></div>` : ""}
     ${warmupCard(viewDay)}
     ${body}`;
+}
+/* ---- YIĞCAM KART ----
+   Əvvəl hər kart ~600px idi: 88px şəkil, ayrı sətirlərdə etiketlər, 3-4 sətirlik
+   izah, disk sətri, qızışma sətri. Zalda isə lazım olan bir şeydir: BU GÜN NƏ
+   QALDIRIM. Ona görə kartın başında bir sətir: “↑ 22.5 kq × 5 · son 20×8…”;
+   izah, disk və qızışma həmin sətirə toxunanda açılır. */
+function exHeadHTML(ex, i, btns, extraTags, live){
+  const tagLoad = live
+    ? `<button type="button" class="tag lt"${act("loadInfo",ex.key)} aria-label="Çəki xanası: ${esc(loadTag(ex))} — izah">${esc(loadTag(ex))}</button>`
+    : `<span class="tag lt">${esc(loadTag(ex))}</span>`;
+  return `<div class="exhead">
+    ${exImg(ex,"exanim xs")}
+    <div class="exti">
+      <div class="name">${i+1}. ${esc(ex.name)}</div>
+      <div class="meta"><span class="tag hot">${ex.sets}×${ex.rMin}-${ex.rMax}</span><span class="tag">⏱${Math.round(ex.rest/60*10)/10}′</span>${tagLoad}${extraTags}</div>
+    </div>
+    <div class="exbtns">${btns}</div>
+  </div>`;
+}
+function targetHTML(ex, p, h, more){
+  const pl = progressPlan(ex.key) || {};
+  const u = unitOf(ex), mark = PEEK_MARK[pl.action] || "";
+  const what = pl.kg > 0 ? `${pl.kg} ${u} × ${pl.reps}`
+    : ex.bodyweight && pl.reps ? `BÇ × ${pl.reps}`
+    : pl.action === "first" ? "çəki seç" : (pl.reps ? `× ${pl.reps}` : "—");
+  const last = p ? perfStr(p) : "";
+  return `<details class="tgt ${pl.cls||""}">
+    <summary><span class="mk">${mark}</span><span class="tw">Bu gün <b class="num">${what}</b></span>${last ? `<span class="tl num">son ${esc(last)}</span>` : ""}</summary>
+    <div class="tgtb">
+      ${perfLine(ex.key, p)}
+      <div class="hint ${h.cls}">${h.txt}</div>
+      ${more}
+    </div>
+  </details>`;
 }
 /* ---- bitmiş hərəkətlər və “növbəti hərəkətə get” ---- */
 const exOpen = new Set();              /* bitmiş, amma istifadəçinin açdığı kartlar */
@@ -448,15 +468,15 @@ function restLineHTML(key){
   sets.forEach((s,i)=>{ if(s.done && s.t) last = i; });
   if(last < 0) return "";
   if(last === sets.length-1)
-    return `<div class="restline done">Bu hərəkət bitdi — istirahət etmədən növbəti hərəkətə keç.</div>`;
+    return `<div class="restline done">✓ Bitdi — növbəti hərəkətə keç</div>`;
   const at = sets[last].t + eff.rest*1000;
   const over = Date.now() > at;
   /* Geri sayım kartın içində də gedir: tam ekran taymerdən çıxsan (və ya onu
      söndürsən) belə neçə saniyə qaldığını görürsən. Rəqəm dövrün qeyd olunma
-     vaxtından hesablanır, taymerdən asılı deyil. */
-  return `<div class="restline ${over?"over":""}">İstirahət <b>${Math.round(eff.rest/60*10)/10} dəq</b> — `
-    + `növbəti dövr:<br><b class="at">${fmtClock(at, false, true)}</b> <span class="atn">zal saatı ilə</span>`
-    + ` · <b class="cdn" data-cd="${at}">${cdText(at)}</b></div>`;
+     vaxtından hesablanır, taymerdən asılı deyil. Bir sətir: zal saatı + qalan. */
+  return `<div class="restline ${over?"over":""}"><span>Növbəti dövr</span> `
+    + `<b class="at">${fmtClock(at, false, true)}</b>`
+    + `<b class="cdn" data-cd="${at}">${cdText(at)}</b></div>`;
 }
 function cdText(at){
   const left = Math.round((at - Date.now())/1000);
