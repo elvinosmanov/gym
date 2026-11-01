@@ -217,6 +217,15 @@ function renderTrain(){
       if(!Array.isArray(state.active.ex[ex.key]) || !state.active.ex[ex.key].length)
         state.active.ex[ex.key] = Array.from({length:ex.sets}, ()=>({ kg:"", reps:"", done:false, auto:true }));
       const p = lastPerf(eff.key), st = state.active.ex[ex.key];
+      /* bütün dövrləri ✓ olan hərəkət bir sətirə yığılır — bitənə yenidən baxmağa
+         ehtiyac yoxdur. Toxunanda açılır (düzəliş üçün). */
+      const allDone = exDone(ex.key);
+      if(allDone && !exOpen.has(ex.key)) return `<div class="card ex exdone" id="exc-${ex.key}" style="--dc:var(--${D.cls})">
+        <button type="button" class="exdonebtn"${act("toggleExCard",ex.key)} aria-expanded="false" aria-label="${esc(eff.name)} — bitdi, aç">
+          <span class="ok">✓</span>
+          <span class="nm"><b>${i+1}. ${esc(eff.name)}</b><small class="num">${esc(doneSummary(ex.key))}</small></span>
+          <span class="mut">aç</span>
+        </button></div>`;
       const rows = st.map((s,si)=>{
         const pkg = smartKg(ex.key,si), prep = smartReps(ex.key,si);
         const kgPh = (pkg!=null && pkg>0) ? pkg : (eff.bodyweight ? "BÇ" : "kq");
@@ -251,7 +260,7 @@ function renderTrain(){
       const pb = plateBreak(wk, eff), dst = exStep(eff.key);
       const plateLine = pb ? `<div class="ramp"><b class="num">${wk} kq</b> = ${pb}</div>`
         : (dst && wk > 0) ? `<div class="ramp"><b class="num">${wk} ${unitOf(eff)}</b> = ${Math.round(wk/dst*10)/10} daş × ${dst}</div>` : "";
-      return `<div class="card ex" style="--dc:var(--${D.cls})">
+      return `<div class="card ex" id="exc-${ex.key}" style="--dc:var(--${D.cls})">
         <div class="exhead"><div class="exname">
           ${exImg(eff,"exanim sm")}
           <div>
@@ -267,7 +276,10 @@ function renderTrain(){
         ${ramp}
         <div class="sethdr"><div>Dövr</div><div>${unitOf(eff)}</div><div>Təkrar</div><div>✓</div></div>
         ${rows}
-        <button class="techbtn" style="margin-top:8px"${act("sessAddSet",ex.key)}>＋ Dövr əlavə et</button>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="techbtn"${act("sessAddSet",ex.key)}>＋ Dövr əlavə et</button>
+          ${allDone ? `<button class="techbtn"${act("toggleExCard",ex.key)} aria-expanded="true">▴ Yığ</button>` : ""}
+        </div>
         <div id="rl-${ex.key}">${restLineHTML(ex.key)}</div>
       </div>`;
     }).join("");
@@ -305,6 +317,35 @@ function renderTrain(){
       <div style="font-size:13.5px;margin-top:6px">${esc(lastNote(viewDay))}</div></div>` : ""}
     ${warmupCard(viewDay)}
     ${body}`;
+}
+/* ---- bitmiş hərəkətlər və “növbəti hərəkətə get” ---- */
+const exOpen = new Set();              /* bitmiş, amma istifadəçinin açdığı kartlar */
+function exDone(key){
+  const st = state.active && state.active.ex[key];
+  return !!(st && st.length && st.every(s => s.done));
+}
+function doneSummary(key){
+  return (state.active.ex[key] || []).map(s => `${numVal(s.kg) > 0 ? numVal(s.kg) : "BÇ"}×${numVal(s.reps) || 0}`).join(", ");
+}
+function toggleExCard(key){
+  const card = document.getElementById(`exc-${key}`);
+  const top = card ? card.getBoundingClientRect().top : null;
+  if(exOpen.has(key)) exOpen.delete(key); else exOpen.add(key);
+  renderTrain();
+  /* kart yerində qalsın — üstündəki hündürlük dəyişsə belə */
+  const el = document.getElementById(`exc-${key}`);
+  if(el && top != null) jumpTo(el.getBoundingClientRect().top + (window.scrollY||0) - top);
+}
+/* ilk bitməmiş hərəkətin kartına sürüşdür; tapılmasa false */
+function scrollToNext(smooth){
+  const a = state.active; if(!a) return false;
+  const keys = PROGRAM[a.day].ex.map(e => e.key).concat(activeExtras(a.day));
+  const k = keys.find(k => !exDone(k));
+  if(!k || k === keys[0] && !(a.ex[k]||[]).some(s => s.done)) return false;   /* heç nə edilməyib — yuxarıdan başla */
+  const el = document.getElementById(`exc-${k}`); if(!el) return false;
+  const y = el.getBoundingClientRect().top + (window.scrollY||0) - 12;
+  if(smooth) window.scrollTo({ top: Math.max(0, y), behavior: "smooth" }); else jumpTo(y);
+  return true;
 }
 function selDay(k){ if(state.active && state.active.day!==k){ toast("Əvvəlcə cari məşqi bitirin və ya ləğv edin"); return; } viewDay=k; renderTrain(); }
 function startSession(day){
@@ -633,7 +674,7 @@ function lastNote(day){
 /* Yarımçıq məşq bağlananda (bitirildi, ləğv edildi, avtomatik bağlandı) bu
    damğa qoyulur. Birləşdirmə ondan köhnə “yarımçıq məşq”i geri qaytarmır —
    əks halda buludda qalmış nüsxə növbəti sinxronda məşqi özü başladırdı. */
-function endActive(){ state.activeEnded = Date.now(); state.active = null; }
+function endActive(){ state.activeEnded = Date.now(); state.active = null; exOpen.clear(); }
 /* “Bitir”i unutmaq daha məlumat itirmir: 3 saatdan çox toxunulmayan məşq
    tətbiq növbəti dəfə açılanda özü bağlanır, vaxt sonuncu qeydə qədər sayılır. */
 function autoFinishStale(){

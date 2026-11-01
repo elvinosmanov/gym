@@ -508,3 +508,11 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 .vtrow .vt b{color:var(--ink)}
 .vtrow .vt.up b{color:var(--green)}
 .vtrow .vt.dn b{color:var(--red)}
+/* bitmiş hərəkət — bir sətir (js/train.js) */
+.card.ex.exdone{padding:0;opacity:.82}
+.exdonebtn{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:none;border:0;color:var(--ink);text-align:left;cursor:pointer;font:inherit}
+.exdonebtn .ok{flex:none;width:30px;height:30px;border-radius:9px;background:var(--green);color:#0b120e;display:flex;align-items:center;justify-content:center;font-weight:700}
+.exdonebtn .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.exdonebtn .nm b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exdonebtn .nm small{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exdonebtn .mut{flex:none;font-size:12px}

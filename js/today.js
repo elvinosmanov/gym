@@ -53,7 +53,7 @@ const FOUNDATION_NOTE = "1-ci gün · Təməl Məşqi — yüngül saxlayın. B�
 
 /* ================= tabs ================= */
 let viewDay = null, selLift = null;
-function switchTab(name){
+function switchTab(name, keep){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
   $("#view-"+name).classList.add("on");
   document.querySelectorAll(".tabbar button").forEach(b=>{
@@ -62,9 +62,65 @@ function switchTab(name){
     if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   });
   ({today:renderToday, train:renderTrain, plan:renderPlan, set:renderSettings, prog:renderProg})[name]();
-  window.scrollTo({top:0});
+  /* yuxarı yalnız istifadəçi özü bölmə dəyişəndə qalxır — yenidən çəkmədə yox */
+  if(!keep) window.scrollTo({top:0});
+  savePos();
 }
-function refresh(){ const on=document.querySelector(".tabbar button.on").dataset.tab; switchTab(on); }
+/* html{scroll-behavior:smooth} hər scrollTo-nu animasiyaya çevirir; bərpa ani olmalıdır,
+   yoxsa ardınca gələn yenidən çəkmə animasiyanı yarıda kəsib 0-ı oxuyur */
+function jumpTo(y){ window.scrollTo({ top: Math.max(0, y||0), left: 0, behavior: "instant" }); }
+function curTab(){ const b = document.querySelector(".tabbar button.on"); return (b && b.dataset.tab) || "today"; }
+/* ================= YERİNDƏ QALMAQ =================
+   Əvvəl refresh() = switchTab(): bütün səhifə yenidən çəkilir və ən yuxarı atılırdı.
+   refresh() isə arxa plandan qayıdanda (bulud sinxronu), girişdən sonra, ayar
+   dəyişəndə çağırılır — yəni telefonu açan kimi məşqin ortasından başa düşürdün.
+   İndi yenidən çəkmə “lövbər”ə bağlıdır: ekranın yuxarısındakı kart (id-si olan)
+   yadda saxlanılır və çəkmədən sonra eyni yerə qaytarılır. Kartın hündürlüyü
+   dəyişsə də (bitmiş hərəkət yığılır) baxdığın yer qaçmır. Açıq <details>
+   (qaydalar, qızışma, tarixçə) da açıq qalır. */
+function viewAnchor(view){
+  const els = view.querySelectorAll("[id]");
+  for(const el of els){
+    const r = el.getBoundingClientRect();
+    if(r.height && r.bottom > 0) return { id: el.id, top: r.top };
+  }
+  return null;
+}
+function refresh(){
+  const name = curTab(), view = $("#view-"+name);
+  const y = window.scrollY || 0, anc = view ? viewAnchor(view) : null;
+  const open = view ? [...view.querySelectorAll("details")].map(d => d.open) : [];
+  switchTab(name, true);
+  const ds = view ? view.querySelectorAll("details") : [];
+  if(ds.length === open.length) ds.forEach((d,i) => { d.open = open[i]; });
+  const el = anc && document.getElementById(anc.id);
+  if(el) jumpTo(el.getBoundingClientRect().top + (window.scrollY||0) - anc.top);
+  else jumpTo(y);
+  savePos();
+}
+/* Telefon arxa fondakı səhifəni yaddaşdan silə bilər (iOS-da adi haldır) — onda
+   tətbiq sıfırdan açılırdı: “Bugün”, ən yuxarı. Bölmə və mövqe localStorage-da
+   saxlanılır və 6 saat ərzində bərpa olunur. Aktiv məşqdə isə piksel mövqeyi
+   yox, ilk BİTMƏMİŞ hərəkət əsasdır: bitənlər onsuz da yığılır. */
+const POS_KEY = "forge-pos", POS_TTL = 6*3600*1000;
+let posT = 0;
+function savePos(){
+  try{ localStorage.setItem(POS_KEY, JSON.stringify({ tab: curTab(), y: Math.round(window.scrollY||0), t: Date.now() })); }catch(e){}
+}
+function loadPos(){
+  try{ const p = JSON.parse(localStorage.getItem(POS_KEY) || "null"); return p && Date.now() - p.t < POS_TTL ? p : null; }catch(e){ return null; }
+}
+window.addEventListener("scroll", ()=>{ clearTimeout(posT); posT = setTimeout(savePos, 250); }, { passive:true });
+window.addEventListener("pagehide", savePos);
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState !== "visible") savePos(); });
+const TABS = ["today","train","plan","set","prog"];
+function restoreView(){
+  const p = loadPos();
+  const tab = p && TABS.includes(p.tab) ? p.tab : (state.active ? "train" : "today");
+  if(tab !== "today" || curTab() !== "today") switchTab(tab, true);
+  if(tab === "train" && state.active){ if(!scrollToNext(false)) jumpTo(p ? p.y : 0); }
+  else if(p && p.tab === tab) jumpTo(p.y);
+}
 
 /* ================= GÜNDƏLİK BRİFİNQ =================
    Məqsəd: telefonda 20 saniyə. Bu gün nə etməli, nəyə diqqət, harada geri qalırsan. */
