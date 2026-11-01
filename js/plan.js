@@ -37,7 +37,7 @@ function orderLine(D, slots){
       ? `<span style="color:var(--green)">✓ Sıra qaydasındadır</span> — ağır hərəkətlər əvvəldədir. Tam “ağırdan yüngülə” variant belə olardı:`
       : `<b style="color:var(--c)">Sıra optimal deyil</b> — izolyasiya ağır hərəkətin qabağına düşüb. Düzgün sıra:`}
     <b style="color:var(--ink)">${list}</b>${soft ? " — fərq kiçikdir, istəsən indiki sıranı saxla." : ""}
-    <button class="techbtn" style="margin-top:8px" onclick="advReorder('${D}')">Bu sıranı tətbiq et</button>
+    <button class="techbtn" style="margin-top:8px"${act("advReorder",D)}>Bu sıranı tətbiq et</button>
   </div>`;
 }
 function renderPlan(){
@@ -45,7 +45,7 @@ function renderPlan(){
   const D = planDay, meta = DAY_META[D], slots = daySlots(D);
   const custom = !!(state.plan && state.plan[D]);
   const locked = planLocked(D);
-  const days = DAYS.map(k=>`<button class="daysel ${planDay===k?"on":""}" onclick="selPlanDay('${k}')">
+  const days = DAYS.map(k=>`<button class="daysel ${planDay===k?"on":""}"${act("selPlanDay",k)} aria-pressed="${planDay===k}">
       <span class="plate plate-${DAY_META[k].cls} ${planDay===k?"on":""}"><span>${DAY_META[k].letter}</span></span>
       <b>${DAY_META[k].name.split(" · ")[0]}</b></button>`).join("");
 
@@ -55,9 +55,9 @@ function renderPlan(){
       ${exImg(ex,"exanim sm still")}
       <div class="ptxt"><b>${esc(ex.name)}</b><small>${ex.sets} × ${ex.rMin}-${ex.rMax} · ${Math.round(ex.rest/60*10)/10} dəq<br>${esc(ex.tag||"")}</small></div>
       <div class="pbtns">
-        <button onclick="planMove('${D}',${i},-1)" ${i===0?"disabled":""} aria-label="yuxarı">↑</button>
-        <button onclick="planMove('${D}',${i},1)" ${i===slots.length-1?"disabled":""} aria-label="aşağı">↓</button>
-        <button onclick="openSlotEdit('${D}',${i})" aria-label="ayarla">⚙</button>
+        <button type="button"${act("planMove",D,i,-1)} ${i===0?"disabled":""} aria-label="${esc(ex.name)} — yuxarı">↑</button>
+        <button type="button"${act("planMove",D,i,1)} ${i===slots.length-1?"disabled":""} aria-label="${esc(ex.name)} — aşağı">↓</button>
+        <button type="button"${act("openSlotEdit",D,i)} aria-label="${esc(ex.name)} — ayarla">⚙</button>
       </div>
     </div>`;
   }).join("");
@@ -72,8 +72,8 @@ function renderPlan(){
     <div class="sect">${meta.name} · ${slots.length} hərəkət · ~${dayMinutes(D)} dəq</div>
     <div class="card">
       ${rows || `<div class="empty">Bu gün boşdur — aşağıdan hərəkət əlavə edin.</div>`}
-      <button class="btn block ghost" style="margin-top:12px" onclick="openLibPick('${D}',null)">＋ Hərəkət əlavə et</button>
-      ${custom ? `<button class="btn block danger" style="margin-top:10px" onclick="planReset('${D}')">↺ Standart plana qaytar</button>` : ""}
+      <button class="btn block ghost" style="margin-top:12px"${act("openLibPick",D,null)}>＋ Hərəkət əlavə et</button>
+      ${custom ? `<button class="btn block danger" style="margin-top:10px"${act("planReset",D)}>↺ Standart plana qaytar</button>` : ""}
       ${orderLine(D, slots)}
       <div class="small" style="margin-top:8px">⚙ düyməsi ilə dövr, təkrar diapazonu və istirahəti dəyişin.</div>
     </div>
@@ -92,12 +92,12 @@ function renderPlan(){
           ${exImg(e,"exanim sm still")}
           <div class="ptxt"><b>${esc(e.name)}</b><small>${e.sets} × ${e.rMin}-${e.rMax} · ${esc(e.tag||"")}</small></div>
           <div class="pbtns">
-            <button onclick="openCustom('${k}')" aria-label="düzəliş">⚙</button>
-            <button class="del" onclick="delCustom('${k}')" aria-label="sil">✕</button>
+            <button type="button"${act("openCustom",k)} aria-label="${esc(e.name)} — düzəliş">⚙</button>
+            <button type="button" class="del"${act("delCustom",k)} aria-label="${esc(e.name)} — sil">✕</button>
           </div>
         </div>`;
       }).join("") : `<div class="empty">Hələ öz hərəkətiniz yoxdur.</div>`}
-      <button class="btn block" style="margin-top:12px" onclick="openCustom('')">＋ Öz hərəkətini yarat</button>
+      <button class="btn block" style="margin-top:12px"${act("openCustom","")}>＋ Öz hərəkətini yarat</button>
       <div class="small" style="margin-top:10px">Kitabxanada olmayan bir hərəkət edirsinizsə onu buradan yaradın — sonra istənilən günə əlavə edə bilərsiniz.</div>
     </div>
 
@@ -146,14 +146,14 @@ function openLibPick(D, idx, mode){
   $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${sess?"Bu məşqə hərəkət əlavə et":idx===null?"Hərəkət əlavə et":"Hərəkəti əvəz et"}</h3>
     <div class="stag">${DAY_META[D].name}${sess?" · yalnız bu məşq":""}</div>
-    <input class="srch" id="libq" placeholder="Axtar: bench, hantel, triseps, fly..." oninput="libSearch(this.value)">
+    <input class="srch" id="libq" placeholder="Axtar: bench, hantel, triseps, fly..." aria-label="Hərəkət axtar"${onInput("libSearch")}>
     <div class="chips fil" id="libfil"></div>
     <div id="liblist" class="swaplist"></div>
-    <button class="btn block ghost" style="margin-top:6px" onclick="closeSheet()">Bağla</button>`;
+    <button class="btn block ghost" style="margin-top:6px"${act("closeSheet")}>Bağla</button>`;
   $("#sheet").dataset.d = D; $("#sheet").dataset.i = (idx===null||idx===undefined) ? "" : String(idx);
   $("#sheet").dataset.mode = sess ? "sess" : "";
   renderLibList();
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+  openSheet();
 }
 function renderLibList(){
   const fil = $("#libfil"), box = $("#liblist");
@@ -161,7 +161,7 @@ function renderLibList(){
   const D = $("#sheet").dataset.d, iRaw = $("#sheet").dataset.i;
   const idx = iRaw==="" ? null : parseInt(iRaw);
   const groups = ["all","push","pull","legs","core","mine"];
-  fil.innerHTML = groups.map(g=>`<span class="pick ${libFilter===g?"on":""}" onclick="libSetFilter('${g}')">${g==="all"?"Hamısı":(GRP[g]||g).split(" (")[0]}</span>`).join("");
+  fil.innerHTML = groups.map(g=>`<button type="button" class="pick ${libFilter===g?"on":""}"${act("libSetFilter",g)} aria-pressed="${libFilter===g}">${g==="all"?"Hamısı":(GRP[g]||g).split(" (")[0]}</button>`).join("");
   const mine = Object.keys(state.userEx||{});
   let keys = libFilter==="mine" ? mine : libKeys().filter(k => libFilter==="all" || (libEx(k)||{}).g===libFilter);
   /* axtarış ada, əzələ teqinə VƏ avadanlığa baxır — "hantel" yazıb aparatsız
@@ -180,8 +180,10 @@ function renderLibList(){
   box.innerHTML = keys.map(k=>{
     const e = mkEx(defSlot(k), null);
     const dup = inDay.has(k);
-    const pick = sess ? `sessAdd('${k}')` : `planPick('${D}','${k}',${idx===null?"null":idx})`;
-    return `<button class="swopt${dup?" dis":""}" ${dup?`onclick="toast('Bu hərəkət artıq ${sess?"bu məşqdədir":esc(DAY_META[D].name)+" günündədir"}')"`:`onclick="${pick}"`}>
+    /* hər sətir öz əməliyyatını data-act ilə daşıyır: seçilə bilən → əlavə/əvəz, artıq olan → izah */
+    const pick = dup ? act("toast", "Bu hərəkət artıq " + (sess ? "bu məşqdədir" : DAY_META[D].name + " günündədir"))
+      : sess ? act("sessAdd", k) : act("planPick", D, k, idx);
+    return `<button type="button" class="swopt${dup?" dis":""}"${pick}>
       ${exImg(e,"exanim sm still")}
       <span class="swtxt"><b>${esc(e.name)}</b><small>${dup?"bu gündə var":`${esc(e.tag||"")} · ${e.sets}×${e.rMin}-${e.rMax}`}</small></span>
       <span class="swck">${dup?"✓":"＋"}</span>
@@ -209,10 +211,10 @@ function openSlotEdit(D,i){
       ? "Aparatın yığınında hər daş neçə kq-dırsa onu yaz (məs. 6.5). Təkliflər həmişə onun misli olacaq: 6.5, 13, 19.5, 26 … Bu hərəkət hansı gündə olursa olsun işləyir."
       : `Bu aparat neçə-neçə artırsa, onu yaz. ${isSide(ex) ? "Rəqəm bir tərəfə düşən artımdır — hər tərəfə 10-luq disk əlavə edirsənsə 10 yaz." : ""}`}</div>
     <div class="small">Maks təkrara bütün dövrlərdə çatdıqda tətbiq çəkini <b>+${ex.inc} ${esc(unitOf(ex))}</b>${isSide(ex) ? " (hər tərəfə)" : ""} artırmağı təklif edir.</div>
-    <button class="btn block" style="margin-top:12px" onclick="applySlot('${D}',${i})">Yadda saxla</button>
-    <button class="btn block ghost" style="margin-top:8px" onclick="openLibPick('${D}',${i})">⇄ Başqa hərəkətlə əvəz et</button>
-    <button class="btn block danger" style="margin-top:8px" onclick="closeSheet();planRemove('${D}',${i})">Bu gündən çıxar</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block" style="margin-top:12px"${act("applySlot",D,i)}>Yadda saxla</button>
+    <button class="btn block ghost" style="margin-top:8px"${act("openLibPick",D,i)}>⇄ Başqa hərəkətlə əvəz et</button>
+    <button class="btn block danger" style="margin-top:8px"${act("slotRemove",D,i)}>Bu gündən çıxar</button>`;
+  openSheet();
 }
 function applySlot(D,i){
   const p = ensurePlan(D);
@@ -255,14 +257,14 @@ function openCustom(key){
       <div class="field"><label>Çəki addımı (kq)</label><input id="cx-inc" type="text" inputmode="decimal" step="0.5" value="${esc(e.inc)}"></div>
     </div>
     <div class="field"><label>Əsas işləyən əzələlər</label>
-      <div class="chips fil" id="cx-pri">${Object.keys(MUSN).map(m=>`<span class="pick ${(e.pri||[]).includes(m)?"on":""}" data-m="${m}" onclick="this.classList.toggle('on')">${MUSN[m]}</span>`).join("")}</div></div>
+      <div class="chips fil" id="cx-pri">${Object.keys(MUSN).map(m=>`<button type="button" class="pick ${(e.pri||[]).includes(m)?"on":""}" data-m="${m}"${act("toggleChip")} aria-pressed="${(e.pri||[]).includes(m)}">${MUSN[m]}</button>`).join("")}</div></div>
     <div class="field"><label>Köməkçi əzələlər (yarım dövr sayılır)</label>
-      <div class="chips fil" id="cx-sec">${Object.keys(MUSN).map(m=>`<span class="pick ${(e.sec||[]).includes(m)?"on":""}" data-m="${m}" onclick="this.classList.toggle('on')">${MUSN[m]}</span>`).join("")}</div></div>
+      <div class="chips fil" id="cx-sec">${Object.keys(MUSN).map(m=>`<button type="button" class="pick ${(e.sec||[]).includes(m)?"on":""}" data-m="${m}"${act("toggleChip")} aria-pressed="${(e.sec||[]).includes(m)}">${MUSN[m]}</button>`).join("")}</div></div>
     <div class="field"><label>Şəkil (istəyə bağlı)</label><input id="cx-img" value="${esc(e.url||e.file||"")}" placeholder="şəkil linki və ya Commons fayl adı"></div>
     <div class="field"><label>Texnika qeydləri — hər sətir ayrı</label><textarea id="cx-cues" rows="4" placeholder="Dirsəklər bədənə yaxın&#10;Yuxarıda bir saniyə sıxın">${esc((e.cues||[]).join("\n"))}</textarea></div>
-    <button class="btn block" style="margin-top:6px" onclick="saveCustom('${key||""}')">Yadda saxla</button>
-    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block" style="margin-top:6px"${act("saveCustom",key||"")}>Yadda saxla</button>
+    <button class="btn block ghost" style="margin-top:8px"${act("closeSheet")}>İmtina</button>`;
+  openSheet();
 }
 function saveCustom(key){
   const name = clean($("#cx-name").value);

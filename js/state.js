@@ -10,7 +10,7 @@ const DEFAULTS = { profile:{name:"",w:"", days:[1,2,4,6],
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
     barKg:20, plate:2.5, dbStep:2.5, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
   weights:[], sessions:[], active:null, supps:[], plan:null, planTs:0, userEx:{}, vid:{},
-  gone:[], goneW:[], userExTs:{}, vidTs:{}, pv:PROGRAM_VERSION };
+  gone:[], goneW:[], goneWTs:{}, userExTs:{}, vidTs:{}, pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -31,7 +31,7 @@ function intVal(v){
 /* Bağlama düyməsi SVG-dir: “✕” simvolu bəzi telefonlarda (iOS Safari) şriftdə
    olmadığı üçün boş görünürdü. SVG hər yerdə eyni çəkilir. */
 const SHEETHEAD = '<div class="shead"><span class="grab"></span>'
-  + '<button class="xbtn" onclick="closeSheet()" aria-label="bağla">'
+  + '<button type="button" class="xbtn" data-act="closeSheet" aria-label="bağla">'
   + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button></div>';
 const esc = s => String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const todayISO = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
@@ -246,16 +246,16 @@ function openSwap(slotKey){
     <h3>Hərəkəti seçin</h3><div class="stag">${esc(EXMAP[slotKey].tag)} — aparat doludursa hantel variantını seç</div>
     <div class="swaplist">${opts.map((o,oi)=>{
       const p = lastPerf(o.key);
-      return `<button class="swopt ${o.key===cur?"on":""}" onclick="chooseEx('${slotKey}','${o.key}')">
+      return `<button type="button" class="swopt ${o.key===cur?"on":""}"${act("chooseEx",slotKey,o.key)} aria-pressed="${o.key===cur}">
         ${exImg(o,"exanim sm")}
-        <span class="swtxt"><b>${esc(o.name)}</b><small><span class="eq">${loadTag(o)}</span> ${p?`Son: ${perfStr(p)}`:"ilk dəfə"}</small></span>
+        <span class="swtxt"><b>${esc(o.name)}</b><small><span class="eq">${esc(loadTag(o))}</span> ${p?`Son: ${perfStr(p)}`:"ilk dəfə"}</small></span>
         <span class="swck">${o.key===cur?"✓":""}</span>
       </button>`;
     }).join("")}</div>
     ${hid>0?`<div class="small">${hid} alternativ göstərilmir — onlar bu gün onsuz da planındadır.</div>`:""}
     <div class="small">Daimi dəyişiklik istəyirsinizsə — <b style="color:var(--ink)">Plan</b> bölməsindən bu slotu tamamilə əvəz edin.</div>
-    <button class="btn block ghost" style="margin-top:10px" onclick="closeSheet()">Bağla</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block ghost" style="margin-top:10px"${act("closeSheet")}>Bağla</button>`;
+  openSheet();
 }
 function chooseEx(slotKey, key){
   if(key===slotKey){ if(state.active.swap) delete state.active.swap[slotKey]; }
@@ -268,7 +268,7 @@ function chooseEx(slotKey, key){
 
 let migrationNote = "";
 /* Silently upgrade any older forge-data shape. Never drops sessions/weights/supps. */
-/* Açarlar HTML atributlarına və onclick-ə yazılır. Yedək faylı və ya bulud
+/* Açarlar HTML atributlarına (data-act arqumentləri, id-lər) yazılır. Yedək faylı və ya bulud
    istənilən mətn daşıya bilər — açar yalnız bu formada ola bilər. */
 const SAFE_KEY = /^[A-Za-z0-9_]{1,40}$/;
 const ISO_D = /^\d{4}-\d{2}-\d{2}$/;
@@ -306,6 +306,7 @@ function sanitize(s){
   if(s.active && !SAFE_KEY.test(s.active.day)) s.active = null;
   if(s.active) s.active.ex = keyed(s.active.ex);
   ["gone","goneW"].forEach(f=>{ s[f] = Array.isArray(s[f]) ? s[f].map(String) : []; });
+  s.goneWTs = Object.fromEntries(Object.entries(obj(s.goneWTs)).filter(([d]) => ISO_D.test(d)).map(([d,t]) => [d, toNum(t)]));
   return s;
 }
 function migrate(s, fromPv){

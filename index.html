@@ -42,44 +42,44 @@
 </div>
 
 <!-- rest timer -->
-<div class="timer" id="timer">
+<div class="timer" id="timer" role="dialog" aria-label="İstirahət taymeri">
   <div>
     <div class="tlab">İSTİRAHƏT</div>
     <div class="exlab" id="timerLab"></div>
     <div class="tstart" id="timerStart"></div>
   </div>
   <div class="tring">
-    <svg viewBox="0 0 200 200">
+    <svg viewBox="0 0 200 200" aria-hidden="true">
       <circle class="trk" cx="100" cy="100" r="90"/>
       <circle class="prg" id="timerRing" cx="100" cy="100" r="90" stroke-dasharray="565.5" stroke-dashoffset="0"/>
     </svg>
-    <div class="digits num" id="timerDigits">0:00</div>
+    <div class="digits num" id="timerDigits" role="timer" aria-label="qalan vaxt">0:00</div>
   </div>
   <div class="tbtns">
-    <button class="btn ghost" onclick="timerAdd()">+30 san</button>
-    <button class="btn ghost" onclick="timerHide()">Kiçilt</button>
-    <button class="btn" onclick="timerSkip()">İstirahəti keç</button>
+    <button type="button" class="btn ghost" data-act="timerAdd" aria-label="30 saniyə əlavə et">+30 san</button>
+    <button type="button" class="btn ghost" data-act="timerHide">Kiçilt</button>
+    <button type="button" class="btn" data-act="timerSkip">İstirahəti keç</button>
   </div>
 </div>
 
 <!-- technique sheet -->
-<div class="overlay" id="overlay" onclick="closeSheet()"></div>
-<div class="sheet" id="sheet"></div>
+<div class="overlay" id="overlay" data-act="closeSheet" aria-hidden="true"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- tab bar -->
-<nav class="tabbar" id="tabbar">
-  <button data-tab="today" class="on" onclick="switchTab('today')">
-    <svg viewBox="0 0 24 24"><path d="M3 11.2 12 4l9 7.2"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg>Bugün</button>
-  <button data-tab="train" onclick="switchTab('train')">
-    <svg viewBox="0 0 24 24"><path d="M7.5 12h9"/><rect x="4.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="17.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="1.4" y="9.9" width="2" height="4.2" rx="1"/><rect x="20.6" y="9.9" width="2" height="4.2" rx="1"/></svg>Məşq</button>
-  <button data-tab="plan" onclick="switchTab('plan')">
-    <svg viewBox="0 0 24 24"><path d="M4 7h10"/><path d="M4 12h7"/><path d="M4 17h13"/><circle cx="17.5" cy="7" r="2.2"/><circle cx="13.5" cy="12" r="2.2"/><circle cx="19.5" cy="17" r="2.2"/></svg>Plan</button>
-  <button data-tab="set" onclick="switchTab('set')">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 15a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.1-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.8 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1Z"/></svg>Ayarlar</button>
-  <button data-tab="prog" onclick="switchTab('prog')">
-    <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M4 16.5 9.5 11l3.5 3.5L20 8"/><path d="M16.5 8H20v3.5"/></svg>Proqres</button>
+<nav class="tabbar" id="tabbar" aria-label="Bölmələr">
+  <button type="button" data-tab="today" class="on" data-act="switchTab" data-args='["today"]' aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg>Bugün</button>
+  <button type="button" data-tab="train" data-act="switchTab" data-args='["train"]'>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 12h9"/><rect x="4.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="17.2" y="8.2" width="2.6" height="7.6" rx="1"/><rect x="1.4" y="9.9" width="2" height="4.2" rx="1"/><rect x="20.6" y="9.9" width="2" height="4.2" rx="1"/></svg>Məşq</button>
+  <button type="button" data-tab="plan" data-act="switchTab" data-args='["plan"]'>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10"/><path d="M4 12h7"/><path d="M4 17h13"/><circle cx="17.5" cy="7" r="2.2"/><circle cx="13.5" cy="12" r="2.2"/><circle cx="19.5" cy="17" r="2.2"/></svg>Plan</button>
+  <button type="button" data-tab="set" data-act="switchTab" data-args='["set"]'>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 15a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.1-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.8 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1Z"/></svg>Ayarlar</button>
+  <button type="button" data-tab="prog" data-act="switchTab" data-args='["prog"]'>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18"/><path d="M4 16.5 9.5 11l3.5 3.5L20 8"/><path d="M16.5 8H20v3.5"/></svg>Proqres</button>
 </nav>
 
 <script src="vendor/supabase-js-2.117.3.js" defer onerror="this.remove()"></script>
@@ -97,6 +97,7 @@
 <script src="js/progress.js"></script>
 <script src="js/plan-doctor.js"></script>
 <script src="js/plan.js"></script>
+<script src="js/actions.js"></script>
 <script src="js/boot.js"></script>
 <script src="js/update.js"></script>
 </body>

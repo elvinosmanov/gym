@@ -123,12 +123,12 @@ function renderProg(){
     const i = state.sessions.length-1-ri;
     const n = s.ex.reduce((a,e)=>a+e.sets.length,0);
     const durTxt = s.sec!=null ? hms(s.sec) : (s.min!=null ? hm(s.min) : null);
-    return `<details class="hist"><summary><span><span class="mini-plate mp-${dayMeta(s.day).cls}"></span><b>${dayMeta(s.day).name}</b>${s.foundation?` <span class="prbadge">TƏMƏL</span>`:""} · ${fmtD(s.d)}</span><span class="hs num">${n} dövr${durTxt?` · ${durTxt}`:""}</span></summary>
+    return `<details class="hist"><summary><span><span class="mini-plate mp-${esc(dayMeta(s.day).cls)}"></span><b>${esc(dayMeta(s.day).name)}</b>${s.foundation?` <span class="prbadge">TƏMƏL</span>`:""} · ${fmtD(s.d)}</span><span class="hs num">${n} dövr${durTxt?` · ${durTxt}`:""}</span></summary>
       ${(s.conv||1) < CONV && s.ex.some(e=>SIDE_LOADS.includes((histEx(e.key)||{}).load))
         ? `<div class="histnote" style="color:var(--dim)">Köhnə qayda ilə yazılıb: ştanq/disk hərəkətlərində rəqəm <b>cəmi çəkidir</b> (dəmir daxil). Qrafiklər və proqressiya onu avtomatik hər tərəfə çevirir.</div>` : ""}
       ${s.note ? `<div class="histnote">“${esc(s.note)}”</div>` : ""}
       ${s.ex.map(e=>`<div class="histset"><b>${esc(e.name)}</b> — <span class="num">${perfStr(e)}</span></div>`).join("")}
-      <button class="btn sm danger" style="margin:8px 0 10px" onclick="delSession(${i})">Məşqi sil</button>
+      <button class="btn sm danger" style="margin:8px 0 10px"${act("delSession",i)}>Məşqi sil</button>
     </details>`;
   }).join("") : `<div class="empty">Hələ məşq yoxdur.</div>`;
 
@@ -184,20 +184,20 @@ function renderProg(){
     <div class="card">
       <div class="chartbox">${chartSVG(wPts,"#4a7dff"," kq")}</div>
       <div class="inline-log" style="margin-top:10px">
-        <input id="pw" type="text" inputmode="decimal" step="0.1" placeholder="Bugünkü çəkini qeyd et (kq)">
-        <button class="btn sm" onclick="addWeight('pw')">Qeyd et</button>
+        <input id="pw" type="text" inputmode="decimal" step="0.1" aria-label="Bugünkü çəki (kq)" placeholder="Bugünkü çəkini qeyd et (kq)">
+        <button class="btn sm"${act("addWeight","pw")}>Qeyd et</button>
       </div>
       ${state.weights.length?`<div class="loglist">${state.weights.slice(-6).reverse().map(x=>{
         const idx = state.weights.indexOf(x);
-        return `<div class="logrow"><span class="num"><b>${x.kg} kq</b></span><span class="d">${fmtD(x.d)}</span><button class="xdel" onclick="delWeight(${idx})">✕</button></div>`;
+        return `<div class="logrow"><span class="num"><b>${x.kg} kq</b></span><span class="d">${fmtD(x.d)}</span><button type="button" class="xdel"${act("delWeight",idx)} aria-label="${x.kg} kq qeydini sil">✕</button></div>`;
       }).join("")}</div>`:""}
     </div>
 
     <div class="sect">Tarixçə</div>
     <div class="card">${hist}</div>`;
 }
-function delWeight(i){ ask("Çəki qeydi silinsin?", `${state.weights[i].kg} kq · ${fmtD(state.weights[i].d)}`, "Sil", ()=>{ tomb("goneW", state.weights[i].d); state.weights.splice(i,1); if(state.weights.length) state.profile.w = state.weights[state.weights.length-1].kg; save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
-function delSession(i){ const s=state.sessions[i]; ask("Məşq tarixçədən silinsin?", `${dayMeta(s.day).name} · ${fmtD(s.d)}`, "Sil", ()=>{ tomb("gone", sesKey(s)); state.sessions.splice(i,1); save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
+function delWeight(i){ ask("Çəki qeydi silinsin?", `${state.weights[i].kg} kq · ${fmtD(state.weights[i].d)}`, "Sil", ()=>{ state.goneWTs = state.goneWTs || {}; state.goneWTs[state.weights[i].d] = Date.now(); state.weights.splice(i,1); if(state.weights.length) state.profile.w = state.weights[state.weights.length-1].kg; save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
+function delSession(i){ const s=state.sessions[i]; ask("Məşq tarixçədən silinsin?", `${esc(dayMeta(s.day).name)} · ${fmtD(s.d)}`, "Sil", ()=>{ tomb("gone", sesKey(s)); state.sessions.splice(i,1); save(); cloudPush(true); renderProg(); toast("Silindi"); }, true); }
 
 /* ================= ƏZƏLƏ XƏRİTƏSİ =================
    Hər hərəkət pri[] (əsas) və sec[] (köməkçi) əzələ siyahısı daşıyır. Həcm:
@@ -271,8 +271,8 @@ function volumeCard(D){
   const max = Math.max(1, ...rows.map(r=>r.v));
   return `<div class="card">
     <div class="chips fil" style="margin-bottom:10px">
-      <span class="pick ${volMode==="day"?"on":""}" onclick="setVolMode('day')">Bu gün</span>
-      <span class="pick ${volMode==="week"?"on":""}" onclick="setVolMode('week')">Tam dövr (4 məşq)</span>
+      <button type="button" class="pick ${volMode==="day"?"on":""}"${act("setVolMode","day")} aria-pressed="${volMode==="day"}">Bu gün</button>
+      <button type="button" class="pick ${volMode==="week"?"on":""}"${act("setVolMode","week")} aria-pressed="${volMode==="week"}">Tam dövr (4 məşq)</button>
     </div>
     <div class="bodywrap">
       <div class="bodyfig">${bodySVG("front",vol)}<span>Ön</span></div>

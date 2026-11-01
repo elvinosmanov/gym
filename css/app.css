@@ -21,6 +21,13 @@ body{
 button{font-family:inherit;cursor:pointer}
 input,select{font-family:inherit}
 :focus-visible{outline:2px solid var(--chalk);outline-offset:2px;border-radius:6px}
+/* Klikləməli çiplər, yük teqi və saat çipi əvvəl <span>/<div> idi — indi əsl
+   <button>dur. :where() sıfır spesifiklikdir: brauzerin düymə üslubunu sıfırlayır,
+   .pick/.tag/.clock qaydaları isə əvvəlki kimi qalib gəlir — görünüş dəyişmir. */
+:where(button.pick, button.tag, button.clock){font-size:inherit;font-weight:inherit;line-height:inherit;
+  letter-spacing:inherit;text-transform:inherit;text-align:inherit;color:inherit;margin:0}
+:where(button.clock){width:100%}
+.sheet:focus{outline:none}            /* fokus vərəqin özünə keçəndə çərçivə çəkilmir */
 
 /* ---------- header ---------- */
 .top{display:flex;justify-content:space-between;align-items:flex-end;padding:20px 0 6px}

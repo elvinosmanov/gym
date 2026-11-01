@@ -25,7 +25,7 @@ function installCard(){
       : `<div class="small" style="margin-top:6px">Bu brauzerdən əlavə etsən yenə brauzer kimi açılacaq — iOS-da tam ekran tətbiq yalnız <b style="color:var(--ink)">Safari</b>-dən yaranır. Ünvanı Safari-də aç, sonra Paylaş → “Ana ekrana əlavə et”.
          <br><br><b style="color:var(--ink)">${esc(url)}</b></div>`}
     <div class="small" style="margin-top:8px">Ana ekran tətbiqinin yaddaşı brauzer tabından ayrıdır — açandan sonra Ayarlardan bulud hesabına daxil ol ki, qeydlərin oraya gəlsin.</div>
-    <button class="btn sm ghost" style="margin-top:10px;width:100%" onclick="hideInstall()">Bağla</button>
+    <button class="btn sm ghost" style="margin-top:10px;width:100%"${act("hideInstall")}>Bağla</button>
   </div>`;
 }
 function hideInstall(){ state.profile.hideInstall = true; save(); renderToday(); }
@@ -56,7 +56,11 @@ let viewDay = null, selLift = null;
 function switchTab(name){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
   $("#view-"+name).classList.add("on");
-  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
+  document.querySelectorAll(".tabbar button").forEach(b=>{
+    const on = b.dataset.tab===name;
+    b.classList.toggle("on", on);
+    if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
   ({today:renderToday, train:renderTrain, plan:renderPlan, set:renderSettings, prog:renderProg})[name]();
   window.scrollTo({top:0});
 }
@@ -94,9 +98,9 @@ function dueIncreases(day){
     if(!pl) return;
     const H = exSessions(ex.key, 1);
     const top = H.length ? H[0].top.kg : 0;
-    if(pl.action === "up" && pl.kg > top) out.push({t:`${ex.name}: ${top} → <b>${pl.kg} ${unitOf(ex)}</b>`, c:"up", i:"↑"});
-    else if(pl.action === "deload") out.push({t:`${ex.name}: üç məşqdir yerində sayır — <b>${pl.kg} ${unitOf(ex)}</b>-a en`, c:"", i:"↓"});
-    else if(pl.action === "down") out.push({t:`${ex.name}: çəki ağır gəlib — <b>${pl.kg} ${unitOf(ex)}</b>-a qayıt`, c:"", i:"↓"});
+    if(pl.action === "up" && pl.kg > top) out.push({t:`${esc(ex.name)}: ${top} → <b>${pl.kg} ${unitOf(ex)}</b>`, c:"up", i:"↑"});
+    else if(pl.action === "deload") out.push({t:`${esc(ex.name)}: üç məşqdir yerində sayır — <b>${pl.kg} ${unitOf(ex)}</b>-a en`, c:"", i:"↓"});
+    else if(pl.action === "down") out.push({t:`${esc(ex.name)}: çəki ağır gəlib — <b>${pl.kg} ${unitOf(ex)}</b>-a qayıt`, c:"", i:"↓"});
   });
   return out;
 }
@@ -165,13 +169,13 @@ function renderToday(){
         <div class="field"><label>Ad</label><input id="su-name" value="${esc(p.name)}"></div>
         <div class="field"><label>Çəki (kq) — istəyə bağlı</label><input id="su-w" type="text" inputmode="decimal" step="0.1" value="${esc(p.w)}" placeholder="70"></div>
       </div>
-      <button class="btn block" onclick="saveSetup()">Yadda saxla və başla</button>
+      <button class="btn block"${act("saveSetup")}>Yadda saxla və başla</button>
     </div>`;
   }
 
   $("#view-today").innerHTML = `
     ${migrationNote ? `<div class="warnnote" style="margin-top:12px">${migrationNote}
-      <button class="btn sm ghost" style="margin-top:10px" onclick="migrationNote='';renderToday()">Başa düşdüm</button></div>` : ""}
+      <button class="btn sm ghost" style="margin-top:10px"${act("dismissMigration")}>Başa düşdüm</button></div>` : ""}
     ${staleCard()}
     ${installCard()}
     ${p.name && profileDone() ? `<div class="h-big" style="margin:8px 2px 0">Hazırsınız, ${esc(p.name)}.</div>` : ""}
@@ -184,11 +188,11 @@ function renderToday(){
           <div class="sub">${D.sub} · ${D.ex.length} hərəkət · ~${dayMinutes(nd)} dəq</div>
         </div>
       </div>
-      <div class="lastline" style="margin:8px 0 12px">${ state.active ? `<b>Məşq davam edir</b> — zalda ${hm(sessionMinutes(state.active, staleHours() ? 0 : GAP_CAP))}.` : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${dayMeta(last.day).name}` : `Birinci gün. Sıra: <b>İtələmə → Çəkmə → Ayaq → Tam bədən</b>, sonra yenidən başdan.` }</div>
+      <div class="lastline" style="margin:8px 0 12px">${ state.active ? `<b>Məşq davam edir</b> — zalda ${hm(sessionMinutes(state.active, staleHours() ? 0 : GAP_CAP))}.` : last ? `Son məşq: <b>${fmtD(last.d)}</b> · ${esc(dayMeta(last.day).name)}` : `Birinci gün. Sıra: <b>İtələmə → Çəkmə → Ayaq → Tam bədən</b>, sonra yenidən başdan.` }</div>
       ${state.active ? "" : planPeek(nd)}
       ${(state.active ? state.active.foundation : isFirstEver()) ? `<div class="warnnote" style="margin-bottom:12px">${FOUNDATION_NOTE}
-        ${!state.active ? `<button class="btn sm ghost" style="margin-top:10px" onclick="skipFoundation()">Bu mənim ilk məşqim deyil — tam həcmlə başla</button>` : ""}</div>` : ""}
-      <button class="btn block" onclick="${state.active ? "switchTab('train')" : `startSession('${nd}')`}">${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
+        ${!state.active ? `<button class="btn sm ghost" style="margin-top:10px"${act("skipFoundation")}>Bu mənim ilk məşqim deyil — tam həcmlə başla</button>` : ""}</div>` : ""}
+      <button class="btn block"${state.active ? act("switchTab","train") : act("startSession",nd)}>${state.active ? "Məşqə davam et" : D.name+" başla"}</button>
       ${!state.active && rest ? `<div class="small" style="margin-top:10px;text-align:center">Bu gün cədvəldə yoxdur — növbəti məşq <b style="color:var(--ink)">${WD_FULL[wdOf(nt)]}, ${fmtD(nt)}</b>. İstəsən bu gün də başlaya bilərsən.</div>` : ""}
     </div>
 
@@ -210,8 +214,8 @@ function renderToday(){
 
     ${profileDone() && !wLoggedToday() ? `<div class="card tight wlog">
       <div class="inline-log">
-        <input id="qw" type="text" inputmode="decimal" step="0.1" placeholder="Bugünkü çəki (kq)${w?" · son "+w.toFixed(1).replace(/\.0$/,""):""}">
-        <button class="btn sm" onclick="addWeight('qw')">Qeyd et</button>
+        <input id="qw" type="text" inputmode="decimal" step="0.1" aria-label="Bugünkü çəki (kq)" placeholder="Bugünkü çəki (kq)${w?" · son "+w.toFixed(1).replace(/\.0$/,""):""}">
+        <button class="btn sm"${act("addWeight","qw")}>Qeyd et</button>
       </div>
       <div class="small" style="margin-top:8px">Səhər, yeməkdən əvvəl çəkil. Qeyd etdikdən sonra bu sahə bu günlük yığılır.</div>
     </div>` : ""}
@@ -224,18 +228,18 @@ function renderToday(){
 
     ${profileDone() ? `<div class="sect">Bədən çəkisini qeyd et</div>
     <div class="card tight"><div class="inline-log">
-      <input id="qw2" type="text" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"kq"}">
-      <button class="btn sm" onclick="addWeight('qw2')">Qeyd et</button>
+      <input id="qw2" type="text" inputmode="decimal" step="0.1" aria-label="Bədən çəkisi (kq)" placeholder="${w?w.toFixed(1):"kq"}">
+      <button class="btn sm"${act("addWeight","qw2")}>Qeyd et</button>
     </div><div class="small" style="margin-top:8px">Həftədə 2-3 dəfə, səhərlər, yeməkdən əvvəl çəkilin. Kütlə dövründə hədəf: <b style="color:var(--ink)">+0.25-0.5 kq/həftə</b>.</div></div>` : ""}
 
     <div class="sect">Əlavələr</div>
     <div class="card tight"><div class="supprow">
-      <button class="suppbtn ${suppToday("creatine")?"on":""}" onclick="toggleSupp('creatine')">
+      <button class="suppbtn ${suppToday("creatine")?"on":""}"${act("toggleSupp","creatine")} aria-pressed="${suppToday("creatine")}">
         <span class="si">✓</span>
         <span class="st"><b>Kreatin</b><small>5 q, hər gün</small></span>
         <span class="sk">${suppStreak("creatine")} gün 🔥</span>
       </button>
-      <button class="suppbtn ${suppToday("protein")?"on":""}" onclick="toggleSupp('protein')">
+      <button class="suppbtn ${suppToday("protein")?"on":""}"${act("toggleSupp","protein")} aria-pressed="${suppToday("protein")}">
         <span class="si">✓</span>
         <span class="st"><b>Protein tozu</b><small>zülal hədəfini bağlamaq üçün</small></span>
         <span class="sk">${suppStreak("protein")} gün 🔥</span>

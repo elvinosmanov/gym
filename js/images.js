@@ -135,5 +135,5 @@ function exImg(ex, cls){
   const f = frames(ex);
   if(!f.length) return `<div class="${cls} ph">🏋️</div>`;
   const alt = esc(ex.name||"");
-  return `<div class="${cls}"><img src="${esc(f[0])}" alt="${alt}" loading="lazy" onerror="this.closest('.exanim').classList.add('ph')">${f[1]?`<img class="f2" src="${esc(f[1])}" alt="" loading="lazy" onerror="this.remove()">`:""}</div>`;
+  return `<div class="${cls}"><img src="${esc(f[0])}" alt="${alt}" loading="lazy" data-fb="ph">${f[1]?`<img class="f2" src="${esc(f[1])}" alt="" loading="lazy" data-fb="rm">`:""}</div>`;
 }

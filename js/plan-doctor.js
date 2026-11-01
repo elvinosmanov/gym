@@ -27,7 +27,8 @@ function isComp(e){
   return ((e.pri||[]).length + (e.sec||[]).length) >= 3;
 }
 const muscleDay = m => DAYS.find(D => (DAY_FOCUS[D]||[]).includes(m)) || "F";
-const exNm = k => esc((libEx(k)||{}).name || k);
+const exRaw = k => (libEx(k)||{}).name || k;     /* düymə yazısı üçün — orada esc() bir dəfə tətbiq olunur */
+const exNm = k => esc(exRaw(k));
 /* əzələni ƏSAS işlədən namizədlər: şəkli olan və daha hədəfli olanlar öndə */
 function candFor(m, exclude){
   const used = new Set(exclude||[]);
@@ -86,8 +87,8 @@ function planAdvice(D){
     if(!why.length) why.push("ağır hərəkətlər əvvələ, izolyasiya sona toplanmalıdır");
     out.push({ sev:1, ic:"↕", t:"Hərəkətlərin sırası optimal deyil",
       w:`${why.join("; ")}. Təklif olunan sıra: <b>${list}</b>.`,
-      a:[{l:"Sıranı tətbiq et", f:`advReorder('${D}')`},
-         ...(first.i!==0 ? [{l:`${exNm(first.k)} birinci olsun`, f:`advMove('${D}',${first.i},0)`}] : [])] });
+      a:[{l:"Sıranı tətbiq et", act:"advReorder", args:[D]},
+         ...(first.i!==0 ? [{l:`${exRaw(first.k)} birinci olsun`, act:"advMove", args:[D,first.i,0]}] : [])] });
   }
 
   /* 2) BALANS — günün hədəf əzələsi bütün dövrdə azdır */
@@ -106,8 +107,8 @@ function planAdvice(D){
     if(cand && overIdx>=0){
       out.push({ sev:0, ic:"⇄", t:`<b>${exNm(slots[overIdx].k)}</b> yerinə <b>${exNm(cand)}</b>`,
         w:`${MUSN[lowM]} bütün dövr boyu cəmi <b>${v(lowM)}</b> dövr alır — hədəf ${lo(lowM)}-${hi(lowM)}. <b>${exNm(slots[overIdx].k)}</b>-in işlətdiyi əzələ isə onsuz da hədəfin üstündədir. Bu dəyişiklik həcmi artıq yerdən zəif yerə köçürür, gün isə uzanmır.`,
-        a:[{l:"Əvəz et", f:`advReplace('${D}',${overIdx},'${cand}')`},
-           {l:"Özüm seçim", f:`openLibPick('${D}',${overIdx})`}] });
+        a:[{l:"Əvəz et", act:"advReplace", args:[D,overIdx,cand]},
+           {l:"Özüm seçim", act:"openLibPick", args:[D,overIdx]}] });
     } else if(sets <= 22){
       /* bu gün onsuz da həmin əzələyə işləyən hərəkət varsa, yeni hərəkət əlavə etməkdənsə
          ona bir dövr artırmaq daha ucuz və daha yaxşı yoldur */
@@ -116,9 +117,9 @@ function planAdvice(D){
         return e && (e.pri||[]).includes(lowM) && (+s.sets||0) < 5;
       });
       const acts = [];
-      if(hasIdx>=0) acts.push({l:`${exNm(slots[hasIdx].k)} +1 dövr`, f:`advSets('${D}',${hasIdx},1)`});
-      if(cand) acts.push({l:`${hasIdx>=0?"Yeni hərəkət":"Əlavə et"}: ${exNm(cand)}`, f:`advAdd('${D}','${cand}')`});
-      acts.push({l:"Özüm seçim", f:`openLibPick('${D}',null)`});
+      if(hasIdx>=0) acts.push({l:`${exRaw(slots[hasIdx].k)} +1 dövr`, act:"advSets", args:[D,hasIdx,1]});
+      if(cand) acts.push({l:`${hasIdx>=0?"Yeni hərəkət":"Əlavə et"}: ${exRaw(cand)}`, act:"advAdd", args:[D,cand]});
+      acts.push({l:"Özüm seçim", act:"openLibPick", args:[D,null]});
       if(acts.length) out.push({ sev:0, ic:"＋", t:`${MUSN[lowM]} üçün həcm azdır`,
         w:`${MUSN[lowM]} bütün dövrdə <b>${v(lowM)}</b> effektiv dövr alır, hədəf <b>${lo(lowM)}-${hi(lowM)}</b>. Bu gün həmin əzələnin günüdür və hələ yer var (${sets} dövr ≈ ${mins} dəq).${hasIdx>=0?` Ən sadə yol: <b>${exNm(slots[hasIdx].k)}</b>-ə bir dövr artırmaq.`:""}`,
         a: acts });
@@ -141,7 +142,7 @@ function planAdvice(D){
     });
     if(bi>=0) out.push({ sev:1, ic:"⏬", t:`${MUSN[overM]} hədəfdən çoxdur`,
       w:`Bir dövrdə <b>${v(overM)}</b> dövr alır (yuxarı hədd ${hi(overM)}). Bu qədər həcm daha çox əzələ vermir, bərpanı yeyir. Ən çox pay verən <b>${exNm(slots[bi].k)}</b>-dir — ondan bir dövr azalt.`,
-      a:[{l:"⚙ Dövrləri ayarla", f:`openSlotEdit('${D}',${bi})`}] });
+      a:[{l:"⚙ Dövrləri ayarla", act:"openSlotEdit", args:[D,bi]}] });
   }
 
   /* 4) GÜNÜN MÖVZUSU — hərəkət başqa günə uyğundur */
@@ -154,7 +155,7 @@ function planAdvice(D){
       if(to===D || daySlots(to).some(s=>s.k===slots[i].k)) continue;
       out.push({ sev:1, ic:"→", t:`<b>${exNm(slots[i].k)}</b> ${DAY_META[to].name.split(" · ")[0]} gününə`,
         w:`Bu gün ${focus.map(m=>MUSN[m]).join(", ")} günüdür, bu hərəkət isə ${pri.map(m=>MUSN[m]).join(", ")} işlədir. Ayrı gündə həmin əzələ təzə olur — həm çəki, həm bərpa udur.`,
-        a:[{l:`${DAY_META[to].name.split(" · ")[0]} gününə köçür`, f:`advShift('${D}',${i},'${to}')`}] });
+        a:[{l:`${DAY_META[to].name.split(" · ")[0]} gününə köçür`, act:"advShift", args:[D,i,to]}] });
       break;
     }
   }
@@ -168,7 +169,7 @@ function planAdvice(D){
     const alt = (ALT_OF[k]||[]).filter(a=>!keys.includes(a) && libEx(a))[0];
     out.push({ sev:0, ic:"↺", t:`<b>${exNm(k)}</b> ilişib`,
       w:`Son üç məşqdə bu hərəkətdə irəliləmə yoxdur. ${alt ? `Eyni əzələni başqa bucaqdan yükləyən <b>${exNm(alt)}</b> adətən durğunluğu qırır — 4-6 həftə onu et, sonra istəsən geri qayıt.` : `Bir məşq çəkini ~10% endirib təkrarları rahat vur, sonra yenidən qalx.`}`,
-      a: alt ? [{l:`${exNm(alt)} ilə əvəz et`, f:`advReplace('${D}',${i},'${alt}')`}] : [] });
+      a: alt ? [{l:`${exRaw(alt)} ilə əvəz et`, act:"advReplace", args:[D,i,alt]}] : [] });
     break;
   }
 
@@ -178,7 +179,7 @@ function planAdvice(D){
     const c = candFor(m, keys)[0];
     out.push({ sev:0, ic:"!", t:`${MUSN[m]} bütün dövrdə heç işlənmir`,
       w:`Dörd məşqin heç birində bu əzələyə iş düşmür. ${c?`Bu gün ona uyğun gündür — <b>${exNm(c)}</b> boşluğu bağlayır.`:""}`,
-      a: c ? [{l:"Əlavə et", f:`advAdd('${D}','${c}')`}] : [] });
+      a: c ? [{l:"Əlavə et", act:"advAdd", args:[D,c]}] : [] });
   });
 
   /* 7) TƏKRAR DİAPAZONU — plan deyir 12, sən həmişə 10-da bitirirsən */
@@ -187,7 +188,7 @@ function planAdvice(D){
     if(!h) continue;
     out.push({ sev:1, ic:"⇲", t:`<b>${exNm(slots[i].k)}</b> üçün diapazon ${ex.rMin}-${h}`,
       w:`Son üç məşqin hamısında <b>${h} təkrarda</b> bitirmisən, plan isə ${ex.rMin}-${ex.rMax} yazır. Alqoritm onsuz da ${h}-ı hədəf götürür (çəki ${h}-a çatanda artır), amma diapazonu da düzəltsək kartda “${ex.rMax}” yazısı yalan olmaz.`,
-      a:[{l:`${ex.rMin}-${h} et`, f:`advRange('${D}',${i},${ex.rMin},${h})`}] });
+      a:[{l:`${ex.rMin}-${h} et`, act:"advRange", args:[D,i,ex.rMin,h]}] });
     break;
   }
 
@@ -207,7 +208,7 @@ function adviceCard(D){
     ${list.map(s=>`<div class="sug ${s.sev===0?"crit":""}">
       <div class="si">${s.ic}</div>
       <div class="sb"><b>${s.t}</b><small>${s.w}</small>
-        ${s.a.length?`<div class="sact">${s.a.map(a=>`<button onclick="${a.f}">${esc(a.l)}</button>`).join("")}</div>`:""}
+        ${s.a.length?`<div class="sact">${s.a.map(a=>`<button type="button"${act(a.act, ...a.args)}>${esc(a.l)}</button>`).join("")}</div>`:""}
       </div></div>`).join("")}
     <div class="small" style="margin-top:10px">Təkliflər məcburi deyil — plan sənindir. Rəqəmlər bir dövrdən (4 məşq) gəlir: əsas əzələ üçün dövr tam, köməkçi üçün yarım sayılır.</div>
   </div>`;
@@ -225,7 +226,7 @@ function advReorder(D){
   const oc = orderCheck(p);
   if(oc.same){ toast("Sıra onsuz da düzgündür"); return; }
   ask("Sıra dəyişdirilsin?",
-      "Hərəkətlər ağırdan yüngülə doğru düzüləcək:\n\n" + oc.ideal.map((x,n)=>`${n+1}. ${(libEx(x.k)||{}).name||x.k}`).join("\n"),
+      "Hərəkətlər ağırdan yüngülə doğru düzüləcək:\n\n" + oc.ideal.map((x,n)=>`${n+1}. ${exNm(x.k)}`).join("\n"),
       "Tətbiq et", ()=>{
         state.plan[D] = oc.ideal.map(x => p[x.i]);
         planTouch(); toast("Sıra yeniləndi");

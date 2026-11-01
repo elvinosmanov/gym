@@ -84,11 +84,17 @@ function mergeState(local, remote){
     const cur = wmap.get(w.d);
     if(!cur || (w.ts||0) > (cur.ts||0)) wmap.set(w.d, w);
   });
+  /* Silmə damğası tarix → silinmə VAXTI (goneWTs). Çəki yalnız damğadan əvvəl
+     yazılıbsa süzülür: silib sonra eyni günə yenidən yazılan çəki qalır.
+     goneW — vaxtsız köhnə damğalar; onlar əvvəlki kimi həmin günü həmişə süzür. */
   const goneW = new Set([...(local.goneW||[]), ...(remote.goneW||[])]);
   out.goneW = [...goneW].slice(-TOMB_CAP);
-  /* çəki damğası yalnız qarşı tərəfdəki KÖHNƏ qeydi süzür: eyni günə yeni çəki
-     yazılıbsa (ts damğadan sonra) o qalır */
-  out.weights = [...wmap.values()].filter(w => !goneW.has(w.d)).sort((a,b)=>a.d<b.d?-1:1);
+  const gts = {};
+  [local.goneWTs, remote.goneWTs].forEach(m => Object.entries(m||{}).forEach(([d,t]) => { gts[d] = Math.max(gts[d]||0, +t||0); }));
+  out.goneWTs = gts;
+  out.weights = [...wmap.values()]
+    .filter(w => !goneW.has(w.d) && !(gts[w.d] && gts[w.d] >= (w.ts||0)))
+    .sort((a,b)=>a.d<b.d?-1:1);
 
   /* supps keyed on date. Damğalı qeydlərdə daha yeni olan qalib gəlir — beləcə
      işarəni geri götürmək də sinxronlaşır. Damğasız köhnə qeydlərdə OR. */

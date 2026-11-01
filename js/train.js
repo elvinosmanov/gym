@@ -26,16 +26,16 @@ const WARMUPS = {
 };
 function warmupCard(D){
   const items = WARMUPS[D] || [];
-  const act = !!(state.active && state.active.day===D);
-  const done = act && !!state.active.warmDone;
+  const live = !!(state.active && state.active.day===D);
+  const done = live && !!state.active.warmDone;
   /* yığılmış saxlanılır — hər məşqdə oxumağa ehtiyac yoxdur, lazım olanda açılır */
   return `<details class="rules wu ${done?"done":""}" id="wuCard">
     <summary><span>Qızışma · 3-5 dəq${done?" · bitdi ✓":""}</span></summary>
     <div class="inner">
       <ol class="wulist">${items.map(w=>`<li><b>${w.t}</b><small>${w.d}</small></li>`).join("")}</ol>
       <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn sm ghost" onclick="startTimer(240,'Qızışma')">⏱ 4 dəq</button>
-        ${act ? `<button class="btn sm ${done?"ghost":""}" style="flex:1" onclick="toggleWarmDone()">${done?"✓ bitdi — geri al":"Qızışmanı bitdi kimi işarələ"}</button>` : ""}
+        <button class="btn sm ghost"${act("startTimer",240,"Qızışma")}>⏱ 4 dəq</button>
+        ${live ? `<button class="btn sm ${done?"ghost":""}" style="flex:1"${act("toggleWarmDone")}>${done?"✓ bitdi — geri al":"Qızışmanı bitdi kimi işarələ"}</button>` : ""}
       </div>
       <div class="small" style="margin-top:10px">Sonra ilk hərəkətə tədricən keçin: boş ştanqla ×10, ~50% ×6, ~70% ×3 — bu qızışma dövrləri iş dövrü sayılmır. İlk iş dövrünü işarələyəndə qızışma avtomatik bitmiş sayılır.</div>
     </div>
@@ -110,9 +110,9 @@ function clockChip(){
   const a = state.active; if(!a) return "";
   const live = sessionMinutes(a, staleHours() ? 0 : GAP_CAP);   /* açıq qalıbsa quyruq sayılmır */
   const idle = Math.round((Date.now()-lastMark(a))/60000);
-  return `<div class="clock" onclick="openClockFix()">
+  return `<button type="button" class="clock"${act("openClockFix")}>
     <span class="cl-l">Zalda</span><b class="num">${hm(live)}</b>
-    <span class="cl-r">${idle>=10?`son qeyddən ${idle} dəq`:"davam edir"} · düzəlt</span></div>`;
+    <span class="cl-r">${idle>=10?`son qeyddən ${idle} dəq`:"davam edir"} · düzəlt</span></button>`;
 }
 function openClockFix(){
   const a = state.active; if(!a) return;
@@ -122,13 +122,13 @@ function openClockFix(){
     <div class="stag">Başlanğıc: ${String(st.getHours()).padStart(2,"0")}:${String(st.getMinutes()).padStart(2,"0")} · hesablanan: ${hm(sessionMinutes(a, staleHours() ? 0 : GAP_CAP))}</div>
     <div class="small" style="margin:8px 0 12px">Zala girəndə tətbiqi açmağı unutmusunuzsa, başlanğıcı geriyə sürüşdürün. Vaxt onsuz da qeydlərdən hesablanır: dövrlər arasındakı 20 dəqiqədən uzun boşluqlar sayılmır, ona görə “Bitir”i basmağı unutmağınız nəticəni pozmur.</div>
     <div class="chips fil">
-      <span class="pick" onclick="shiftStart(-5)">−5 dəq</span>
-      <span class="pick" onclick="shiftStart(-10)">−10 dəq</span>
-      <span class="pick" onclick="shiftStart(-15)">−15 dəq</span>
-      <span class="pick" onclick="shiftStart(5)">+5 dəq</span>
+      <button type="button" class="pick"${act("shiftStart",-5)}>−5 dəq</button>
+      <button type="button" class="pick"${act("shiftStart",-10)}>−10 dəq</button>
+      <button type="button" class="pick"${act("shiftStart",-15)}>−15 dəq</button>
+      <button type="button" class="pick"${act("shiftStart",5)}>+5 dəq</button>
     </div>
-    <button class="btn block ghost" style="margin-top:12px" onclick="closeSheet()">Bağla</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block ghost" style="margin-top:12px"${act("closeSheet")}>Bağla</button>`;
+  openSheet();
 }
 function shiftStart(min){
   const a = state.active; if(!a || !a.startedAt) return;
@@ -146,8 +146,8 @@ function staleCard(){
     yəqin “Bitir”i basmağı unutmusunuz. Real vaxt buna görə şişmir: hesablanan müddət
     <b>${hm(sessionMinutes(a, 0))}</b>.
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn sm" style="flex:1" onclick="finishSession()">Bitir və yadda saxla</button>
-      <button class="btn sm ghost" style="flex:1" onclick="switchTab('train')">Davam edirəm</button>
+      <button class="btn sm" style="flex:1"${act("finishSession")}>Bitir və yadda saxla</button>
+      <button class="btn sm ghost" style="flex:1"${act("switchTab","train")}>Davam edirəm</button>
     </div></div>`;
 }
 /* canlı saat: yalnız aktiv məşq varkən və səhifə görünəndə işləyir */
@@ -198,7 +198,7 @@ function renderTrain(){
   if(state.active) viewDay = state.active.day;
   if(!PROGRAM[viewDay]) viewDay = nextDay();
   const D = PROGRAM[viewDay];
-  const days = DAYS.map(k=>`<button class="daysel ${state.active&&state.active.day!==k?"lock":""}" onclick="selDay('${k}')" aria-label="${DAY_META[k].name}">
+  const days = DAYS.map(k=>`<button class="daysel ${state.active&&state.active.day!==k?"lock":""}"${act("selDay",k)} aria-label="${esc(DAY_META[k].name)}" aria-pressed="${viewDay===k}">
       <span class="plate plate-${DAY_META[k].cls} ${viewDay===k?"on":""}"><span>${DAY_META[k].letter}</span></span>
       <b>${DAY_META[k].name.split(" · ")[0]}</b></button>`).join("");
 
@@ -223,16 +223,16 @@ function renderTrain(){
         return `<div class="setrow">
           <div class="idx num">${si+1}</div>
           <div class="stepper">
-            <button onclick="stepVal('${ex.key}',${si},'kg',-1)" aria-label="minus kg">−</button>
-            <input id="in-${ex.key}-${si}-kg" type="text" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'kg',this.value)">
-            <button onclick="stepVal('${ex.key}',${si},'kg',1)" aria-label="plus kg">+</button>
+            <button type="button"${act("stepVal",ex.key,si,"kg",-1)} aria-label="Dövr ${si+1}: çəkini azalt">−</button>
+            <input id="in-${ex.key}-${si}-kg" type="text" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" class="${s.auto?"gh":""}"${onInput("setVal",ex.key,si,"kg")} aria-label="Dövr ${si+1}: çəki (${esc(unitOf(eff))})">
+            <button type="button"${act("stepVal",ex.key,si,"kg",1)} aria-label="Dövr ${si+1}: çəkini artır">+</button>
           </div>
           <div class="stepper">
-            <button onclick="stepVal('${ex.key}',${si},'reps',-1)" aria-label="minus reps">−</button>
-            <input id="in-${ex.key}-${si}-reps" type="text" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" class="${s.auto?"gh":""}" oninput="setVal('${ex.key}',${si},'reps',this.value)">
-            <button onclick="stepVal('${ex.key}',${si},'reps',1)" aria-label="plus reps">+</button>
+            <button type="button"${act("stepVal",ex.key,si,"reps",-1)} aria-label="Dövr ${si+1}: təkrarı azalt">−</button>
+            <input id="in-${ex.key}-${si}-reps" type="text" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" class="${s.auto?"gh":""}"${onInput("setVal",ex.key,si,"reps")} aria-label="Dövr ${si+1}: təkrar">
+            <button type="button"${act("stepVal",ex.key,si,"reps",1)} aria-label="Dövr ${si+1}: təkrarı artır">+</button>
           </div>
-          <button id="ck-${ex.key}-${si}" class="check ${s.done?"done":""}" onclick="toggleDone('${ex.key}',${si})" aria-label="set done">✓</button>
+          <button type="button" id="ck-${ex.key}-${si}" class="check ${s.done?"done":""}"${act("toggleDone",ex.key,si)} aria-pressed="${!!s.done}" aria-label="Dövr ${si+1}: bitdi">✓</button>
         </div>`;
       }).join("");
       const h = hintFor(eff,p);
@@ -255,25 +255,25 @@ function renderTrain(){
           ${exImg(eff,"exanim sm")}
           <div>
             <div class="name">${i+1}. ${esc(eff.name)}</div>
-            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${eff.key}')">${loadTag(eff)}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}${extra?`<span class="tag swp">əlavə</span>`:""}</div>
+            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><button type="button" class="tag lt"${act("loadInfo",eff.key)} aria-label="Çəki xanası: ${esc(loadTag(eff))} — izah">${esc(loadTag(eff))}</button>${swapped?`<span class="tag swp">alternativ</span>`:""}${extra?`<span class="tag swp">əlavə</span>`:""}</div>
           </div>
         </div><div class="exbtns">${extra
-          ? `<button class="techbtn" onclick="openTech('${viewDay}',null,'${ex.key}')">Texnika</button><button class="techbtn" onclick="sessRemove('${ex.key}')" aria-label="məşqdən çıxar">✕ Çıxar</button>`
-          : `<button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button>${swapOpts(ex.key).length>1?`<button class="techbtn" onclick="openSwap('${ex.key}')" aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}`}</div></div>
+          ? `<button class="techbtn"${act("openTech",viewDay,null,ex.key)}>Texnika</button><button class="techbtn"${act("sessRemove",ex.key)} aria-label="məşqdən çıxar">✕ Çıxar</button>`
+          : `<button class="techbtn"${act("openTech",viewDay,i)}>Texnika</button>${swapOpts(ex.key).length>1?`<button class="techbtn"${act("openSwap",ex.key)} aria-label="alternativ hərəkət seç">⇄ Dəyiş</button>`:""}`}</div></div>
         ${perfLine(eff.key, p)}
         <div class="hint ${h.cls}">${h.txt}</div>
         ${plateLine}
         ${ramp}
         <div class="sethdr"><div>Dövr</div><div>${unitOf(eff)}</div><div>Təkrar</div><div>✓</div></div>
         ${rows}
-        <button class="techbtn" style="margin-top:8px" onclick="sessAddSet('${ex.key}')">＋ Dövr əlavə et</button>
+        <button class="techbtn" style="margin-top:8px"${act("sessAddSet",ex.key)}>＋ Dövr əlavə et</button>
         <div id="rl-${ex.key}">${restLineHTML(ex.key)}</div>
       </div>`;
     }).join("");
-    body += `<button class="btn block ghost" style="margin-top:6px" onclick="openLibPick('${viewDay}',null,'sess')">＋ Bu məşqə hərəkət əlavə et</button>
+    body += `<button class="btn block ghost" style="margin-top:6px"${act("openLibPick",viewDay,null,"sess")}>＋ Bu məşqə hərəkət əlavə et</button>
              <div class="small" style="margin:6px 0 10px;text-align:center">Plana yazılmır — yalnız bu məşqin qeydinə düşür.</div>
-             <button class="btn block" style="margin-top:6px" onclick="finishSession()">Bitir və yadda saxla</button>
-             <button class="btn block danger" style="margin-top:10px" onclick="cancelSession()">Məşqi ləğv et</button>`;
+             <button class="btn block" style="margin-top:6px"${act("finishSession")}>Bitir və yadda saxla</button>
+             <button class="btn block danger" style="margin-top:10px"${act("cancelSession")}>Məşqi ləğv et</button>`;
   } else {
     body = D.ex.map((ex,i)=>{
         const p = lastPerf(ex.key), h = hintFor(ex,p);
@@ -282,14 +282,14 @@ function renderTrain(){
             ${exImg(ex,"exanim sm")}
             <div>
               <div class="name">${i+1}. ${esc(ex.name)}</div>
-              <div class="meta"><span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span><span class="tag">⏱ ${Math.round(ex.rest/60*10)/10} dəq</span><span class="tag lt">${loadTag(ex)}</span></div>
+              <div class="meta"><span class="tag hot">${ex.sets} × ${ex.rMin}-${ex.rMax}</span><span class="tag">⏱ ${Math.round(ex.rest/60*10)/10} dəq</span><span class="tag lt">${esc(loadTag(ex))}</span></div>
             </div>
-          </div><button class="techbtn" onclick="openTech('${viewDay}',${i})">Texnika</button></div>
+          </div><button class="techbtn"${act("openTech",viewDay,i)}>Texnika</button></div>
           ${perfLine(ex.key, p)}
           <div class="hint ${h.cls}">${h.txt}</div>
         </div>`;
       }).join("") +
-      `<button class="btn block" style="margin-top:6px" onclick="startSession('${viewDay}')">${D.name} başla</button>`;
+      `<button class="btn block" style="margin-top:6px"${act("startSession",viewDay)}>${D.name} başla</button>`;
   }
 
   $("#view-train").innerHTML = `
@@ -451,7 +451,7 @@ function toggleDone(key,i){
       }
       toast("Əvvəlcə çəkini yaz — çəkisiz dövr qeyd edilmir");
       const b0 = document.getElementById(`ck-${key}-${i}`);
-      if(b0) b0.classList.remove("done");
+      if(b0){ b0.classList.remove("done"); b0.setAttribute("aria-pressed", "false"); }
       return;
     }
     delete s.auto;                       /* təsdiqlənən dövr artıq təklif deyil */
@@ -493,7 +493,8 @@ function toggleDone(key,i){
   const btn = document.getElementById(`ck-${key}-${i}`);
   const rl = document.getElementById(`rl-${key}`);
   if(rl) rl.innerHTML = restLineHTML(key);
-  if(btn) btn.classList.toggle("done", s.done); else renderTrain();
+  if(btn){ btn.classList.toggle("done", s.done); btn.setAttribute("aria-pressed", String(!!s.done)); }
+  else renderTrain();
 }
 /* qeyd qurma ayrıca: həm “Bitir” düyməsi, həm avtomatik bağlama eyni məntiqi işlədir */
 function buildRecord(a){
@@ -548,10 +549,10 @@ function finishSession(){
     ${prev ? `<div class="small" style="margin-top:10px">Keçən dəfəki qeydin: <i>“${esc(prev)}”</i></div>` : ""}
     <div class="field" style="margin-top:12px"><label>Bu məşq üçün qeyd (istəyə bağlı)</label>
       <textarea id="fin-note" rows="3" placeholder="məs. bench çətin gəldi, çiyin ağrıdı — növbəti dəfə çəkini saxla"></textarea></div>
-    <button class="btn block" onclick="saveWithNote()">Bəli, yadda saxla</button>
-    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
+    <button class="btn block"${act("saveWithNote")}>Bəli, yadda saxla</button>
+    <button class="btn block ghost" style="margin-top:8px"${act("closeSheet")}>İmtina</button>`;
   pendingRec = rec;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+  openSheet();
 }
 let pendingRec = null;
 function saveWithNote(){
@@ -582,7 +583,7 @@ function autoFinishStale(){
   const { rec, n } = buildRecord(a);
   if(n){
     state.sessions.push(rec); endActive(); save(); cloudPush(true);
-    migrationNote = `“Bitir” basılmamışdı — <b>${dayMeta(rec.day).name}</b> məşqi avtomatik yadda saxlanıldı: `
+    migrationNote = `“Bitir” basılmamışdı — <b>${esc(dayMeta(rec.day).name)}</b> məşqi avtomatik yadda saxlanıldı: `
       + `${n} dövr · ${hms(rec.sec)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`;
   } else {
     endActive(); save(); cloudPush(true);
@@ -623,10 +624,10 @@ function openTech(day,i,extraKey){
     <div class="small">Avadanlıq məşğuldursa, alternativlər: <b style="color:var(--ink)">${alts.map(a=>esc(a.name)).join(" · ")}</b> — məşq zamanı kartdakı “⇄ Dəyiş” düyməsi ilə keçin.</div>`:""}
     <div style="display:flex;gap:8px;margin-top:14px">
       <a class="btn" style="flex:1" href="${esc(vidURL(ex))}" target="_blank" rel="noopener noreferrer">▶ Video${(state.vid&&state.vid[ex.key])?"":" axtar"}</a>
-      <button class="btn ghost" onclick="openVidSet('${ex.key}')" aria-label="video təyin et">⚙</button>
+      <button class="btn ghost"${act("openVidSet",ex.key)} aria-label="video təyin et">⚙</button>
     </div>
-    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">Bağla</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block ghost" style="margin-top:8px"${act("closeSheet")}>Bağla</button>`;
+  openSheet();
 }
 /* ================= VİDEO =================
    Şəkil hərəkətin yolunu göstərir, sürəti və nəfəsi yox. Hər hərəkət üçün
@@ -643,9 +644,9 @@ function openVidSet(key){
     <h3>Video təyin et</h3><div class="stag">${esc(ex.name)}</div>
     <div class="small" style="margin:8px 0 12px">Bəyəndiyin videonun linkini yapışdır — bundan sonra “Video” düyməsi birbaşa onu açacaq. Boş buraxsan, YouTube axtarışı açılır.</div>
     <div class="field"><input id="vd-url" value="${esc((state.vid&&state.vid[key])||"")}" placeholder="https://youtu.be/..."></div>
-    <button class="btn block" onclick="saveVid('${key}')">Yadda saxla</button>
-    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block"${act("saveVid",key)}>Yadda saxla</button>
+    <button class="btn block ghost" style="margin-top:8px"${act("closeSheet")}>İmtina</button>`;
+  openSheet();
 }
 function saveVid(key){
   const v = ($("#vd-url").value||"").trim();
@@ -659,7 +660,7 @@ function saveVid(key){
 function loadInfo(key){
   const ex = EXMAP[key]; if(!ex) return;
   const d = LOAD_LBL[ex.load] || {s:"kq", l:"Qaldırdığın çəkini yaz."};
-  info(`Çəki xanası: ${loadTag(ex)}`, `${esc(ex.name)}\n\n${d.l}\n\nArtım addımı: +${ex.inc || incFor(ex)} ${unitOf(ex)}${exStep(ex.key) ? " (bir daşın çəkisi — Plan → ⚙)" : " (Ayarlar və ya Plan → ⚙ bölməsindən dəyişdirilir)"}.`);
+  info(`Çəki xanası: ${esc(loadTag(ex))}`, `${esc(ex.name)}\n\n${d.l}\n\nArtım addımı: +${ex.inc || incFor(ex)} ${unitOf(ex)}${exStep(ex.key) ? " (bir daşın çəkisi — Plan → ⚙)" : " (Ayarlar və ya Plan → ⚙ bölməsindən dəyişdirilir)"}.`);
 }
 /* Başlıqdan aşağı dartıb bağlamaq — düyməyə çatmaq çətin olanda da çıxış yolu var */
 (function sheetSwipe(){
@@ -684,7 +685,31 @@ function loadInfo(key){
     if(dy > 70) closeSheet();
   }, {passive:true});
 })();
-function closeSheet(){ askFn = null; $("#overlay").classList.remove("on"); $("#sheet").classList.remove("on"); }
+/* Vərəq dialoqdur (index.html: role="dialog" aria-modal="true"): açılanda fokus içəri
+   keçir, bağlananda onu açan düyməyə qayıdır. Tab tələsi və Escape — js/actions.js. */
+let sheetOpener = null;
+function openSheet(){
+  const sh = $("#sheet");
+  if(!sh.classList.contains("on")){
+    /* vərəqdən vərəqə keçəndə (⚙ → ⇄, Texnika → video) ilk açan element yadda qalır */
+    const a = document.activeElement;
+    sheetOpener = (a && a !== document.body && !sh.contains(a)) ? a : null;
+  }
+  const h = sh.querySelector("h3");
+  if(h){ h.id = "sheetTitle"; sh.setAttribute("aria-labelledby", "sheetTitle"); }
+  else sh.removeAttribute("aria-labelledby");
+  $("#overlay").classList.add("on"); sh.classList.add("on");
+  /* fokus ilk xanaya yox, vərəqin özünə — telefonda klaviatura özbaşına açılmasın */
+  try{ sh.focus({preventScroll:true}); }catch(e){ sh.focus(); }
+}
+function closeSheet(){
+  askFn = null;
+  const sh = $("#sheet"), was = sh.classList.contains("on");
+  $("#overlay").classList.remove("on"); sh.classList.remove("on");
+  if(!was) return;
+  const o = sheetOpener; sheetOpener = null;
+  if(o && o.isConnected && typeof o.focus === "function"){ try{ o.focus({preventScroll:true}); }catch(e){} }
+}
 
 /* ---- təsdiq pəncərələri ----
    Brauzerin öz confirm()/alert() pəncərələri hər mühitdə görünmür (PWA, daxili
@@ -696,9 +721,9 @@ function ask(title, body, okLabel, onOk, danger){
   $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${title}</h3>
     <div class="small" style="margin:8px 0 16px;white-space:pre-line;font-size:13.5px">${body}</div>
-    <button class="btn block ${danger?"danger":""}" onclick="askYes()">${okLabel}</button>
-    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block ${danger?"danger":""}"${act("askYes")}>${okLabel}</button>
+    <button class="btn block ghost" style="margin-top:8px"${act("closeSheet")}>İmtina</button>`;
+  openSheet();
 }
 function askYes(){ const f = askFn; askFn = null; closeSheet(); if(f) f(); }
 function info(title, body){
@@ -706,6 +731,6 @@ function info(title, body){
   $("#sheet").innerHTML = `${SHEETHEAD}
     <h3>${title}</h3>
     <div class="small" style="margin:8px 0 16px;white-space:pre-line;font-size:13.5px">${body}</div>
-    <button class="btn block" onclick="closeSheet()">Başa düşdüm</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block"${act("closeSheet")}>Başa düşdüm</button>`;
+  openSheet();
 }

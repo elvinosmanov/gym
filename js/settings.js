@@ -28,9 +28,9 @@ function openJunk(){
         <small>${x.s.ex.reduce((y,e)=>y+e.sets.length,0)} dövr · ${esc(x.why)}</small></span>
     </label>`).join("")}</div>
     <div class="small" style="margin:10px 0">Sənin real məşqlərin bu siyahıda görünmür. Əmin deyilsənsə həmin sətrin işarəsini götür.</div>
-    <button class="btn block danger" onclick="purgeJunk()">İşarələnənləri sil</button>
-    <button class="btn block ghost" style="margin-top:8px" onclick="closeSheet()">İmtina</button>`;
-  $("#overlay").classList.add("on"); $("#sheet").classList.add("on");
+    <button class="btn block danger"${act("purgeJunk")}>İşarələnənləri sil</button>
+    <button class="btn block ghost" style="margin-top:8px"${act("closeSheet")}>İmtina</button>`;
+  openSheet();
 }
 function purgeJunk(){
   const idx = [...document.querySelectorAll(".junkr input:checked")].map(el=>parseInt(el.dataset.i));
@@ -53,12 +53,12 @@ function renderSettings(){
     <div class="sect">Sən</div>
     <div class="card">
       <div class="grid2">
-        <div class="field"><label>Ad</label><input id="st-name" value="${esc(p.name)}" onchange="saveSet()"></div>
+        <div class="field"><label>Ad</label><input id="st-name" value="${esc(p.name)}"${onChange("saveSet")}></div>
         <div class="field"><label>Həftədə məşq</label><input value="${weeklyTarget()} gün" disabled></div>
       </div>
       <div class="inline-log" style="margin-top:4px">
-        <input id="st-w" type="text" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"bugünkü çəki (kq)"}">
-        <button class="btn sm" onclick="addWeight('st-w')">Çəkini qeyd et</button>
+        <input id="st-w" type="text" inputmode="decimal" step="0.1" placeholder="${w?w.toFixed(1):"bugünkü çəki (kq)"}" aria-label="Bugünkü çəki (kq)">
+        <button class="btn sm"${act("addWeight","st-w")}>Çəkini qeyd et</button>
       </div>
     </div>
 
@@ -67,20 +67,20 @@ function renderSettings(){
       <div class="small" style="margin-bottom:10px">Çəki artımı təklifləri və disk hesablayıcısı buradan hesablanır.
         <br><br><b style="color:var(--ink)">Çəki qaydası:</b> ştanq, Smith və disklə yüklənən aparatlarda xanaya <b style="color:var(--ink)">BİR tərəfin</b> çəkisini yaz — dəmirin öz çəkisi sayılmır. Hantellərdə bir hantelin rəqəmi, yığınlı aparatlarda (kəndir, blok) yığındakı rəqəm yazılır.</div>
       <div class="grid2">
-        <div class="field"><label>Dəmirin çəkisi (kq)</label><input id="st-bar" type="text" inputmode="decimal" step="0.5" value="${c.bar}" onchange="saveSet()"></div>
-        <div class="field"><label>Ən kiçik disk (kq)</label><input id="st-plate" type="text" inputmode="decimal" step="0.5" value="${c.plate}" onchange="saveSet()"></div>
+        <div class="field"><label>Dəmirin çəkisi (kq)</label><input id="st-bar" type="text" inputmode="decimal" step="0.5" value="${esc(c.bar)}"${onChange("saveSet")}></div>
+        <div class="field"><label>Ən kiçik disk (kq)</label><input id="st-plate" type="text" inputmode="decimal" step="0.5" value="${esc(c.plate)}"${onChange("saveSet")}></div>
       </div>
       <div class="grid2">
-        <div class="field"><label>Hantel addımı (kq)</label><input id="st-db" type="text" inputmode="decimal" step="0.5" value="${c.db}" onchange="saveSet()"></div>
-        <div class="field"><label>Aparat addımı (kq)</label><input id="st-stack" type="text" inputmode="decimal" step="0.5" value="${c.stack}" onchange="saveSet()"></div>
+        <div class="field"><label>Hantel addımı (kq)</label><input id="st-db" type="text" inputmode="decimal" step="0.5" value="${esc(c.db)}"${onChange("saveSet")}></div>
+        <div class="field"><label>Aparat addımı (kq)</label><input id="st-stack" type="text" inputmode="decimal" step="0.5" value="${esc(c.stack)}"${onChange("saveSet")}></div>
       </div>
       <div class="field"><label>Aparat yığınının vahidi</label>
-        <select id="st-unit" onchange="saveSet()">
+        <select id="st-unit"${onChange("saveSet")}>
           <option value="kg" ${p.stackUnit!=="lb"?"selected":""}>kq — yığında kq yazılıb</option>
           <option value="lb" ${p.stackUnit==="lb"?"selected":""}>lb — yığında funt (lbs) yazılıb</option>
         </select></div>
       ${p.stackUnit==="lb" ? `<div class="field"><label>Aparat addımı (lb)</label>
-        <input id="st-stacklb" type="text" inputmode="decimal" step="1" value="${esc(+p.stackStepLb||10)}" onchange="saveSet()"></div>` : ""}
+        <input id="st-stacklb" type="text" inputmode="decimal" step="1" value="${esc(+p.stackStepLb||10)}"${onChange("saveSet")}></div>` : ""}
       <div class="hint" style="margin-top:6px">İndiki artımlar: ştanq/disk <b>hər tərəfə +${c.plate} kq</b> · hantel <b>+${c.db} kq</b> · aparat <b>+${p.stackUnit==="lb" ? (+p.stackStepLb||10)+" lb" : c.stack+" kq"}</b>.
         Ayaq hərəkətlərində addım daha böyükdür (hər tərəfə +10). İstənilən hərəkətin addımını <b>Plan → ⚙</b> bölməsindən ayrıca qura bilərsən.</div>
       ${p.stackUnit==="lb" ? `<div class="small" style="margin-top:8px">Aparatlarda rəqəmi <b style="color:var(--ink)">olduğu kimi lb ilə</b> yaz — çevirmə lazım deyil. Ştanq və hantellər kq olaraq qalır. Ümumi tonajda lb avtomatik kq-a çevrilir.</div>` : ""}
@@ -89,7 +89,7 @@ function renderSettings(){
     <div class="sect">Məşq günləri</div>
     <div class="card">
       <div class="small" style="margin-bottom:10px">Həftənin hansı günləri zala gedirsən? Cədvəl və “növbəti məşq” bildirişi buna görə qurulur.</div>
-      <div class="chips fil">${[1,2,3,4,5,6,0].map(d=>`<span class="pick ${trainDays().includes(d)?"on":""}" onclick="toggleDay(${d})">${WD_FULL[d]}</span>`).join("")}</div>
+      <div class="chips fil">${[1,2,3,4,5,6,0].map(d=>`<button type="button" class="pick ${trainDays().includes(d)?"on":""}"${act("toggleDay",d)} aria-pressed="${trainDays().includes(d)}">${WD_FULL[d]}</button>`).join("")}</div>
       <div class="hint" style="margin-top:10px">Həftədə <b>${weeklyTarget()}</b> məşq · sıra: ${DAYS.map(k=>DAY_META[k].name.split(" · ")[0]).join(" → ")} → yenidən başdan.
       ${weeklyTarget()===4 ? " Həftədə 4 məşq = tam bir dövr, yəni hər həftə eyni gün eyni məşq düşür." : ""}</div>
     </div>
@@ -99,16 +99,16 @@ function renderSettings(){
       <div class="small" style="margin-bottom:10px">Zalın divar saatına bax və elə olduğu kimi yaz — fərqi tətbiq özü hesablayır.</div>
       <div class="inline-log">
         <input id="st-clock" type="time" step="1" value="${fmtClock(Date.now(), false, true)}">
-        <button class="btn sm" onclick="setGymClock()">Təyin et</button>
+        <button class="btn sm"${act("setGymClock")}>Təyin et</button>
       </div>
       <div class="hint" style="margin-top:10px">Telefon: <b>${fmtClock(Date.now(), true, true)}</b> · Zal: <b>${fmtClock(Date.now(), false, true)}</b>${
         (parseInt(p.clockOffset)||0) ? ` <span style="color:var(--c)">(${fmtOffset(parseInt(p.clockOffset)||0)})</span>` : " — fərq yoxdur"}</div>
-      ${(parseInt(p.clockOffset)||0) ? `<button class="btn sm ghost" style="margin-top:10px" onclick="resetGymClock()">Fərqi sıfırla</button>` : ""}
+      ${(parseInt(p.clockOffset)||0) ? `<button class="btn sm ghost" style="margin-top:10px"${act("resetGymClock")}>Fərqi sıfırla</button>` : ""}
     </div>
 
     <div class="sect">İstirahət</div>
     <div class="card tight">
-      <button class="suppbtn ${p.noTimer?"":"on"}" onclick="toggleTimerScreen()">
+      <button class="suppbtn ${p.noTimer?"":"on"}"${act("toggleTimerScreen")} aria-pressed="${!p.noTimer}">
         <span class="si">✓</span>
         <span class="st"><b>Tam ekran taymer</b><small>${p.noTimer?"Söndürülüb — yalnız “növbəti dövr: 14:32” yazısı göstərilir":"Dövrü işarələdikdə geri sayım açılır"}</small></span>
       </button>
@@ -121,16 +121,16 @@ function renderSettings(){
            Məşqi bitirən kimi və tətbiqi bağlayan kimi bulud yenilənir.
            Bulud üzərinə kor-koranə yazılmır — əvvəlcə oxunur və birləşdirilir, ona görə başqa cihazdakı qeydlər silinmir.</div>
          <div style="display:flex;gap:8px;margin-top:10px">
-           <button class="btn sm" style="flex:1" onclick="syncNow()">İndi sinxronla</button>
-           <button class="btn sm ghost" onclick="forcePlanPush()" title="planı bu cihazdan yaz">Planı yaz</button>
-           <button class="btn sm ghost" onclick="sbSignOut()">Çıxış</button>
+           <button class="btn sm" style="flex:1"${act("syncNow")}>İndi sinxronla</button>
+           <button class="btn sm ghost"${act("forcePlanPush")} title="planı bu cihazdan yaz">Planı yaz</button>
+           <button class="btn sm ghost"${act("sbSignOut")}>Çıxış</button>
          </div>`
       : `<div class="small" style="margin-bottom:4px">Daxil olun — qeydləriniz buludda saxlansın, telefon dəyişəndə və ya Safari yaddaşı silinəndə itməsin.</div>
          <div class="field"><label>E-poçt</label><input id="sb-email" type="email" autocomplete="email" placeholder="ad@epoçt.com"></div>
          <div class="field"><label>Şifrə</label><input id="sb-pass" type="password" autocomplete="current-password" placeholder="••••••"></div>
          <div style="display:flex;gap:8px">
-           <button class="btn sm" style="flex:1" onclick="sbSignIn()">Daxil ol</button>
-           <button class="btn sm ghost" style="flex:1" onclick="sbSignUp()">Qeydiyyat</button>
+           <button class="btn sm" style="flex:1"${act("sbSignIn")}>Daxil ol</button>
+           <button class="btn sm ghost" style="flex:1"${act("sbSignUp")}>Qeydiyyat</button>
          </div>` }</div>` : ""}
 
     <div class="sect">Versiya</div>
@@ -141,17 +141,17 @@ function renderSettings(){
     ${junkList().length ? `<div class="sect">Tarixçə təmizliyi</div>
     <div class="card tight">
       <div class="small"><b style="color:var(--c)">${junkList().length} şübhəli məşq</b> tapıldı — gələcək tarixli, sınaq id-li və ya bütün dövrləri eyni olan qeydlər. Bunlar real məşqlərin arasına qarışıb və qrafikləri korlayır.</div>
-      <button class="btn sm" style="margin-top:10px;width:100%" onclick="openJunk()">Bax və sil</button>
+      <button class="btn sm" style="margin-top:10px;width:100%"${act("openJunk")}>Bax və sil</button>
     </div>` : ""}
 
     <div class="sect">Yerli nüsxə</div>
     <div class="card tight">
       <div class="small" style="margin-bottom:10px">Bulud xarici xidmətdir. Vaxtaşırı öz nüsxənizi yükləyin — fayl sizdə qalır, heç bir hesab tələb olunmur.</div>
       <div style="display:flex;gap:8px">
-        <button class="btn sm" style="flex:1" onclick="exportData()">Yüklə (.json)</button>
-        <button class="btn sm ghost" style="flex:1" onclick="$('#impFile').click()">Faylı geri yüklə</button>
+        <button class="btn sm" style="flex:1"${act("exportData")}>Yüklə (.json)</button>
+        <button class="btn sm ghost" style="flex:1"${act("pickImport")}>Faylı geri yüklə</button>
       </div>
-      <input id="impFile" type="file" accept="application/json,.json" style="display:none" onchange="importData(this)">
+      <input id="impFile" type="file" accept="application/json,.json" style="display:none" aria-label="Yedək faylı seç"${onChange("importFile")}>
       <div class="small" style="margin-top:8px">Geri yükləmə <b style="color:var(--ink)">əvəz etmir</b> — mövcud qeydlərlə birləşdirilir.</div>
     </div>
 
