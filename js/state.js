@@ -2,9 +2,7 @@
 /* Bump when PROGRAM's day->exercise mapping changes. applyLoaded() uses it to
    retire an in-progress session whose exercise keys no longer match its day. */
 const PROGRAM_VERSION = 4;
-/* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
-   sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v45";
+/* APP_VERSION — js/version.js */
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
