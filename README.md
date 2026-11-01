@@ -8,7 +8,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 
 ## Nə var
 
-- **107 hərəkətlik kitabxana** — hər birinin iki kadrlı (başlanğıc/bitiş) **real zal fotosu**, texnika ipuçları və ümumi səhvləri
+- **127 hərəkətlik kitabxana** — hər birinin iki kadrlı (başlanğıc/bitiş) **real zal fotosu**, texnika ipuçları və ümumi səhvləri
 - **Plan redaktoru** — istənilən günə hərəkət əlavə et, sil, yerini dəyiş, dövr/təkrar/istirahəti qur, öz hərəkətini yarat (şəkli və işlədiyi əzələlərlə)
 - **Biseps seçimləri elmə görə** — çiyin arxada (Incline, Bayesian) qolun yuxarı hissəsini, çiyin öndə (Preacher, Spider) dirsəyə yaxın hissəni daha çox böyüdür (Kassiano 2025, n=63, 8 həftə). Kitabxanada hər iki mövqedən variantlar var, ⇄ siyahısı bu sıra ilə düzülüb
 - **Sıra tövsiyəsi** — Plan bölməsində hər gün üçün “ağırdan yüngülə” ideal sıra yazılır (1. Bench Press · 2. Chest Dips …) və bir toxunuşla tətbiq olunur; izolyasiya ağır hərəkətin qabağına düşübsə ayrıca xəbərdarlıq çıxır
@@ -21,6 +21,8 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Şəkil kimi paylaş** — məşq xülasəsi 1080×1350 PNG kimi cihazda çəkilir (müddət, tonaj, rekordlar, hərəkətlər); telefonda sistemin paylaş pəncərəsi, olmasa yükləmə. Xülasədən və Tarixçədən
 - **Qaldığın yerdən davam** — tətbiqə qayıdanda (arxa plandan, kilid ekranından, telefon səhifəni yaddaşdan silsə belə) bölmə və mövqe bərpa olunur, səhifə yuxarı atılmır. Aktiv məşqdə bütün dövrləri ✓ olan hərəkət bir sətirə yığılır (“✓ 1. Bench Press · 40×8, 40×8, 40×7”, toxunanda açılır) və ekran ilk bitməmiş hərəkətdən başlayır
 - **Yığcam məşq ekranı** — hər hərəkət kartının başında bir sətir: “↑ Bu gün 22.5 kq × 5 · son 20×8, 20×8, 20×7”. Tam izah, disk bölgüsü və qızışma dövrləri həmin sətirə toxunanda açılır. Məşq gedərkən gün seçimi və qaydalar gizlənir, istirahət bir sətirdir (“Növbəti dövr 10:18:30 · 2:41”). Telefonda bir ekrana təxminən iki hərəkət sığır (əvvəl bir)
+- **Yeni hərəkətlər (v51)** — Incline Barbell Bench, Cable Lateral Raise, Face Pull, Reverse Pec Deck, One-Arm DB Row, Chest-Supported Row, Machine Row, Single-Arm Cable Row, Straight-Arm Pulldown, Close-Grip Bench, Bulgarian Split Squat, Hip Thrust, Glute-Ham Raise, Nordic Curl, Cable Kickback, Hip Abduction, Hanging Leg Raise, Ab Wheel, Wrist Curl, Cable Shrug. Deadlift ailəsi istəyinlə silinib və geri qaytarılmayıb — arxa bud üçün GHR və Nordic gəlib
+- **Proqressiya v2** — 1TM real yükdən (ştanqda dəmir + iki tərəf: 40 kq/tərəf × 8 = 100 × 8 → ~127 kq); çəki artımı yalnız eyni çəkidəki bütün dövrlər tavana ≤2 təkrar qalanda (60×12, 60×7, 60×6 artıq “artır” demir); addım yükü ≥15% artırırsa (10 kq hantelə +2.5) əvvəlcə təkrar artır; artımdan sonrakı hədəf təkrar yeni yükdə real mümkün olan say; 3+ həftə fasilədən sonra real yükün ~90% (6+ həftə: ~85%) ilə qayıdış; müqayisədə yalnız son 16 həftə; diapazonun altında 2+ ehtiyatla dayanmaq “ağırdır” sayılmır; yüngülləşdirmə 10% real yükdən və diskə görə yuvarlaqlaşdırılır; trend həddi nisbi (0.4%/həftə); proqnoz 1TM üzrə
 - **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
 - **Video** — hər hərəkət üçün YouTube axtarışı, istəsən öz videonu təyin edirsən
 - **Məşq zamanı əlavə** — məşq başlayandan sonra “＋ Bu məşqə hərəkət əlavə et” ilə kitabxanadan istənilən hərəkəti əlavə edirsən (plana yazılmır, yalnız bu məşqin qeydinə düşür, ✕ ilə çıxarılır). Hər kartda “＋ Dövr əlavə et” planlanandan artıq dövrü qeyd etməyə imkan verir

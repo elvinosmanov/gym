@@ -156,6 +156,7 @@ function dueIncreases(day){
     const top = H.length ? H[0].top.kg : 0;
     if(pl.action === "up" && pl.kg > top) out.push({t:`${esc(ex.name)}: ${top} → <b>${pl.kg} ${unitOf(ex)}</b>`, c:"up", i:"↑"});
     else if(pl.action === "deload") out.push({t:`${esc(ex.name)}: üç məşqdir yerində sayır — <b>${pl.kg} ${unitOf(ex)}</b>-a en`, c:"", i:"↓"});
+    else if(pl.action === "back") out.push({t:`${esc(ex.name)}: fasilədən sonra <b>${pl.kg} ${unitOf(ex)}</b> ilə qayıt`, c:"", i:"↓"});
     else if(pl.action === "push") out.push({t:`${esc(ex.name)}: <b>${pl.kg} ${unitOf(ex)}</b> saxla, son dövrü 0-1 ehtiyatla bitir`, c:"", i:"!"});
     else if(pl.action === "down") out.push({t:`${esc(ex.name)}: çəki ağır gəlib — <b>${pl.kg} ${unitOf(ex)}</b>-a qayıt`, c:"", i:"↓"});
   });
@@ -182,7 +183,7 @@ function briefItems(day){
 /* ================= TODAY ================= */
 /* “Bugün” kartındakı qısa siyahı: nə edəcəyəm və hansı çəki ilə — bir baxışda.
    Çəkilər proqressiya alqoritmindən gəlir, yəni məşqi açanda görəcəyinin eynisidir. */
-const PEEK_MARK = { up:"↑", down:"↓", deload:"↓", reps:"→", hold:"→", push:"→", first:"•", ref:"≈" };
+const PEEK_MARK = { up:"↑", down:"↓", deload:"↓", reps:"→", hold:"→", push:"→", back:"↓", first:"•", ref:"≈" };
 function planPeek(D){
   const list = PROGRAM[D] ? PROGRAM[D].ex : [];
   if(!list.length) return "";

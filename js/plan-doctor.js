@@ -69,7 +69,7 @@ function volumePlan(){
    Hack Squat və Leg Press cəmi iki əzələ daşıyır, halbuki hər ikisi ağır çoxoynaqlı
    hərəkətdir. Ona görə əvvəlcə hərəkətin adındakı model oxunur (press/row/squat/dip…),
    izolyasiya sözləri (curl/raise/extension/fly…) isə onu ləğv edir. */
-const ISO_RX  = /(curl|extension|fly|flye|raise|shrug|kick|push-?down|crunch|pull-?apart|face pull|lateral|rear delt|abduction|adduction|plank|bike|sit-?up|pull-?over|skull|sissy|pec deck)/i;
+const ISO_RX  = /(curl|extension|fly|flye|raise|shrug|kick|push-?down|crunch|pull-?apart|face pull|lateral|rear delt|abduction|adduction|plank|bike|sit-?up|pull-?over|skull|sissy|pec deck|straight-arm|rollout)/i;
 const COMP_RX = /(press|row|pull-?down|pull-?up|chin-?up|dip|squat|lunge|thrust|deadlift|step-?up|push-?up|good morning|split)/i;
 function isComp(e){
   if(!e) return false;

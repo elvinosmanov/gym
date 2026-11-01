@@ -86,11 +86,11 @@ function renderProg(){
       </div>
       ${r.t ? `<div class="lmeta">${r.last.bw
           ? `Ən yaxşı dövr <b class="num">${Math.round(r.t.e1)}</b> təkrar · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} təkrar${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""}`
-          : `Təxmini 1TM <b class="num">${Math.round(r.t.e1)}</b> ${r.u} · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} ${r.u}${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""} · həftədə <b>${r.t.perWeek>=0?"+":""}${Math.round(r.t.perWeek*10)/10}</b>`}</div>` : ""}
+          : `Təxmini 1TM <b class="num">${Math.round(r.t.e1)}</b> kq${SIDE_LOADS.includes((histEx(r.k)||{}).load) ? " (cəmi)" : ""} · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} kq${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""} · həftədə <b>${r.t.perWeek>=0?"+":""}${Math.round(r.t.perWeek*10)/10}</b>`}</div>` : ""}
       <div class="lnext ${r.pl.cls}">Növbəti: <b>${r.pl.kg==null?"iş çəkisini seç":(r.last.bw && !(r.pl.kg>0) ? `${r.pl.reps} təkrar` : `${r.pl.kg} ${r.u}${dasTxt(r.k, r.pl.kg)} × ${r.pl.reps}`)}</b>${
-        r.pl.action==="up"?" — çəki artır":r.pl.action==="deload"?" — yüngülləşdir":r.pl.action==="down"?" — geri qayıt":r.pl.action==="reps"?" — təkrar artır":r.pl.action==="push"?" — daha çox səy":""}</div>
+        r.pl.action==="up"?" — çəki artır":r.pl.action==="deload"?" — yüngülləşdir":r.pl.action==="down"?" — geri qayıt":r.pl.action==="reps"?" — təkrar artır":r.pl.action==="push"?" — daha çox səy":r.pl.action==="back"?" — fasilədən sonra":""}</div>
       ${!r.last.bw && r.last.top.raw ? `<div class="small" style="margin-top:6px">${offStepNote(r.k, r.last.top.raw)}</div>` : ""}
-      ${r.pj ? `<div class="lproj">Bu tempi saxlasan <b>${r.pj.target} ${r.pj.unit}</b>-a təxminən <b>${r.pj.weeks} həftəyə</b> çatırsan.</div>` : ""}
+      ${r.pj ? `<div class="lproj">Bu tempi saxlasan təxmini 1TM <b>${r.pj.target} kq</b>-a təxminən <b>${r.pj.weeks} həftəyə</b> çatır.</div>` : ""}
     </div>`;
   }).join("") : `<div class="empty">İki məşq qeyd et — analiz burada özü qurulacaq.</div>`;
 

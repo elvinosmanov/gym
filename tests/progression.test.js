@@ -5,13 +5,16 @@ const assert = require("node:assert/strict");
 const { loadApp } = require("./harness.js");
 
 const { T, reset, plain } = loadApp();
+const isoDaysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 let day = 0;
 /* sessions oldest → newest; each entry is an array of [kg, reps] for `key` */
 function history(key, list, extra = {}){
   day = 0;
-  const sessions = list.map(sets => {
+  /* tarixçə bu günə qədər gəlir (sonuncu 2 gün əvvəl, 3 gündən bir) — əks halda
+     “fasilədən qayıdış” qaydası köhnə tarixləri uzun fasilə kimi görür */
+  const sessions = list.map((sets, n) => {
     day++;
-    const d = `2026-01-${String(day).padStart(2, "0")}`;
+    const d = isoDaysAgo(2 + (list.length - 1 - n) * 3);
     return { id: d + "|P", d, day: "P", conv: 2, ...extra,
       ex: [{ key, name: key, sets: sets.map(([kg, reps]) => ({ kg, reps })) }] };
   });
@@ -64,7 +67,7 @@ test.describe("normKg / normSets (CONV)", () => {
 test.describe("lastPerf", () => {
   test("skips sessions whose only sets are 0 kg on a loaded lift", () => {
     history("bp", [[[60, 8]], [[0, 8], [0, 8]]]);
-    assert.deepEqual(plain(T.lastPerf("bp")), { d: "2026-01-01", sets: [{ kg: 60, reps: 8 }] });
+    assert.deepEqual(plain(T.lastPerf("bp")), { d: T.state.sessions[0].d, sets: [{ kg: 60, reps: 8 }] });
   });
   test("drops 0 kg and 0 rep sets inside a session", () => {
     history("bp", [[[0, 8], [62.5, 6], [60, 0]]]);
@@ -96,9 +99,10 @@ test.describe("progressPlanCore (bp: bar, 5-8 reps, +2.5)", () => {
     assert.equal(plan("bp").action, "first");
     assert.equal(plan("bp").kg, null);
   });
-  test("all sets at the top of the range → add weight, back to rMin", () => {
+  test("all sets at the top of the range → add weight; target = reps possible at the new load", () => {
     history("bp", [[[60, 8], [60, 8], [60, 8]]]);
-    assert.deepEqual([plan("bp").action, plan("bp").kg, plan("bp").reps], ["up", 62.5, 5]);
+    /* 140 kq × 8 (60/tərəf + 20 dəmir) → 145 kq: Epley ilə ~6.7 təkrar → 6 */
+    assert.deepEqual([plan("bp").action, plan("bp").kg, plan("bp").reps], ["up", 62.5, 6]);
   });
   test("strongest set past the top even if later sets were lighter → add weight", () => {
     history("bp", [[[60, 8], [55, 6], [55, 6]]]);
@@ -126,7 +130,8 @@ test.describe("progressPlanCore (bp: bar, 5-8 reps, +2.5)", () => {
     history("bp", [[[60, 7]], [[60, 7]], [[60, 6]], [[60, 5]], [[60, 6]]]);
     const p = plan("bp");
     assert.equal(p.action, "deload");
-    assert.equal(p.kg, 54);
+    /* 10% REAL yükdən: 140 → 126 kq → 53/tərəf → diskə görə 52.5 */
+    assert.equal(p.kg, 52.5);
     assert.equal(p.reps, 8);
   });
   test("fewer than 5 sessions never deloads", () => {

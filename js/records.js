@@ -19,7 +19,7 @@ function liftStats(key, sets){
   const loaded = sets.filter(s => s.kg > 0);
   const st = { e1:0, kg:0, kgReps:0, bwReps:0, top:null };
   loaded.forEach(s=>{
-    const e = e1rm(s.kg, s.reps);
+    const e = exE1(key, s.kg, s.reps);   /* real yük: ştanqda dəmir + iki tərəf */
     if(e > st.e1){ st.e1 = e; st.top = s; }
     if(s.kg > st.kg || (s.kg === st.kg && s.reps > st.kgReps)){ st.kg = s.kg; st.kgReps = s.reps; }
   });
@@ -65,7 +65,7 @@ function prOf(key, st, prior){
 function prText(p, u){
   u = u || "kq";
   if(p.kind === "kg") return `ən ağır çəki: <b>${p.val} ${u} × ${p.reps}</b> <span class="mut">(əvvəl ${p.prev})</span>`;
-  if(p.kind === "e1") return `<b>${p.kg} ${u} × ${p.reps}</b> — təxmini 1TM <b>${p.val}</b> <span class="mut">(əvvəl ${p.prev})</span>`;
+  if(p.kind === "e1") return `<b>${p.kg} ${u} × ${p.reps}</b> — təxmini 1TM <b>${p.val} kq</b> <span class="mut">(əvvəl ${p.prev})</span>`;
   return `bədən çəkisi ilə <b>${p.val} təkrar</b> <span class="mut">(əvvəl ${p.prev})</span>`;
 }
 function prPlain(p, u){ return prText(p, u).replace(/<[^>]+>/g, ""); }

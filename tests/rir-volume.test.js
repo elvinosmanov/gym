@@ -5,10 +5,11 @@ const assert = require("node:assert/strict");
 const { loadApp } = require("./harness.js");
 
 const { T, reset, plain } = loadApp();
+const isoDaysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 /* list: sessions oldest → newest; each = { key: [[kg, reps, rir?], ...] } */
 function history(list){
   T.state.sessions = list.map((ex, n) => {
-    const d = new Date(Date.UTC(2026, 0, 1 + n*3)).toISOString().slice(0, 10);
+    const d = isoDaysAgo(2 + (list.length - 1 - n) * 3);
     return { id: d + "|P|" + n, d, day: "P", conv: 2,
       ex: Object.entries(ex).map(([key, sets]) => ({ key, name: key,
         sets: sets.map(([kg, reps, rir]) => rir == null ? { kg, reps } : { kg, reps, rir }) })) };
