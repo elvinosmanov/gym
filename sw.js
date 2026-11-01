@@ -32,6 +32,7 @@ const SHELL = [
   "./js/sync.js",
   "./js/utils.js",
   "./js/progression.js",
+  "./js/records.js",
   "./js/today.js",
   "./js/settings.js",
   "./js/train.js",

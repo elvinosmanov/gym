@@ -391,6 +391,23 @@ select.lift{width:100%;background:var(--card2);border:1px solid var(--line);bord
 .prrow .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prrow .pv{color:var(--c);font-weight:600}
 .prrow .pd{color:var(--dim);font-size:11.5px}
+.prrow .prk{display:block;color:var(--dim);font-size:11px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+/* məşq xülasəsi (js/records.js) */
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 4px}
+.sumgrid>div{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.sumgrid .lbl{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.sumgrid b{font-family:var(--disp);font-size:22px;font-weight:600;color:var(--ink)}
+.sumgrid small{font-size:11.5px}
+.sumgrid .up{color:var(--green);font-weight:600}
+.sumgrid .down{color:var(--red);font-weight:600}
+.mut{color:var(--mut)}
+.sumsec{margin-top:12px}
+.sumh{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--c);margin-bottom:4px}
+.sumpr{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.sumpr:last-child{border-bottom:0}
+.sumpr b{color:var(--ink)}
+.sumpr span b{color:var(--c)}
+.check.done.pr{background:var(--c);border-color:var(--c);color:#1a1405}
 details.hist{border-bottom:1px solid var(--line);padding:4px 0}
 details.hist:last-child{border-bottom:0}
 details.hist summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13.5px}

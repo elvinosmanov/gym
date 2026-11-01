@@ -232,7 +232,7 @@ function renderTrain(){
             <input id="in-${ex.key}-${si}-reps" type="text" inputmode="numeric" placeholder="${esc(prep)}" value="${esc(s.reps)}" class="${s.auto?"gh":""}"${onInput("setVal",ex.key,si,"reps")} aria-label="Dövr ${si+1}: təkrar">
             <button type="button"${act("stepVal",ex.key,si,"reps",1)} aria-label="Dövr ${si+1}: təkrarı artır">+</button>
           </div>
-          <button type="button" id="ck-${ex.key}-${si}" class="check ${s.done?"done":""}"${act("toggleDone",ex.key,si)} aria-pressed="${!!s.done}" aria-label="Dövr ${si+1}: bitdi">✓</button>
+          <button type="button" id="ck-${ex.key}-${si}" class="check ${s.done?"done":""} ${s.done&&s.pr?"pr":""}"${act("toggleDone",ex.key,si)} aria-pressed="${!!s.done}" aria-label="Dövr ${si+1}: bitdi">✓</button>
         </div>`;
       }).join("");
       const h = hintFor(eff,p);
@@ -480,6 +480,13 @@ function toggleDone(key,i){
     /* sonuncu dövrdən sonra istirahət yoxdur — növbəti hərəkətə keçilir */
     if(i < state.active.ex[key].length - 1) startTimer(EXMAP[key].rest, effEx(key).name);
     else toast("Hərəkət bitdi — növbəti hərəkətə keç");
+    /* rekord: dərhal deyirik — zalda motivasiya elə o an lazımdır */
+    const pr = livePR(key, i);
+    if(pr){
+      s.pr = true;
+      toast(`🏆 Rekord · ${pr.name}: ${prPlain(pr, pr.u)}`);
+      try{ navigator.vibrate && navigator.vibrate([40, 60, 40]); }catch(e){}
+    } else delete s.pr;
   } else if(state.active.rest && state.active.rest.label === effEx(key).name){
     /* ✓ geri götürüləndə köhnə istirahət sayğacı arxa fonda işləməyə davam edirdi:
        “növbəti dövr” xətti yoxa çıxırdı, amma üzük köhnə vaxta doğru saymağa davam
@@ -493,7 +500,8 @@ function toggleDone(key,i){
   const btn = document.getElementById(`ck-${key}-${i}`);
   const rl = document.getElementById(`rl-${key}`);
   if(rl) rl.innerHTML = restLineHTML(key);
-  if(btn){ btn.classList.toggle("done", s.done); btn.setAttribute("aria-pressed", String(!!s.done)); }
+  if(!s.done) delete s.pr;
+  if(btn){ btn.classList.toggle("done", s.done); btn.classList.toggle("pr", !!(s.done && s.pr)); btn.setAttribute("aria-pressed", String(!!s.done)); }
   else renderTrain();
 }
 /* qeyd qurma ayrıca: həm “Bitir” düyməsi, həm avtomatik bağlama eyni məntiqi işlədir */
@@ -584,7 +592,8 @@ function autoFinishStale(){
   if(n){
     state.sessions.push(rec); endActive(); save(); cloudPush(true);
     migrationNote = `“Bitir” basılmamışdı — <b>${esc(dayMeta(rec.day).name)}</b> məşqi avtomatik yadda saxlanıldı: `
-      + `${n} dövr · ${hms(rec.sec)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`;
+      + `${n} dövr · ${hms(rec.sec)}. Vaxt sonuncu qeyd edilmiş dövrə qədər hesablanıb, açıq qaldığı saatlar sayılmayıb.`
+      + (()=>{ const R = sessionReport(rec); return R.prs.length ? ` 🏆 ${R.prs.length} rekord: ${R.prs.map(p=>esc(p.name)).join(", ")}.` : ""; })();
   } else {
     endActive(); save(); cloudPush(true);
     migrationNote = "Yarımçıq qalmış məşq bağlandı — heç bir dövr qeyd edilmədiyi üçün tarixçəyə yazılmadı.";
@@ -593,9 +602,10 @@ function autoFinishStale(){
 function saveSession(rec){
   state.sessions.push(rec); endActive(); timerSkip(); save(); cloudPush(true);
   const nxt = DAYS[(DAYS.indexOf(rec.day)+1) % DAYS.length];
-  toast(`${dayMeta(rec.day).name} · ${hms(rec.sec)} · növbəti: ${DAY_META[nxt].name}`);
   viewDay = nxt;
   switchTab("today");
+  /* xülasə vərəqi; təməl məşqində (müqayisə yoxdur) köhnə qısa toast qalır */
+  if(!showSummary(rec)) toast(`${dayMeta(rec.day).name} · ${hms(rec.sec)} · növbəti: ${DAY_META[nxt].name}`);
 }
 function cancelSession(){ ask("Məşq ləğv edilsin?", "Bu məşqdə qeyd etdiyiniz dövrlər itiriləcək. Tarixçəyə heç nə yazılmayacaq.", "Bəli, ləğv et", ()=>{ endActive(); timerSkip(); save(); cloudPush(true); renderTrain(); toast("Məşq ləğv edildi"); }, true); }
 

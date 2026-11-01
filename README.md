@@ -15,6 +15,7 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Plan doktoru** — planı qurduqdan sonra onu oxuyur və konkret təklif verir: çoxoynaqlı hərəkəti izolyasiyanın önünə keçir, bir dövrdə az işlənən əzələyə dövr/hərəkət əlavə et, hədəfdən çox işlənəni azalt, başqa günə uyğun hərəkəti həmin günə köçür, üç məşqdir ilişmiş hərəkəti alternativi ilə əvəz et. Hər təklif bir toxunuşla tətbiq olunur
 - **Əzələ xəritəsi** — real anatomik ön/arxa illüstrasiya üzərində hansı əzələnin nə qədər işlədiyi (əsas dövr tam, köməkçi yarım sayılır), gün və tam dövr üzrə
 - **Məşqə baxış** — “Bugün” kartında növbəti məşqin bütün hərəkətləri bir siyahıda: dövr×təkrar və bu gün qaldırılacaq çəki, yanında ↑ artım / → eyni çəki / ↓ yüngülləşdirmə işarəsi. Zala girməzdən əvvəl 10 saniyəlik oxu
+- **Rekordlar və məşq xülasəsi** — dövrü ✓ edəndə əvvəlki ən yaxşını keçirsə dərhal 🏆 deyilir (düymə sarı olur). “Yadda saxla”dan sonra xülasə açılır: rekordlar, ilk dəfə edilən hərəkətlər, tonaj və eyni günün keçən məşqi ilə fərq (%). Hər hərəkət üçün ən çox bir rekord: ən ağır çəki > təxmini 1TM > bədən çəkisi ilə təkrar. İlk qeyd və təməl məşqi rekord sayılmır
 - **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
 - **Video** — hər hərəkət üçün YouTube axtarışı, istəsən öz videonu təyin edirsən
 - **Məşq zamanı əlavə** — məşq başlayandan sonra “＋ Bu məşqə hərəkət əlavə et” ilə kitabxanadan istənilən hərəkəti əlavə edirsən (plana yazılmır, yalnız bu məşqin qeydinə düşür, ✕ ilə çıxarılır). Hər kartda “＋ Dövr əlavə et” planlanandan artıq dövrü qeyd etməyə imkan verir
@@ -90,6 +91,7 @@ Node 20+ kifayətdir, heç bir asılılıq quraşdırılmır (`npm install` laz�
   - `sync.js` — Supabase: giriş, birləşdirmə (merge), şərtli yazı
   - `utils.js` — köməkçilər: `toast`, bədən çəkisi, təxmini 1TM, məşq günləri və təqvim
   - `progression.js` — proqressiya alqoritmi (1TM, artım addımları, durğunluq)
+  - `records.js` — rekordlar: canlı (dövr ✓), məşq xülasəsi, Analizdəki siyahı
   - `today.js` — “Bugün” səhifəsi: brifinq, məşqə baxış
   - `settings.js` — Ayarlar: günlər, sinxron, ixrac/idxal, tarixçə təmizliyi
   - `train.js` — məşq ekranı: dövrlərin qeydi, aşağı doldurma

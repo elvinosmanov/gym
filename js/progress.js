@@ -111,13 +111,9 @@ function renderProg(){
   const volRows = Object.keys(MUSN).map(m=>({m, v:vol[m]||0})).sort((a,b)=>b.v-a.v);
   const volMax = Math.max(10, ...volRows.map(r=>r.v));
 
-  const prs = []; const best = {};
-  state.sessions.forEach(s=>s.ex.forEach(e=>normSets(e.key, e.sets, s.conv).forEach(st=>{
-    if(!(st.kg>0)) return;
-    const v = e1rm(st.kg, st.reps);
-    if(!best[e.key] || v > best[e.key].v + 0.01){ best[e.key] = {v, kg:st.kg, reps:st.reps, d:s.d, name:e.name}; prs.push({...best[e.key], key:e.key}); }
-  })));
-  const recentPR = prs.slice(-6).reverse();
+  /* rekord = əvvəlki ən yaxşını keçmək (js/records.js). Əvvəl hər hərəkətin İLK
+     qeydi və təməl məşqi də “rekord” sayılırdı, bir məşqdə bir neçə dəfə düşürdü. */
+  const recentPR = recentPRs(8);
 
   const hist = state.sessions.length ? state.sessions.slice().reverse().map((s,ri)=>{
     const i = state.sessions.length-1-ri;
@@ -176,8 +172,8 @@ function renderProg(){
     <div class="sect">Rekordlar</div>
     <div class="card">
       ${recentPR.length ? recentPR.map(p=>`<div class="prrow">
-        <span class="pn">${esc(p.name)}</span><span class="pv num">${p.kg} × ${p.reps}</span><span class="pd">${fmtD(p.d)}</span>
-      </div>`).join("") : `<div class="empty">Hələ rekord yoxdur.</div>`}
+        <span class="pn">${esc(p.name)}<small class="prk">${p.kind==="kg"?"ən ağır çəki":p.kind==="e1"?`1TM ${p.val} (əvvəl ${p.prev})`:`əvvəl ${p.prev} təkrar`}</small></span><span class="pv num">${p.kind==="kg"?`${p.val} × ${p.reps}`:p.kind==="e1"?`${p.kg} × ${p.reps}`:`BÇ × ${p.val}`}</span><span class="pd">${fmtD(p.d)}</span>
+      </div>`).join("") : `<div class="empty">Hələ rekord yoxdur — hərəkəti ikinci dəfə edəndə əvvəlkini keçsən, burada görünəcək.</div>`}
     </div>
 
     <div class="sect">Bədən çəkisi</div>
