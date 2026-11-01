@@ -1,7 +1,8 @@
 {
+  "id": "./",
   "name": "FORGE · Kütlə Protokolu",
   "short_name": "FORGE",
-  "description": "İtələmə · Çəkmə · Ayaq · Tam bədən. İkiqat proqressiya, istirahət taymeri, qidalanma hədəfləri, öz planını qur.",
+  "description": "İtələmə · Çəkmə · Ayaq · Tam bədən rotasiyası. Proqressiya alqoritmi, istirahət taymeri, plan redaktoru və plan doktoru, əzələ xəritəsi. Oflayn işləyir, istəyə bağlı bulud sinxronizasiyası.",
   "lang": "az",
   "dir": "ltr",
   "start_url": "./",
@@ -10,6 +11,11 @@
   "orientation": "portrait",
   "background_color": "#101318",
   "theme_color": "#101318",
+  "categories": [
+    "health",
+    "fitness",
+    "sports"
+  ],
   "icons": [
     {
       "src": "icon-192.png",

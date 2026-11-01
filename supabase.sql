@@ -26,6 +26,20 @@ create policy "own row" on public.forge_data
   using      (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+-- 3b) Ölçü həddi. Publishable açarla hər kəs hesab aça bilər; hədd olmasa bir
+--     hesab bazaya limitsiz JSON yaza bilər. 5 MB bir istifadəçinin illərlə
+--     məşq tarixçəsi üçün kifayətdir. (Lazım deyilsə: Authentication → Sign In / Providers →
+--     "Allow new users to sign up" söndürün.)
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'forge_data_size') then
+    alter table public.forge_data add constraint forge_data_size check (pg_column_size(data) < 5000000);
+  end if;
+end $$;
+
+-- 3c) Tətbiq "updated_at hələ eynidirsə yaz" şərti ilə yeniləyir (iki cihaz eyni
+--     anda yazanda biri digərinin qeydini silməsin). Bunun üçün əlavə quraşdırma
+--     lazım deyil — sadəcə updated_at-i dəyişən trigger əlavə ETMƏYİN.
+
 -- 4) Yoxlama — RLS aktivdirmi?
 --    rowsecurity sütunu true qaytarmalıdır.
 select relname, relrowsecurity as rls_enabled

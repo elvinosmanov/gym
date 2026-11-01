@@ -1,6 +1,6 @@
 # FORGE
 
-Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq tətbiqi. Tək HTML faylı — build yoxdur, oflayn işləyir (PWA).
+Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq tətbiqi. Adi HTML/CSS/JS faylları — build addımı və asılılıq yoxdur, oflayn işləyir (PWA).
 
 ## Proqram
 
@@ -40,6 +40,10 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Tarixçə təmizliyi** — gələcək tarixli, sınaq id-li və ya bütün dövrləri eyni olan qeydləri tapıb siyahı ilə göstərir, işarələyib birdəfəyə silirsən (Ayarlar)
 - **Vergüllü onluq** — iPhone klaviaturası onluq ayırıcı kimi vergül verir; `type="number"` xanası belə dəyəri etibarsız sayıb boş qaytarırdı və çəki qeyd olunmurdu. Bütün rəqəm xanaları `inputmode` ilə mətn xanasıdır (klaviatura eynidir), oxunuş `numVal()`-dən keçir: “78,5” = “78.5”
 - **Yaddaş**: localStorage + istəyə bağlı Supabase bulud sinxronizasiyası. Bulud heç vaxt kor-koranə üzərinə yazılmır — hər yazıdan əvvəl oxunub birləşdirilir, ona görə köhnə nüsxəli cihaz başqa cihazın qeydlərini silə bilmir. Hər məşqin sabit id-si var. + .json ixrac/idxal
+- **Sinxronizasiyanın təfərrüatı**
+  - Öz hərəkətlərin və təyin etdiyin videolar açar-açar, qida əlavələri (kreatin/protein işarəsi) gün-gün vaxt damğası ilə birləşdirilir — silmək və işarəni götürmək də sinxron olur, köhnə cihaz onları geri qaytarmır
+  - Bulud yazısı şərtlidir: yalnız `updated_at` oxuduğumuz andakı ilə eynidirsə yazılır. İki cihaz eyni anda yazanda biri digərinin qeydini üzərindən silə bilmir — ikinci cihaz yenidən oxuyub birləşdirir
+  - Buluddan gələn məlumat yoxlanılır (sanitize) və cari formata köçürülür (migrate) — zədəli və ya köhnə nüsxə tətbiqi sındırmır
 
 Bütün təsdiq pəncərələri tətbiqin özündədir — brauzerin `confirm()`/`alert()` pəncərələri PWA və daxili brauzerlərdə bloklana bildiyi üçün istifadə olunmur.
 
@@ -57,15 +61,55 @@ Bütün yollar nisbidir, ona görə alt qovluqda da (`elvinosmanov.github.io/gym
 
 ⚠️ **Supabase işlədirsinizsə, koddan əvvəl `supabase.sql` faylını Supabase Dashboard → SQL Editor-də icra edin.** RLS aktiv deyilsə, publishable açarla istənilən adam bütün qeydləri oxuya və silə bilər. Tətbiqin özündə RLS yoxlaması var — problem varsa Bugün səhifəsində xəbərdarlıq göstərir.
 
-⚠️ **Yeni versiya atanda `sw.js` içindəki `CACHE_VERSION` dəyərini artırın** (`forge-v24` → `forge-v40`), yoxsa istifadəçilərdə köhnə nüsxə qalır.
+⚠️ **Yeni versiya atanda YALNIZ `js/version.js` içindəki `APP_VERSION` dəyərini artırın** (məs. `forge-v45` → `forge-v46`). `sw.js` onu `importScripts` ilə oxuyur və keş adı kimi işlədir, Ayarlar da onu göstərir.
 
-`supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin.
+⚠️ **Yeni JS/CSS faylı əlavə edəndə onu `sw.js` içindəki `SHELL` siyahısına da yazın**, yoxsa oflayn rejimdə yüklənməz. `npm run check` bunu yoxlayır.
+
+Yeniləmə necə çatır: tətbiq kodu (HTML/JS/CSS) şəbəkədən gəlir, keş yalnız şəbəkə olmayanda işə düşür — yeni HTML köhnə JS ilə qarışmır. Yeni service worker arxa planda quraşdırılır və gözləyir; ekranda “Yeni versiya hazırdır” zolağı çıxır, “Yenilə” basanda səhifə bir dəfə yenilənir. Məşq gedərkən düymə göstərilmir — kod məşqin ortasında dəyişmir. Hərəkət fotoları və şriftlər ayrıca `forge-img` keşində saxlanılır (ən çox 400 fayl), versiya dəyişəndə silinmir.
+
+`supabase.sql` yerləşdirmə üçün deyil — onu Supabase SQL Editor-də icra edin. O, RLS-dən əlavə bir istifadəçinin sətrinə **5 MB ölçü həddi** qoyur (publishable açarla hər kəs hesab aça bildiyi üçün). Kənar adamların qeydiyyatdan keçməsini istəmirsinizsə: Supabase Dashboard → Authentication → Sign In / Providers → “Allow new users to sign up” söndürün.
+
+## Testlər
+
+```bash
+npm test         # vahid testlər
+npm run check    # sintaksis + SHELL siyahısı sw.js-də tamdırmı
+```
+
+Node 20+ kifayətdir, heç bir asılılıq quraşdırılmır (`npm install` lazım deyil). CI (GitHub Actions) hər push-da hər ikisini işlədir.
+
+## Layihə quruluşu
+
+- `index.html` — yalnız markap (bölmələr, pəncərələr, tab paneli)
+- `css/app.css` — bütün üslublar
+- `js/` — klassik skriptlər (modul deyil), bu sıra ilə yüklənir və ümumi qlobalları paylaşır:
+  - `version.js` — `APP_VERSION`, tək versiya mənbəyi (sw.js da oxuyur)
+  - `images.js` — hərəkət fotolarının URL-ləri (free-exercise-db, sabit commit)
+  - `library.js` — hərəkət kitabxanası: texnika, səhvlər, əzələlər, alternativlər
+  - `state.js` — vəziyyət: `state`, `migrate` (köhnə formatların köçürülməsi), `sanitize` (gələn məlumatın yoxlanması), localStorage yaddaşı
+  - `sync.js` — Supabase: giriş, birləşdirmə (merge), şərtli yazı
+  - `utils.js` — köməkçilər: `toast`, bədən çəkisi, təxmini 1TM, məşq günləri və təqvim
+  - `progression.js` — proqressiya alqoritmi (1TM, artım addımları, durğunluq)
+  - `today.js` — “Bugün” səhifəsi: brifinq, məşqə baxış
+  - `settings.js` — Ayarlar: günlər, sinxron, ixrac/idxal, tarixçə təmizliyi
+  - `train.js` — məşq ekranı: dövrlərin qeydi, aşağı doldurma
+  - `timer.js` — istirahət və qızışma taymeri
+  - `progress.js` — Analiz: qrafiklər, trend, proqnoz, tarixçə; əzələ xəritəsi (həcm hesabı + anatomik fiqur)
+  - `plan-doctor.js` — plan doktoru və sıra tövsiyəsi
+  - `plan.js` — plan redaktoru, kitabxana seçimi, öz hərəkətini yaratmaq
+  - `actions.js` — hadisə dispetçeri: markapda `onclick` yoxdur, düymələr `data-act`/`data-args` daşıyır və bir dinləyici funksiyanı icazəli siyahıdan seçir
+  - `boot.js` — başlanğıc: yaddaşı yükləyir, service worker-i qeydiyyatdan keçirir
+  - `update.js` — “Yeni versiya hazırdır” zolağı (məşq bitəndən sonra yeniləmə)
+- `vendor/supabase-js-2.117.3.js` — Supabase kitabxanası, versiyası sabitlənib və repoda saxlanılır (CDN yoxdur)
+- `sw.js` — service worker (oflayn keş, yeniləmə), `manifest.json` — PWA manifesti
+- `supabase.sql` — bulud cədvəli + RLS + ölçü həddi
+- `tests/` — Node testləri (`npm test`)
 
 ## Şəkillər
 
 Əzələ xəritəsinin anatomik fiqurları: [Termininja](https://commons.wikimedia.org/wiki/User:Termininja) / Wikimedia Commons — [Muscular system.svg](https://commons.wikimedia.org/wiki/File:Muscular_system.svg) və [Muscular system-back.svg](https://commons.wikimedia.org/wiki/File:Muscular_system-back.svg), **CC BY-SA 3.0**. Repoda `body-front.png` və `body-back.png` kimi saxlanılır (oflayn işləsin deyə).
 
-Hərəkət fotoları [free-exercise-db](https://github.com/yuhonas/free-exercise-db) layihəsindəndir (Unlicense — ictimai mülkiyyət). Hər hərəkətin iki kadrı var: başlanğıc və bitiş vəziyyəti. jsDelivr CDN-dən verilir, repoda saxlanılmır.
+Hərəkət fotoları [free-exercise-db](https://github.com/yuhonas/free-exercise-db) layihəsindəndir (Unlicense — ictimai mülkiyyət). Hər hərəkətin iki kadrı var: başlanğıc və bitiş vəziyyəti. jsDelivr CDN-dən verilir, repoda saxlanılmır. URL-lər free-exercise-db-nin konkret commit-inə sabitlənib (`js/images.js` → `IMGU`), ona görə mənbə repoda dəyişiklik şəkilləri qırmır.
 
 ## Qeyd
 
