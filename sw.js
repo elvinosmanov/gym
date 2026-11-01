@@ -14,7 +14,22 @@ const SHELL = [
   "./icon-maskable-512.png",
   "./body-front.png",
   "./body-back.png",
-  "./vendor/supabase-js-2.117.3.js"
+  "./vendor/supabase-js-2.117.3.js",
+  "./css/app.css",
+  "./js/images.js",
+  "./js/library.js",
+  "./js/state.js",
+  "./js/sync.js",
+  "./js/utils.js",
+  "./js/progression.js",
+  "./js/today.js",
+  "./js/settings.js",
+  "./js/train.js",
+  "./js/timer.js",
+  "./js/progress.js",
+  "./js/plan-doctor.js",
+  "./js/plan.js",
+  "./js/boot.js"
 ];
 
 self.addEventListener("install", e => {
