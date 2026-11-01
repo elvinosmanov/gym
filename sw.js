@@ -1,7 +1,7 @@
 /* FORGE service worker
    Bump CACHE_VERSION on every deploy — activate() deletes all other caches,
    which is what forces clients onto the new HTML instead of a stale shell. */
-const CACHE_VERSION = "forge-v44";
+const CACHE_VERSION = "forge-v45";
 
 /* Precached at install so a cold start with no signal still boots the app. */
 const SHELL = [
@@ -13,7 +13,8 @@ const SHELL = [
   "./icon-512.png",
   "./icon-maskable-512.png",
   "./body-front.png",
-  "./body-back.png"
+  "./body-back.png",
+  "./vendor/supabase-js-2.117.3.js"
 ];
 
 self.addEventListener("install", e => {

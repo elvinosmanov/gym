@@ -552,7 +552,7 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
     <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M4 16.5 9.5 11l3.5 3.5L20 8"/><path d="M16.5 8H20v3.5"/></svg>Proqres</button>
 </nav>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer onerror="this.remove()"></script>
+<script src="vendor/supabase-js-2.117.3.js" defer onerror="this.remove()"></script>
 <script>
 const IMG={
   bp:["Barbell_Bench_Press_-_Medium_Grip/0.jpg","Barbell_Bench_Press_-_Medium_Grip/1.jpg"],
@@ -670,7 +670,7 @@ const IMG={
 /* Şəkillər: free-exercise-db (github.com/yuhonas/free-exercise-db), Unlicense —
    ictimai mülkiyyət. Hər hərəkətin iki real foto kadrı var: 0 = başlanğıc,
    1 = bitiş; kartda növbələşir. jsDelivr CDN-dən verilir, repoda saxlanılmır. */
-const IMGU = "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/";
+const IMGU = "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5/exercises/";
 /* İstifadəçidən (və ya idxal edilmiş yedəkdən / buluddan) gələn link yalnız
    http(s) ola bilər və atribut kontekstinə HƏMİŞƏ esc ilə yazılır — əks halda
    linkin içindəki dırnaq atributdan çıxıb hadisə (onerror və s.) əlavə edə bilər. */
@@ -1037,15 +1037,15 @@ const TIPS = [
 const PROGRAM_VERSION = 4;
 /* Ayarlarda göstərilir — telefonda hansı nüsxənin işlədiyini yoxlamaq üçün.
    sw.js-dəki CACHE_VERSION ilə eyni saxlanılmalıdır. */
-const APP_VERSION = "forge-v44";
+const APP_VERSION = "forge-v45";
 /* profile.w is SEED-ONLY: written during first-run setup, then never read again.
    state.weights[] is the single source of truth for bodyweight — see latestW().
    plan/userEx: the user's own program edits (Plan tab). plan[D] absent = default day. */
-const DEFAULTS = { profile:{name:"Elvin",w:"", days:[1,2,4,6],
+const DEFAULTS = { profile:{name:"",w:"", days:[1,2,4,6],
     /* zal avadanlığı — çəki artımları və disk hesablayıcısı buradan gəlir */
     barKg:20, plate:2.5, dbStep:2.5, stackStep:5, stackUnit:"kg", stackStepLb:10, clockOffset:0},
   weights:[], sessions:[], active:null, supps:[], plan:null, planTs:0, userEx:{}, vid:{},
-  gone:[], goneW:[], pv:PROGRAM_VERSION };
+  gone:[], goneW:[], userExTs:{}, vidTs:{}, pv:PROGRAM_VERSION };
 let state = JSON.parse(JSON.stringify(DEFAULTS));
 let storageOK = true, saveT = null;
 
@@ -1303,7 +1303,48 @@ function chooseEx(slotKey, key){
 
 let migrationNote = "";
 /* Silently upgrade any older forge-data shape. Never drops sessions/weights/supps. */
+/* Açarlar HTML atributlarına və onclick-ə yazılır. Yedək faylı və ya bulud
+   istənilən mətn daşıya bilər — açar yalnız bu formada ola bilər. */
+const SAFE_KEY = /^[A-Za-z0-9_]{1,40}$/;
+const ISO_D = /^\d{4}-\d{2}-\d{2}$/;
+const toNum = v => { const n = Number(v); return isFinite(n) ? n : 0; };
+/* Gələn məlumatın formasını təmizlə: etibarsız açarları at, rəqəmləri rəqəmə çevir.
+   Yerli, idxal və bulud məlumatı eyni yoldan keçir (migrate). */
+function sanitize(s){
+  const obj = o => (o && typeof o === "object" && !Array.isArray(o)) ? o : {};
+  const keyed = o => Object.fromEntries(Object.entries(obj(o)).filter(([k]) => SAFE_KEY.test(k)));
+  s.userEx = keyed(s.userEx);
+  Object.values(s.userEx).forEach(e=>{
+    ["sets","rMin","rMax","rest","inc"].forEach(f=>{ if(f in e) e[f] = toNum(e[f]); });
+    ["pri","sec","cues","mist"].forEach(f=>{ e[f] = Array.isArray(e[f]) ? e[f].map(String) : []; });
+    if(typeof e.name !== "string") e.name = String(e.name ?? "");
+  });
+  s.vid = keyed(s.vid);
+  s.userExTs = keyed(s.userExTs); s.vidTs = keyed(s.vidTs);
+  if(s.profile) s.profile.exStep = keyed(s.profile.exStep);
+  s.weights = (Array.isArray(s.weights) ? s.weights : [])
+    .filter(w => w && ISO_D.test(w.d)).map(w => ({...w, kg: toNum(w.kg), ts: toNum(w.ts)}));
+  s.supps = (Array.isArray(s.supps) ? s.supps : []).filter(x => x && ISO_D.test(x.d));
+  s.sessions = (Array.isArray(s.sessions) ? s.sessions : []).filter(x => x && ISO_D.test(x.d) && SAFE_KEY.test(x.day)).map(x => ({
+    ...x,
+    id: x.id == null ? x.id : String(x.id),
+    ex: (Array.isArray(x.ex) ? x.ex : []).filter(e => e && SAFE_KEY.test(e.key)).map(e => ({
+      ...e, name: String(e.name ?? ""),
+      sets: (Array.isArray(e.sets) ? e.sets : []).map(st => ({...st, kg: toNum(st && st.kg), reps: toNum(st && st.reps)}))
+    }))
+  }));
+  if(s.plan && typeof s.plan === "object") Object.keys(s.plan).forEach(D=>{
+    if(!DAYS.includes(D)) { delete s.plan[D]; return; }
+    if(Array.isArray(s.plan[D])) s.plan[D] = s.plan[D].filter(x => x && SAFE_KEY.test(x.k));
+  });
+  if(s.active && (typeof s.active !== "object" || !s.active.ex || typeof s.active.ex !== "object")) s.active = null;
+  if(s.active && !SAFE_KEY.test(s.active.day)) s.active = null;
+  if(s.active) s.active.ex = keyed(s.active.ex);
+  ["gone","goneW"].forEach(f=>{ s[f] = Array.isArray(s[f]) ? s[f].map(String) : []; });
+  return s;
+}
 function migrate(s, fromPv){
+  sanitize(s);
   /* sex + weekly target: existing users keep the old hardcoded behaviour */
   if(!s.profile.sex) s.profile.sex = "m";
   if(!Array.isArray(s.profile.days) || !s.profile.days.length) s.profile.days = [1,2,4,6];
@@ -1316,8 +1357,8 @@ function migrate(s, fromPv){
     if(+s.profile.dbStep === 2)   s.profile.dbStep = 2.5;
     s.profile.convV = 2;
   }
-  /* istifadəçinin zalı: cable row daşı 6.5, lat pulldown daşı 7.5 kq (bir dəfə) */
-  if(!s.profile.exStep) s.profile.exStep = { row:6.5, lp:7.5 };
+  /* aparatın daş çəkisi hər zalda fərqlidir — standart boşdur, Plan → ⚙-dan yazılır */
+  if(!s.profile.exStep || typeof s.profile.exStep !== "object") s.profile.exStep = {};
   if(!s.vid || typeof s.vid !== "object") s.vid = {};
   /* köhnə qeydlərə determinist id — hər cihaz eyni id-ni hesablayır, dublikat olmur */
   (s.sessions||[]).forEach(x=>{ if(!x.id) x.id = x.d+"|"+x.day; });
@@ -1386,17 +1427,23 @@ function save(){
                                  after save() ships the new timestamp, not the old one */
   if(sbUser) cloudDirty = true;
   clearTimeout(saveT);
-  saveT = setTimeout(async () => {
-    const json = JSON.stringify(state);
-    /* LOCAL ONLY. The cloud is pushed at checkpoints (finishSession, addWeight,
-       delSession, delWeight, sign-in, import) plus a 60 s idle retry — a
-       per-keystroke network write drains the battery on weak gym signal. */
-    try{
-      if(typeof window.storage !== "undefined"){ await window.storage.set("forge-data", json); return; }
-      localStorage.setItem("forge-data", json);
-    }catch(e){ if(storageOK){ storageOK=false; renderSaveNote(); } }
-  }, 350);
+  /* LOCAL ONLY. The cloud is pushed at checkpoints (finishSession, addWeight,
+     delSession, delWeight, sign-in, import) plus a 60 s idle retry — a
+     per-keystroke network write drains the battery on weak gym signal. */
+  saveT = setTimeout(writeLocal, 350);
 }
+async function writeLocal(){
+  saveT = null;
+  const json = JSON.stringify(state);
+  try{
+    if(typeof window.storage !== "undefined"){ await window.storage.set("forge-data", json); return; }
+    localStorage.setItem("forge-data", json);
+  }catch(e){ if(storageOK){ storageOK=false; renderSaveNote(); } }
+}
+/* Gözləyən yerli yazını dərhal et. Tətbiq arxa fona keçəndə iOS səhifəni
+   350 ms-lik gecikmə bitmədən öldürə bilər — son ✓ itirdi. */
+function flushSave(){ if(saveT){ clearTimeout(saveT); writeLocal(); } }
+window.addEventListener("pagehide", flushSave);
 function renderSaveNote(){
   const el = $("#saveNote"); if(!el) return;
   let out = "";
@@ -1416,7 +1463,7 @@ function renderNet(){ renderSaveNote(); }
 const SB_URL = "https://jcavlzmsnwaqbaduhtkj.supabase.co";  // Supabase Project URL
 const SB_KEY = "sb_publishable_Uoe0k2MtlM8gRcFo6T8sWA_jF1KNqpB";  // Supabase publishable (anon) key
 let sb = null, sbUser = null, sbStatus = "", sbWarn = "";
-let pushT = null, cloudDirty = false, pushing = false, lastSync = 0, lastHide = 0;
+let pushT = null, cloudDirty = false, pushing = false, pushAgain = false, lastSync = 0, lastHide = 0;
 function sbReady(){ return !!(SB_URL && SB_KEY && window.supabase); }
 
 /* ---- SİLİNMƏ DAMĞALARI ----
@@ -1425,11 +1472,47 @@ function sbReady(){ return !!(SB_URL && SB_KEY && window.supabase); }
    “sil” düyməsi bulud açıq olanda heç vaxt işləmirdi. İndi silinən açar
    yadda saxlanılır və hər iki tərəfdən süzülür. */
 const sesKey = s => s.id || (s.d+"|"+s.day);
+/* Bulud/idxal məlumatı da yerli kimi miqrasiyadan keçir — köhnə versiyalı
+   cihazın yazdığı format birbaşa birləşdirilməsin. migrationNote yerli qalır. */
+function normalizeRemote(d){
+  if(!d || typeof d !== "object") return null;
+  const keepNote = migrationNote;
+  const out = migrate({...JSON.parse(JSON.stringify(DEFAULTS)), ...d, profile:{...DEFAULTS.profile, ...(d.profile||{})}}, d.pv || 1);
+  migrationNote = keepNote;
+  return out;
+}
 function tomb(field, key){
   if(!key) return;
   const a = state[field] = Array.isArray(state[field]) ? state[field] : [];
   if(!a.includes(key)) a.push(key);
-  if(a.length > 1000) state[field] = a.slice(-1000);
+  if(a.length > TOMB_CAP) state[field] = a.slice(-TOMB_CAP);
+}
+/* Damğa siyahısının həddi. Əvvəl 1000 idi; həddən çıxan ən köhnə damğa itəndə
+   uzun müddət açılmamış cihaz həmin silinmiş qeydi geri gətirə bilirdi. Açarlar
+   qısadır (~30 simvol), 5000 damğa ~150 KB edir. */
+const TOMB_CAP = 5000;
+/* Açar → son dəyişiklik vaxtı (həm yazma, həm silmə). userEx və vid üçün:
+   silinən açar da vaxt damğası saxlayır, ona görə birləşdirmə onu geri gətirmir. */
+function stampKey(field, key){
+  const f = field + "Ts";
+  if(!state[f] || typeof state[f] !== "object") state[f] = {};
+  state[f][key] = Date.now();
+}
+/* Hər açar üçün daha yeni damğalı tərəf qalib gəlir. Qalib tərəfdə açar yoxdursa,
+   deməli orada silinib. Hər iki tərəf damğasızdırsa (köhnə nüsxələr) birləşmə
+   əvvəlki kimidir: preferRemote ilə kimin dəyəri üstündür. */
+function mergeKeyed(lo, ro, lts, rts, preferRemote){
+  lo = lo || {}; ro = ro || {}; lts = lts || {}; rts = rts || {};
+  const out = {}, ts = {};
+  new Set([...Object.keys(lo), ...Object.keys(ro), ...Object.keys(lts), ...Object.keys(rts)]).forEach(k=>{
+    const l = lts[k] || 0, r = rts[k] || 0;
+    let src;
+    if(l || r) src = r > l ? ro : lo;
+    else src = preferRemote ? (k in ro ? ro : lo) : (k in lo ? lo : ro);
+    if(k in src) out[k] = src[k];
+    if(l || r) ts[k] = Math.max(l, r);
+  });
+  return { out, ts };
 }
 /* ---- merge: union by natural key, never destructive ---- */
 function mergeState(local, remote){
@@ -1439,15 +1522,17 @@ function mergeState(local, remote){
   /* sessions keyed on date+day; on collision keep the record with more logged sets */
   const setsOf = r => (r.ex||[]).reduce((a,e)=>a+(e.sets?e.sets.length:0), 0);
   const smap = new Map();
-  const skey = s => s.id || (s.d+"|"+s.day);
-  (local.sessions||[]).forEach(s=>smap.set(skey(s), s));
+  /* İki tərəfdə də vaxt damğası varsa daha yeni qeyd qalib gəlir (düzəliş itmir);
+     damğasız köhnə qeydlərdə əvvəlki qayda: daha çox dövrü olan */
+  const newer = (s, cur) => (s.ts && cur.ts && s.ts !== cur.ts) ? s.ts > cur.ts : setsOf(s) > setsOf(cur);
+  (local.sessions||[]).forEach(s=>smap.set(sesKey(s), s));
   (remote.sessions||[]).forEach(s=>{
-    const k = skey(s), cur = smap.get(k);
-    if(!cur || setsOf(s) > setsOf(cur)) smap.set(k, {...s, note:(s.note || (cur && cur.note) || undefined)});
+    const k = sesKey(s), cur = smap.get(k);
+    if(!cur || newer(s, cur)) smap.set(k, {...s, note:(s.note || (cur && cur.note) || undefined)});
   });
   const goneS = new Set([...(local.gone||[]), ...(remote.gone||[])]);
-  out.gone = [...goneS].slice(-1000);
-  out.sessions = [...smap.values()].filter(x => !goneS.has(skey(x))).sort((a,b)=>a.d<b.d?-1:1);
+  out.gone = [...goneS].slice(-TOMB_CAP);
+  out.sessions = [...smap.values()].filter(x => !goneS.has(sesKey(x))).sort((a,b)=>a.d<b.d?-1:1);
 
   /* weights keyed on date; on collision keep the later ts */
   const wmap = new Map();
@@ -1457,17 +1542,19 @@ function mergeState(local, remote){
     if(!cur || (w.ts||0) > (cur.ts||0)) wmap.set(w.d, w);
   });
   const goneW = new Set([...(local.goneW||[]), ...(remote.goneW||[])]);
-  out.goneW = [...goneW].slice(-1000);
+  out.goneW = [...goneW].slice(-TOMB_CAP);
   /* çəki damğası yalnız qarşı tərəfdəki KÖHNƏ qeydi süzür: eyni günə yeni çəki
      yazılıbsa (ts damğadan sonra) o qalır */
   out.weights = [...wmap.values()].filter(w => !goneW.has(w.d)).sort((a,b)=>a.d<b.d?-1:1);
 
-  /* supps keyed on date; OR the booleans so a tick on either device survives */
+  /* supps keyed on date. Damğalı qeydlərdə daha yeni olan qalib gəlir — beləcə
+     işarəni geri götürmək də sinxronlaşır. Damğasız köhnə qeydlərdə OR. */
   const pmap = new Map();
   (local.supps||[]).forEach(s=>pmap.set(s.d, {...s}));
   (remote.supps||[]).forEach(s=>{
     const cur = pmap.get(s.d);
     if(!cur) pmap.set(s.d, {...s});
+    else if(cur.ts || s.ts){ if((s.ts||0) > (cur.ts||0)) pmap.set(s.d, {...s}); }
     else { cur.creatine = cur.creatine || s.creatine; cur.protein = cur.protein || s.protein; }
   });
   out.supps = [...pmap.values()].sort((a,b)=>a.d<b.d?-1:1);
@@ -1485,14 +1572,13 @@ function mergeState(local, remote){
   out.planTs = Math.max(lpt, rpt) || undefined;
 
   /* profile: last-write-wins on ts is acceptable */
-  if((remote.ts||0) > (local.ts||0)){
-    out.profile = {...local.profile, ...(remote.profile||{})};
-    out.userEx = {...(local.userEx||{}), ...(remote.userEx||{})};
-    out.vid = {...(local.vid||{}), ...(remote.vid||{})};
-  } else {
-    out.userEx = {...(remote.userEx||{}), ...(local.userEx||{})};
-    out.vid = {...(remote.vid||{}), ...(local.vid||{})};
-  }
+  const remoteNewer = (remote.ts||0) > (local.ts||0);
+  if(remoteNewer) out.profile = {...local.profile, ...(remote.profile||{})};
+  /* öz hərəkətləri və videolar açar-açar, öz damğaları ilə — silinən geri qayıtmır */
+  ["userEx","vid"].forEach(f=>{
+    const m = mergeKeyed(local[f], remote[f], local[f+"Ts"], remote[f+"Ts"], remoteNewer);
+    out[f] = m.out; out[f+"Ts"] = m.ts;
+  });
   /* Bu cihazdakı yarımçıq məşq HƏR ZAMAN qorunur — sinxronizasiya onu silməməlidir.
      Qarşı tərəfdəki isə yalnız HƏQİQƏTƏN davam edirsə götürülür.
      Əvvəl sadəcə “local.active || remote.active” idi və bu, aşağıdakı səhvi verirdi:
@@ -1532,7 +1618,7 @@ async function cloudSync(){
       toast("Bulud oxunmadı: " + (error.message||"naməlum xəta"));
       return;
     }
-    const remote = data && data.data ? data.data : null;
+    const remote = data && data.data ? normalizeRemote(data.data) : null;
     if(remote){
       const before = JSON.stringify(state);
       state = mergeState(state, remote);
@@ -1555,31 +1641,48 @@ function cloudPush(immediate){
   return doPush();
 }
 async function doPush(){
-  if(!sb || !sbUser || pushing) return;
-  pushing = true;
+  if(!sb || !sbUser) return;
+  /* Yazı gedərkən gələn yeni yazı itmir: bitəndən sonra bir dəfə də göndərilir. */
+  if(pushing){ pushAgain = true; return; }
+  pushing = true; pushAgain = false;
   try{
     /* ƏN VACİB QAYDA: bulud sətri KOR-KORANƏ üzərinə yazılmır.
-       Köhnə kod birbaşa upsert edirdi — yəni telefonda bir neçə gün açılmamış
-       nüsxə açılan kimi buluda yazılsa, başqa cihazda qeyd edilmiş məşqlər
-       silinirdi. İndi əvvəlcə bulud oxunur, yerli ilə birləşdirilir, sonra
-       nəticə yazılır. Beləliklə heç bir tərəfin qeydi itmir. */
-    try{
-      const cur = await sb.from("forge_data").select("data").eq("user_id", sbUser.id).maybeSingle();
-      if(!cur.error && cur.data && cur.data.data){
+       Əvvəlcə bulud oxunur, yerli ilə birləşdirilir, sonra nəticə yazılır.
+       Yazı “oxuduğum updated_at hələ də eynidirsə” şərti ilədir — iki cihaz eyni
+       anda yazanda biri digərinin qeydini silə bilməz: şərt tutmasa, yenidən
+       oxuyub birləşdiririk (ən çox 3 dəfə). */
+    let ok = false;
+    for(let attempt = 0; attempt < 3 && !ok; attempt++){
+      const cur = await sb.from("forge_data").select("data,updated_at").eq("user_id", sbUser.id).maybeSingle();
+      if(cur.error) throw cur.error;   /* oxuya bilmədiksə yazmırıq */
+      const row = cur.data;
+      if(row && row.data){
         const n0 = state.sessions.length + state.weights.length;
-        state = mergeState(state, cur.data.data);
+        state = mergeState(state, normalizeRemote(row.data));
+        buildProgram();
         if(state.sessions.length + state.weights.length !== n0){
           try{ localStorage.setItem("forge-data", JSON.stringify(state)); }catch(e){}
         }
       }
-    }catch(e){ /* oxuya bilmədiksə yazmırıq — aşağıdakı yazı da baş tutmayacaq */ }
-    const { error } = await sb.from("forge_data")
-      .upsert({ user_id: sbUser.id, data: state, updated_at: new Date().toISOString() },
-              { onConflict: "user_id" });   /* needs the unique constraint — see SQL */
-    if(error){ cloudDirty = true; sbStatus = "gözləyir"; }
-    else { cloudDirty = false; sbStatus = "sinxrondur"; lastSync = Date.now(); }
-  }catch(e){ cloudDirty = true; sbStatus = "oflayn"; }
+      const payload = { user_id: sbUser.id, data: state, updated_at: new Date().toISOString() };
+      let res;
+      if(row){
+        res = await sb.from("forge_data").update(payload)
+          .eq("user_id", sbUser.id).eq("updated_at", row.updated_at).select("user_id");
+      } else {
+        /* sətir hələ yoxdur — ilk yazı. Eyni anda başqa cihaz da yaradıbsa
+           unikal açar xətası verir və növbəti dövrədə birləşdiririk. */
+        res = await sb.from("forge_data").insert(payload).select("user_id");
+        if(res.error && /duplicate|unique|23505/i.test(res.error.message + (res.error.code||""))) continue;
+      }
+      if(res.error) throw res.error;
+      ok = !!(res.data && res.data.length);
+    }
+    if(ok){ cloudDirty = false; sbStatus = "sinxrondur"; lastSync = Date.now(); }
+    else { cloudDirty = true; sbStatus = "gözləyir"; }
+  }catch(e){ cloudDirty = true; sbStatus = navigator.onLine === false ? "oflayn" : "gözləyir"; }
   pushing = false;
+  if(pushAgain){ pushAgain = false; doPush(); }
 }
 /* idle heartbeat + retry when the network comes back */
 setInterval(()=>{ if(sbUser && cloudDirty) doPush(); }, 60000);
@@ -2033,7 +2136,7 @@ function toggleSupp(kind){
   const t = todayISO();
   let e = state.supps.find(x=>x.d===t);
   if(!e){ e = {d:t, creatine:false, protein:false}; state.supps.push(e); state.supps.sort((a,b)=>a.d<b.d?-1:1); }
-  e[kind] = !e[kind];
+  e[kind] = !e[kind]; e.ts = Date.now();
   save(); renderToday();
 }
 function suppStreak(kind){
@@ -2480,7 +2583,7 @@ function importData(input){
     }
     const ns = d.sessions.length, nw = d.weights.length, nsp = Array.isArray(d.supps) ? d.supps.length : 0;
     ask("Fayldan birləşdirilsin?", `${ns} məşq · ${nw} çəki qeydi · ${nsp} əlavə günü\n\nMövcud qeydləriniz silinmir — yalnız çatışmayanlar əlavə olunur.`, "Birləşdir", ()=>{
-      state = mergeState(state, migrate({...JSON.parse(JSON.stringify(DEFAULTS)), ...d, profile:{...DEFAULTS.profile, ...(d.profile||{})}}, d.pv || 1));
+      state = mergeState(state, normalizeRemote(d));
       buildProgram();
       save(); cloudPush(); refresh();
       toast(`Birləşdirildi — ${state.sessions.length} məşq, ${state.weights.length} çəki qeydi`);
@@ -2774,7 +2877,7 @@ function renderTrain(){
           ${exImg(eff,"exanim sm")}
           <div>
             <div class="name">${i+1}. ${esc(eff.name)}</div>
-            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${'$'}{eff.key}')">${loadTag(eff)}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}${extra?`<span class="tag swp">əlavə</span>`:""}</div>
+            <div class="meta"><span class="tag hot">${eff.sets} × ${eff.rMin}-${eff.rMax}</span><span class="tag">⏱ ${Math.round(eff.rest/60*10)/10} dəq</span><span class="tag lt" onclick="loadInfo('${eff.key}')">${loadTag(eff)}</span>${swapped?`<span class="tag swp">alternativ</span>`:""}${extra?`<span class="tag swp">əlavə</span>`:""}</div>
           </div>
         </div><div class="exbtns">${extra
           ? `<button class="techbtn" onclick="openTech('${viewDay}',null,'${ex.key}')">Texnika</button><button class="techbtn" onclick="sessRemove('${ex.key}')" aria-label="məşqdən çıxar">✕ Çıxar</button>`
@@ -3021,7 +3124,7 @@ function buildRecord(a){
   /* id olmadan açar “tarix|gün” idi: eyni gün eyni tipdə iki məşq etsən,
      birləşdirmə onlardan yalnız birini saxlayırdı. */
   const sec = sessionSeconds(a, staleHours() ? 0 : TAIL_CAP);
-  const rec = { id: startISO+"|"+a.day+"|"+(a.startedAt||Date.now()), d: startISO, day: a.day, ex: [], conv: CONV,
+  const rec = { id: startISO+"|"+a.day+"|"+(a.startedAt||Date.now()), ts: Date.now(), d: startISO, day: a.day, ex: [], conv: CONV,
     foundation: !!a.foundation, min: sec==null ? null : Math.round(sec/60), sec };
   let n = 0, skipped = 0, zero = 0;
   const logged = s => parseFloat(s.reps) > 0 && !(s.auto && !s.done);   /* boz təklif ≠ edilmiş dövr */
@@ -3078,6 +3181,7 @@ function saveWithNote(){
   const t = $("#fin-note");
   const note = t ? t.value.replace(/[<>]/g,"").trim().slice(0,400) : "";
   if(note) rec.note = note;
+  rec.ts = Date.now();
   pendingRec = null; closeSheet(); saveSession(rec);
 }
 /* həmin gün tipi üçün sonuncu qeyd — növbəti dəfə göz önünə çıxarılır */
@@ -3170,6 +3274,7 @@ function saveVid(key){
   state.vid = state.vid || {};
   const u = safeURL(v);
   if(u) state.vid[key] = u; else delete state.vid[key];
+  stampKey("vid", key);
   save(); cloudPush(); closeSheet();
   toast(v ? "Video təyin edildi" : "Axtarışa qaytarıldı");
 }
@@ -3298,6 +3403,7 @@ function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch(e){} wak
 document.addEventListener("visibilitychange", ()=>{
   if(document.visibilityState !== "visible"){
     lastHide = Date.now();
+    flushSave();
     /* Tətbiq arxa fona keçir: gözləyən dəyişikliyi elə indi buluda yaz.
        Əvvəl yazı 10 saniyəlik gecikmə (və ya 60 saniyəlik təkrar cəhd) gözləyirdi —
        telefonu cibə qoyub zaldan çıxanda həmin pəncərə heç vaxt gəlmirdi. */
@@ -4173,6 +4279,7 @@ function saveCustom(key){
     sec: [...document.querySelectorAll("#cx-sec .pick.on")].map(el=>el.dataset.m),
     url: safeURL(img), file: safeURL(img) ? "" : img.replace(/["'<>]/g,"")
   };
+  stampKey("userEx", k);
   if(state.userEx[k].rMin > state.userEx[k].rMax){
     const t = state.userEx[k].rMin; state.userEx[k].rMin = state.userEx[k].rMax; state.userEx[k].rMax = t;
   }
@@ -4185,7 +4292,7 @@ function delCustom(k){
   const extra = used.length ? `\n\nO, bu günlərdən də çıxarılacaq: ${used.map(D=>DAY_META[D].name).join(", ")}.` : "";
   ask("Hərəkət silinsin?", `“${esc(nm)}” kitabxanadan tamamilə silinəcək.${esc(extra)}`, "Sil", ()=>{
     used.forEach(D => { const p = ensurePlan(D); const i = p.findIndex(s=>s.k===k); if(i>=0) p.splice(i,1); });
-    delete state.userEx[k];
+    delete state.userEx[k]; stampKey("userEx", k);
     planTouch(); toast("Silindi");
   }, true);
 }
