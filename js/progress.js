@@ -88,7 +88,7 @@ function renderProg(){
           ? `Ən yaxşı dövr <b class="num">${Math.round(r.t.e1)}</b> təkrar · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} təkrar${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""}`
           : `Təxmini 1TM <b class="num">${Math.round(r.t.e1)}</b> ${r.u} · ${r.t.n} məşq · ${r.t.change>=0?"+":""}${Math.round(r.t.change*10)/10} ${r.u}${r.t.days>=7?` (${Math.round(r.t.days/7)} həftədə)`:""} · həftədə <b>${r.t.perWeek>=0?"+":""}${Math.round(r.t.perWeek*10)/10}</b>`}</div>` : ""}
       <div class="lnext ${r.pl.cls}">Növbəti: <b>${r.pl.kg==null?"iş çəkisini seç":(r.last.bw && !(r.pl.kg>0) ? `${r.pl.reps} təkrar` : `${r.pl.kg} ${r.u}${dasTxt(r.k, r.pl.kg)} × ${r.pl.reps}`)}</b>${
-        r.pl.action==="up"?" — çəki artır":r.pl.action==="deload"?" — yüngülləşdir":r.pl.action==="down"?" — geri qayıt":r.pl.action==="reps"?" — təkrar artır":""}</div>
+        r.pl.action==="up"?" — çəki artır":r.pl.action==="deload"?" — yüngülləşdir":r.pl.action==="down"?" — geri qayıt":r.pl.action==="reps"?" — təkrar artır":r.pl.action==="push"?" — daha çox səy":""}</div>
       ${!r.last.bw && r.last.top.raw ? `<div class="small" style="margin-top:6px">${offStepNote(r.k, r.last.top.raw)}</div>` : ""}
       ${r.pj ? `<div class="lproj">Bu tempi saxlasan <b>${r.pj.target} ${r.pj.unit}</b>-a təxminən <b>${r.pj.weeks} həftəyə</b> çatırsan.</div>` : ""}
     </div>`;
@@ -124,7 +124,10 @@ function renderProg(){
         ? `<div class="histnote" style="color:var(--dim)">Köhnə qayda ilə yazılıb: ştanq/disk hərəkətlərində rəqəm <b>cəmi çəkidir</b> (dəmir daxil). Qrafiklər və proqressiya onu avtomatik hər tərəfə çevirir.</div>` : ""}
       ${s.note ? `<div class="histnote">“${esc(s.note)}”</div>` : ""}
       ${s.ex.map(e=>`<div class="histset"><b>${esc(e.name)}</b> — <span class="num">${perfStr(e)}</span></div>`).join("")}
-      <button class="btn sm danger" style="margin:8px 0 10px"${act("delSession",i)}>Məşqi sil</button>
+      <div style="display:flex;gap:8px;margin:8px 0 10px">
+        ${s.id && !s.foundation ? `<button class="btn sm ghost"${act("shareSession",s.id)}>📤 Paylaş</button>` : ""}
+        <button class="btn sm danger"${act("delSession",i)}>Məşqi sil</button>
+      </div>
     </details>`;
   }).join("") : `<div class="empty">Hələ məşq yoxdur.</div>`;
 
@@ -253,6 +256,17 @@ function bodySVG(view, vol){
     <svg viewBox="0 0 500 700" aria-hidden="true">${parts}</svg>
   </div>`;
 }
+/* tam dövr rejimində: hər əzələnin öz tarixçəsinə görə hədəfi (js/plan-doctor.js) */
+function volTargetsHTML(){
+  const rows = volumePlan().filter(t => t.status !== "nodata" || t.delta !== 0)
+    .sort((a,b)=> Math.abs(b.delta) - Math.abs(a.delta) || b.cur - a.cur);
+  if(!rows.length) return `<hr class="split"><div class="small">Əzələ hədəfləri: hər hərəkətdə 4+ məşq yığılandan sonra hədəf sənin nəticələrinə görə dəyişəcək.</div>`;
+  return `<hr class="split"><div class="sumh" style="color:var(--mut)">Hədəf · sənin nəticələrinə görə</div>
+    <div class="vtlist">${rows.map(t=>`<div class="vtrow">
+      <span class="mn">${MUSN[t.m]}<small>${VOL_WHY[t.status]}</small></span>
+      <span class="num vt ${t.delta>0?"up":t.delta<0?"dn":""}">${t.cur}${t.delta ? ` → <b>${t.target}</b>` : ""}</span>
+    </div>`).join("")}</div>`;
+}
 /* Plan bölməsindəki kart: gün / həftə seçimi ilə */
 let volMode = "day";
 function setVolMode(m){ volMode = m; renderPlan(); }
@@ -282,6 +296,7 @@ function volumeCard(D){
       <span class="mb"><i style="width:${Math.round(r.v/max*100)}%"></i></span>
       <span class="mv num">${r.v ? (Math.round(r.v*10)/10) : "—"}</span>
     </div>`).join("")}</div>
+    ${volMode==="week" ? volTargetsHTML() : ""}
     <div class="small" style="margin-top:10px">Rəqəm = <b style="color:var(--ink)">effektiv dövr sayı</b>: əsas əzələ üçün dövr tam, köməkçi əzələ üçün yarım sayılır. Tam dövr = 4 məşq ≈ 8 gün; böyümə üçün əzələ başına bir dövrdə <b style="color:var(--ink)">10-20 iş dövrü</b> yaxşı aralıqdır. ${volMode==="week"?"Aşağıdakı siyahı dörd günün cəmidir — boş qalan əzələ varsa, ona hərəkət əlavə edin.":"Ümumi mənzərə üçün yuxarıdan “Tam dövr”ə keçin."}</div>
   </div>`;
 }

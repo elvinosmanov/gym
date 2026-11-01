@@ -16,6 +16,9 @@ Azərbaycan dilində, telefon üçün qurulmuş kütlə (hipertrofiya) məşq t�
 - **Əzələ xəritəsi** — real anatomik ön/arxa illüstrasiya üzərində hansı əzələnin nə qədər işlədiyi (əsas dövr tam, köməkçi yarım sayılır), gün və tam dövr üzrə
 - **Məşqə baxış** — “Bugün” kartında növbəti məşqin bütün hərəkətləri bir siyahıda: dövr×təkrar və bu gün qaldırılacaq çəki, yanında ↑ artım / → eyni çəki / ↓ yüngülləşdirmə işarəsi. Zala girməzdən əvvəl 10 saniyəlik oxu
 - **Rekordlar və məşq xülasəsi** — dövrü ✓ edəndə əvvəlki ən yaxşını keçirsə dərhal 🏆 deyilir (düymə sarı olur). “Yadda saxla”dan sonra xülasə açılır: rekordlar, ilk dəfə edilən hərəkətlər, tonaj və eyni günün keçən məşqi ilə fərq (%). Hər hərəkət üçün ən çox bir rekord: ən ağır çəki > təxmini 1TM > bədən çəkisi ilə təkrar. İlk qeyd və təməl məşqi rekord sayılmır
+- **Ehtiyat təkrar (RIR)** — dövrü ✓ edəndə altında kiçik sıra açılır: “Daha neçə təkrar?” 0 · 1 · 2 · 3 · 4+. Məcburi deyil. Seçilibsə proqressiya istifadə edir: ən ağır dövr belə 3+ ehtiyatla bitibsə çəki diapazonun tavanını gözləmədən artır; “durğunluq” var, amma dövrlər orta 2+ ehtiyatla bitirsə yüngülləşdirmə əvəzinə “eyni çəki, son dövrü 0-1 ehtiyatla bitir” deyilir; 2+ ehtiyatla dayanmaq “adət tavanı” sayılmır
+- **Uyğunlaşan həcm** — hər əzələnin hədəf dövr sayı onun öz hərəkətlərinin tarixçəsinə görə dəyişir: irəliləyirsə saxla (aralığın üstündə olsa belə), yerində sayırsa +2, geriləyirsə −2, ehtiyat çoxdursa həcmə toxunma — əvvəlcə səy. Plan → “Tam dövr”də cədvəl, plan doktorunda bir toxunuşla ±1 dövr
+- **Şəkil kimi paylaş** — məşq xülasəsi 1080×1350 PNG kimi cihazda çəkilir (müddət, tonaj, rekordlar, hərəkətlər); telefonda sistemin paylaş pəncərəsi, olmasa yükləmə. Xülasədən və Tarixçədən
 - **Gündəlik brifinq** — bu gün hansı hərəkətdə çəki artmalı, hansı əzələ geri qalıb, çəki trendi, keçən məşqin qeydi
 - **Video** — hər hərəkət üçün YouTube axtarışı, istəsən öz videonu təyin edirsən
 - **Məşq zamanı əlavə** — məşq başlayandan sonra “＋ Bu məşqə hərəkət əlavə et” ilə kitabxanadan istənilən hərəkəti əlavə edirsən (plana yazılmır, yalnız bu məşqin qeydinə düşür, ✕ ilə çıxarılır). Hər kartda “＋ Dövr əlavə et” planlanandan artıq dövrü qeyd etməyə imkan verir
@@ -91,7 +94,7 @@ Node 20+ kifayətdir, heç bir asılılıq quraşdırılmır (`npm install` laz�
   - `sync.js` — Supabase: giriş, birləşdirmə (merge), şərtli yazı
   - `utils.js` — köməkçilər: `toast`, bədən çəkisi, təxmini 1TM, məşq günləri və təqvim
   - `progression.js` — proqressiya alqoritmi (1TM, artım addımları, durğunluq)
-  - `records.js` — rekordlar: canlı (dövr ✓), məşq xülasəsi, Analizdəki siyahı
+  - `records.js` — rekordlar: canlı (dövr ✓), məşq xülasəsi, Analizdəki siyahı, şəkil kimi paylaşma
   - `today.js` — “Bugün” səhifəsi: brifinq, məşqə baxış
   - `settings.js` — Ayarlar: günlər, sinxron, ixrac/idxal, tarixçə təmizliyi
   - `train.js` — məşq ekranı: dövrlərin qeydi, aşağı doldurma

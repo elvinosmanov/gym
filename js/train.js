@@ -221,7 +221,7 @@ function renderTrain(){
         const pkg = smartKg(ex.key,si), prep = smartReps(ex.key,si);
         const kgPh = (pkg!=null && pkg>0) ? pkg : (eff.bodyweight ? "BÇ" : "kq");
         return `<div class="setrow">
-          <div class="idx num">${si+1}</div>
+          ${rirIdxHTML(ex.key, si)}
           <div class="stepper">
             <button type="button"${act("stepVal",ex.key,si,"kg",-1)} aria-label="Dövr ${si+1}: çəkini azalt">−</button>
             <input id="in-${ex.key}-${si}-kg" type="text" inputmode="decimal" step="0.5" placeholder="${esc(kgPh)}" value="${esc(s.kg)}" class="${s.auto?"gh":""}"${onInput("setVal",ex.key,si,"kg")} aria-label="Dövr ${si+1}: çəki (${esc(unitOf(eff))})">
@@ -233,7 +233,8 @@ function renderTrain(){
             <button type="button"${act("stepVal",ex.key,si,"reps",1)} aria-label="Dövr ${si+1}: təkrarı artır">+</button>
           </div>
           <button type="button" id="ck-${ex.key}-${si}" class="check ${s.done?"done":""} ${s.done&&s.pr?"pr":""}"${act("toggleDone",ex.key,si)} aria-pressed="${!!s.done}" aria-label="Dövr ${si+1}: bitdi">✓</button>
-        </div>`;
+        </div>
+        <div id="rr-${ex.key}-${si}">${rirRowHTML(ex.key, si)}</div>`;
       }).join("");
       const h = hintFor(eff,p);
       const wk = (st[0] && parseFloat(st[0].kg)) || suggestKg(eff.key);
@@ -455,6 +456,9 @@ function toggleDone(key,i){
       return;
     }
     delete s.auto;                       /* təsdiqlənən dövr artıq təklif deyil */
+    /* ehtiyat seçimi bu dövr üçün açılır, eyni hərəkətin digər dövrlərində bağlanır */
+    state.active.ex[key].forEach((o,j)=>{ if(j!==i && o.rirOpen){ o.rirOpen = false; redrawRir(key,j); } });
+    if(s.rir == null) s.rirOpen = true;
     ["kg","reps"].forEach(f=>{
       const el = document.getElementById(`in-${key}-${i}-${f}`);
       if(el) el.classList.remove("gh");
@@ -500,9 +504,58 @@ function toggleDone(key,i){
   const btn = document.getElementById(`ck-${key}-${i}`);
   const rl = document.getElementById(`rl-${key}`);
   if(rl) rl.innerHTML = restLineHTML(key);
-  if(!s.done) delete s.pr;
+  if(!s.done){ delete s.pr; delete s.rir; delete s.rirOpen; }
+  redrawRir(key, i);
   if(btn){ btn.classList.toggle("done", s.done); btn.classList.toggle("pr", !!(s.done && s.pr)); btn.setAttribute("aria-pressed", String(!!s.done)); }
   else renderTrain();
+}
+/* ================= EHTİYAT TƏKRAR (RIR) =================
+   “Neçə təkrar də edə bilərdin?” — 0 = daha bir təkrar mümkün deyildi, 4+ = çox
+   asan idi. Məcburi deyil: ✓-dən sonra dövrün altında kiçik sıra açılır, seçmə-
+   sən heç nə dəyişmir. Seçsən proqressiya ondan istifadə edir:
+     · ən ağır dövr belə 3+ ehtiyatla bitibsə — çəki yüngüldür, artırılır;
+     · “durğunluq” görünür, amma orta ehtiyat 2+ idisə — problem çəkidə yox,
+       səydədir: yüngülləşdirmək əvəzinə son dövrü 0-1 ehtiyatla bitirmək deyilir;
+     · adət tanıma (həmişə 10-da dayanırsan) yalnız tükənərək dayananda işləyir —
+       2+ ehtiyatla dayanırsansa bu tavan deyil, ona görə 12 hədəfi qalır. */
+const RIR_OPTS = [0,1,2,3,4];
+const rirLabel = v => v >= 4 ? "4+" : String(v);
+function rirOk(v){ const n = numVal(v); return v !== "" && v != null && Number.isFinite(n) && n >= 0 && n <= 10; }
+function recSet(s){
+  const o = { kg: parseFloat(s.kg)||0, reps: parseFloat(s.reps) };
+  if(rirOk(s.rir)) o.rir = Math.min(4, Math.round(numVal(s.rir)));
+  return o;
+}
+function rirIdxHTML(key, i){
+  const s = state.active.ex[key][i];
+  if(!s.done) return `<div class="idx num">${i+1}</div>`;
+  const has = rirOk(s.rir);
+  return `<button type="button" id="ri-${key}-${i}" class="idx num rirbtn ${has?"has":""}"${act("rirToggle",key,i)} aria-label="Dövr ${i+1}: ehtiyat təkrar${has?` — ${rirLabel(s.rir)}`:""}" aria-expanded="${!!s.rirOpen}">${i+1}${has?`<small>R${rirLabel(s.rir)}</small>`:""}</button>`;
+}
+function rirRowHTML(key, i){
+  const s = state.active.ex[key][i];
+  if(!s.done || !s.rirOpen) return "";
+  return `<div class="rirrow" role="group" aria-label="Dövr ${i+1}: daha neçə təkrar edə bilərdin?">
+    <span>Daha neçə təkrar?</span>
+    <div>${RIR_OPTS.map(v=>`<button type="button" class="rirc ${rirOk(s.rir)&&+s.rir===v?"on":""}"${act("setRir",key,i,v)} aria-pressed="${rirOk(s.rir)&&+s.rir===v}">${rirLabel(v)}</button>`).join("")}</div>
+  </div>`;
+}
+function redrawRir(key, i){
+  const row = document.getElementById(`rr-${key}-${i}`);
+  if(row) row.innerHTML = rirRowHTML(key, i);
+  const old = document.getElementById(`ri-${key}-${i}`) || (row && row.previousElementSibling && row.previousElementSibling.querySelector(".idx"));
+  if(old) old.outerHTML = rirIdxHTML(key, i);
+}
+function setRir(key, i, v){
+  const s = state.active && state.active.ex[key] && state.active.ex[key][i]; if(!s || !s.done) return;
+  if(rirOk(s.rir) && +s.rir === v) delete s.rir; else s.rir = v;   /* eyni çipə ikinci toxunuş = geri al */
+  s.rirOpen = false;
+  save(); redrawRir(key, i);
+}
+function rirToggle(key, i){
+  const s = state.active && state.active.ex[key] && state.active.ex[key][i]; if(!s || !s.done) return;
+  s.rirOpen = !s.rirOpen;
+  save(); redrawRir(key, i);
 }
 /* qeyd qurma ayrıca: həm “Bitir” düyməsi, həm avtomatik bağlama eyni məntiqi işlədir */
 function buildRecord(a){
@@ -522,8 +575,7 @@ function buildRecord(a){
     skipped += raw.filter(s=>s.done && !(parseFloat(s.reps)>0)).length;
     /* reps is the only requirement: kg 0 is legitimate (Back Extension, Assisted Pull-Up,
        Hanging Knee Raise, Decline Sit-Up, Band Pull-Apart all start unloaded) */
-    const sets = raw.filter(logged)
-      .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
+    const sets = raw.filter(logged).map(recSet);
     if(!eff.bodyweight) zero += sets.filter(x=>!(x.kg>0)).length;
     if(sets.length){ rec.ex.push({key:eff.key, name:eff.name, sets}); n += sets.length; }
   });
@@ -532,8 +584,7 @@ function buildRecord(a){
      yazılmış heç bir dövr itməsin. */
   Object.keys(a.ex || {}).forEach(k=>{
     if(rec.ex.some(e => e.key===k)) return;
-    const sets = (a.ex[k]||[]).filter(logged)
-      .map(s=>({kg:parseFloat(s.kg)||0, reps:parseFloat(s.reps)}));
+    const sets = (a.ex[k]||[]).filter(logged).map(recSet);
     if(sets.length){ rec.ex.push({ key:k, name: exName(k), sets }); n += sets.length; }
   });
   return { rec, n, skipped, zero };

@@ -119,7 +119,7 @@ function loadApp(opts = {}){
     addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true,
     alert: () => {}, confirm: () => true, prompt: () => null, scrollTo: () => {},
     fetch: () => Promise.reject(new Error("fetch disabled in tests")),
-    URL, URLSearchParams, TextEncoder, TextDecoder, structuredClone, queueMicrotask,
+    URL, URLSearchParams, TextEncoder, TextDecoder, structuredClone, queueMicrotask, atob, btoa,
     Blob: typeof Blob !== "undefined" ? Blob : function(){},
     Image: function(){ return makeEl("img"); },
     Audio: function(){ return makeEl("audio"); }

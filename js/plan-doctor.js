@@ -12,7 +12,59 @@ const MUS_GOAL = {
   chest:[10,22], lats:[10,22], quads:[10,22], delts:[10,22], hams:[9,20], glutes:[8,20],
   traps:[8,20], rdelt:[8,20], biceps:[8,20], triceps:[8,20], calves:[8,20], abs:[6,20]
 };
-const SIDE_MUS = ["abs","forearm","lowback"];            /* günün mövzusunu təyin etmir */
+const SIDE_MUS = ["abs","forearm","lowback"];
+/* ================= UYĞUNLAŞAN HƏCM =================
+   MUS_GOAL ümumi elmi aralıqdır (10-20 dövr). Amma hər əzələ fərqli cavab verir:
+   eyni 14 dövrlə döş irəliləyir, biseps yerində sayır. Ona görə hədəf əzələnin
+   ÖZ hərəkətlərinin tarixçəsinə baxır:
+     · irəliləyir   → həcm işləyir, saxla (aralığın üstündə olsa belə)
+     · yerində sayır → +2 dövr (aralığın yuxarı həddi + 4-ə qədər)
+     · geriləyir    → −2 dövr: bərpa çatmır (aralığın aşağı həddinə qədər)
+     · səy azdır    → həcmə toxunma: dövrlər 2+ ehtiyatla bitir, əvvəlcə səyi artır
+     · məlumat azdır → ümumi aralıq
+   Hərəkətin hökmü üçün ən az 4 məşq lazımdır; əzələnin hökmü onun ƏSAS işlədiyi
+   hərəkətlərin çoxluğundan çıxır. */
+const VOL_STEP = 2, VOL_MIN_SESS = 4;
+function muscleResponse(m){
+  const keys = [...new Set(DAYS.flatMap(D => daySlots(D).map(sl => sl.k)))]
+    .filter(k => ((libEx(k)||{}).pri||[]).includes(m));
+  const lifts = keys.map(k=>{
+    const H = exSessions(k, 8);
+    if(H.length < VOL_MIN_SESS) return null;
+    const t = liftTrend(k), pl = progressPlan(k);
+    const status = pl && (pl.action==="deload" || pl.action==="push") ? "flat" : (t ? t.status : "flat");
+    const rs = H.slice(0,3).map(rirOf).filter(Boolean);
+    return { k, status, rir: rs.length ? rs.reduce((a,r)=>a+r.avg,0)/rs.length : null };
+  }).filter(Boolean);
+  if(!lifts.length) return { m, status:"nodata", lifts:[] };
+  const n = lifts.length, up = lifts.filter(l=>l.status==="up").length, down = lifts.filter(l=>l.status==="down").length;
+  const rr = lifts.filter(l=>l.rir!=null);
+  const rir = rr.length ? rr.reduce((a,l)=>a+l.rir,0)/rr.length : null;
+  let status = "flat";
+  if(up*2 >= n) status = "up";
+  else if(rir != null && rir >= 2) status = "effort";
+  else if(down*2 > n) status = "down";
+  return { m, status, lifts, rir };
+}
+function volumeTarget(m, cur){
+  const [lo, hi] = MUS_GOAL[m] || [6, 20];
+  const r = muscleResponse(m);
+  const c = Math.round((cur||0)*10)/10;
+  let target = c;
+  if(c < lo) target = lo;
+  else if(r.status === "flat") target = Math.min(hi + 4, c + VOL_STEP);
+  else if(r.status === "down") target = Math.max(lo, c - VOL_STEP);
+  else if(r.status === "nodata") target = Math.min(c, hi);
+  return { m, cur:c, target, delta: Math.round((target - c)*10)/10, status: r.status, lifts: r.lifts.length, rir: r.rir };
+}
+const VOL_WHY = {
+  up:"irəliləyir — həcm işləyir", flat:"yerində sayır — daha çox həcm", down:"geriləyir — bərpa çatmır",
+  effort:"dövrlər 2+ ehtiyatla bitir — əvvəlcə səy", nodata:"məlumat azdır — ümumi aralıq"
+};
+function volumePlan(){
+  const vol = muscleVolume(DAYS.flatMap(k=>daySlots(k)));
+  return Object.keys(MUS_GOAL).map(m => volumeTarget(m, vol[m]||0));
+}            /* günün mövzusunu təyin etmir */
 /* Çoxoynaqlı (compound) təyini. Əvvəl yalnız əzələ sayına baxırdım, amma o yanılır:
    Hack Squat və Leg Press cəmi iki əzələ daşıyır, halbuki hər ikisi ağır çoxoynaqlı
    hərəkətdir. Ona görə əvvəlcə hərəkətin adındakı model oxunur (press/row/squat/dip…),
@@ -129,9 +181,35 @@ function planAdvice(D){
     }
   }
 
-  /* 3) ÇOX — bir əzələ hədəfin üstündədir, bu gün ona işləyir */
+  /* 2b) UYĞUNLAŞAN HƏCM — əzələnin öz tarixçəsi daha çox / az həcm istəyir */
+  const adapt = focus.filter(m => MUS_GOAL[m] && !handled.has(m)).map(m => volumeTarget(m, week[m]||0))
+    .filter(t => (t.status==="flat" && t.delta > 0) || (t.status==="down" && t.delta < 0))
+    .sort((a,b)=> Math.abs(b.delta) - Math.abs(a.delta))[0];
+  if(adapt){
+    handled.add(adapt.m);
+    const M = MUSN[adapt.m];
+    if(adapt.delta > 0){
+      const idx = slots.findIndex(sl => ((libEx(sl.k)||{}).pri||[]).includes(adapt.m) && (+sl.sets||0) < 5);
+      if(idx >= 0 && sets <= 24) out.push({ sev:0, ic:"⤴", t:`${M}: həcmi artır (${adapt.cur} → ${adapt.target})`,
+        w:`${M} üzrə hərəkətlər son məşqlərdə yerində sayır${adapt.rir!=null ? " və dövrlər az ehtiyatla bitir — yəni səy var, stimul azdır" : ""}. Bir dövrdə <b>${adapt.cur}</b> dövr alır; əvvəlcə <b>${exNm(slots[idx].k)}</b>-ə bir dövr əlavə et, 2-3 həftə bax.`,
+        a:[{l:`${exRaw(slots[idx].k)} +1 dövr`, act:"advSets", args:[D,idx,1]}] });
+    } else {
+      let bi = -1, bv = 0;
+      slots.forEach((sl,i)=>{
+        const e = libEx(sl.k); if(!e || (+sl.sets||0) <= 2) return;
+        const c = ((e.pri||[]).includes(adapt.m) ? +sl.sets : 0) + ((e.sec||[]).includes(adapt.m) ? sl.sets/2 : 0);
+        if(c > bv){ bv = c; bi = i; }
+      });
+      if(bi >= 0) out.push({ sev:0, ic:"⤵", t:`${M}: həcmi azalt (${adapt.cur} → ${adapt.target})`,
+        w:`${M} üzrə hərəkətlər geriləyir — <b>${adapt.cur}</b> dövrdən bərpa çatmır. Az həcm burada daha çox əzələ verəcək: <b>${exNm(slots[bi].k)}</b>-dən bir dövr azalt.`,
+        a:[{l:`${exRaw(slots[bi].k)} −1 dövr`, act:"advSets", args:[D,bi,-1]}] });
+    }
+  }
+
+  /* 3) ÇOX — bir əzələ hədəfin üstündədir, bu gün ona işləyir.
+        İrəliləyən əzələyə toxunmuruq: həcm onda işləyir. */
   const overM = Object.keys(MUS_GOAL)
-    .filter(m => v(m) > hi(m) && (dayV[m]||0) > 0)
+    .filter(m => v(m) > hi(m) && (dayV[m]||0) > 0 && !handled.has(m) && muscleResponse(m).status !== "up")
     .sort((a,b)=> v(b)-v(a))[0];
   if(overM){
     let bi = -1, bv = 0;

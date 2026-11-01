@@ -295,7 +295,12 @@ function sanitize(s){
     id: x.id == null ? x.id : String(x.id),
     ex: (Array.isArray(x.ex) ? x.ex : []).filter(e => e && SAFE_KEY.test(e.key)).map(e => ({
       ...e, name: String(e.name ?? ""),
-      sets: (Array.isArray(e.sets) ? e.sets : []).map(st => ({...st, kg: toNum(st && st.kg), reps: toNum(st && st.reps)}))
+      sets: (Array.isArray(e.sets) ? e.sets : []).map(st => {
+        const o = {...st, kg: toNum(st && st.kg), reps: toNum(st && st.reps)};
+        /* ehtiyat təkrar: 0-4 tam ədəd, qalanı atılır */
+        if("rir" in o){ const r = Math.round(Number(o.rir)); if(Number.isFinite(r) && r >= 0 && r <= 10) o.rir = Math.min(4, r); else delete o.rir; }
+        return o;
+      })
     }))
   }));
   if(s.plan && typeof s.plan === "object") Object.keys(s.plan).forEach(D=>{

@@ -258,6 +258,14 @@ details.wu.done .wulist li b{text-decoration:line-through}
 .sethdr{margin:12px 0 4px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:center}
 .setrow{margin:7px 0}
 .setrow .idx{font-family:var(--disp);font-weight:600;color:var(--mut);text-align:center}
+.setrow .rirbtn{background:none;border:0;padding:0;font-size:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.05;min-height:46px;justify-content:center;width:100%}
+.setrow .rirbtn small{font-family:var(--body);font-size:9.5px;color:var(--c);font-weight:600;margin-top:2px}
+.setrow .rirbtn:not(.has)::after{content:"·";color:var(--dim);font-size:14px;line-height:.6}
+.rirrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-2px 0 8px 28px;padding:6px 8px;background:var(--card2);border:1px dashed var(--line);border-radius:10px}
+.rirrow span{font-size:11.5px;color:var(--mut)}
+.rirrow>div{display:flex;gap:4px;flex:none}
+.rirc{min-width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:13px;cursor:pointer}
+.rirc.on{background:var(--c);border-color:var(--c);color:#1a1405}
 .stepper{display:flex;align-items:stretch;background:var(--card2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .stepper button{width:32px;flex:none;background:transparent;border:0;color:var(--mut);font-size:19px;line-height:1;padding:0;
   display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:manipulation}
@@ -491,3 +499,12 @@ details.hist .hs{color:var(--mut);font-size:12.5px}
 .view{display:none}.view.on{display:block}
 .footnote{font-size:11.5px;color:var(--dim);text-align:center;margin:20px 0 6px;line-height:1.6}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+/* uyğunlaşan həcm hədəfləri (Plan → Tam dövr) */
+.vtrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.vtrow:last-child{border-bottom:0}
+.vtrow .mn{min-width:0}
+.vtrow small{display:block;color:var(--dim);font-size:11px;margin-top:1px}
+.vtrow .vt{flex:none;color:var(--mut)}
+.vtrow .vt b{color:var(--ink)}
+.vtrow .vt.up b{color:var(--green)}
+.vtrow .vt.dn b{color:var(--red)}

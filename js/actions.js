@@ -40,7 +40,7 @@ const ACTIONS = {
   /* məşq */
   toggleWarmDone, openClockFix, shiftStart, finishSession, cancelSession, saveWithNote,
   selDay, stepVal, setVal, toggleDone, loadInfo, openTech, openSwap, chooseEx,
-  sessRemove, sessAddSet, sessAdd, openVidSet, saveVid,
+  sessRemove, sessAddSet, sessAdd, openVidSet, saveVid, setRir, rirToggle, shareSession,
   /* plan */
   selPlanDay, planMove, openSlotEdit, applySlot, slotRemove, openLibPick, planReset, planPick,
   libSetFilter, libSearch, openCustom, saveCustom, delCustom, toggleChip, setVolMode,

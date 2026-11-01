@@ -161,7 +161,8 @@ function summaryHTML(rec, R){
       <div><span class="lbl">Rekord</span><b class="num">${R.prs.length}</b><small class="mut">${R.firsts.length ? `${R.firsts.length} yeni hərəkət` : "&nbsp;"}</small></div>
     </div>
     ${prs}${firsts}
-    <button class="btn block" style="margin-top:14px"${act("closeSheet")}>Əla</button>`;
+    ${rec.id ? `<button class="btn block ghost" style="margin-top:14px"${act("shareSession",rec.id)}>📤 Şəkil kimi paylaş</button>` : ""}
+    <button class="btn block" style="margin-top:8px"${act("closeSheet")}>Əla</button>`;
 }
 function showSummary(rec){
   if(!rec || rec.foundation) return false;
@@ -169,4 +170,116 @@ function showSummary(rec){
   $("#sheet").innerHTML = summaryHTML(rec, R);
   openSheet();
   return true;
+}
+
+/* ================= PAYLAŞMA: XÜLASƏ ŞƏKİL KİMİ =================
+   1080×1350 (Instagram/Telegram üçün 4:5) PNG, tamamilə cihazda çəkilir —
+   heç yerə göndərilmir. Telefonda sistemin “Paylaş” pəncərəsi açılır; dəstək
+   yoxdursa fayl yüklənir. Şəkil SİNXRON yaradılır (toDataURL): iOS Safari
+   navigator.share-i yalnız toxunuşun içində qəbul edir, gözləmə onu pozur. */
+const DAY_HEX = { a:"#e0484e", b:"#4a7dff", c:"#f3b73f", d:"#33b56f" };
+function fitText(ctx, txt, max){
+  txt = String(txt);
+  const w = t => { const m = ctx.measureText(t); return (m && m.width) || 0; };
+  if(w(txt) <= max) return txt;
+  while(txt.length > 1 && w(txt + "…") > max) txt = txt.slice(0, -1);
+  return txt + "…";
+}
+function summaryCanvas(rec, R){
+  const W = 1080, H = 1350, P = 80;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d");
+  const meta = dayMeta(rec.day), accent = DAY_HEX[meta.cls] || "#f3b73f";
+  const disp = "600 {s}px Oswald, 'Arial Narrow', sans-serif", body = "{w} {s}px -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+  const F = (tpl, s, w) => tpl.replace("{s}", s).replace("{w}", w || 400);
+  x.fillStyle = "#101318"; x.fillRect(0, 0, W, H);
+  x.fillStyle = accent; x.fillRect(0, 0, W, 14);
+  /* başlıq */
+  x.textBaseline = "alphabetic";
+  x.fillStyle = "#96a0ad"; x.font = F(body, 30, 600);
+  x.fillText("FORGE · " + fmtD(rec.d), P, 120);
+  x.fillStyle = "#eef1f5"; x.font = F(disp, 84);
+  x.fillText(fitText(x, meta.name, W - 2*P), P, 220);
+  /* göstəricilər */
+  const stats = [
+    ["MÜDDƏT", rec.sec != null ? hms(rec.sec) : "—"],
+    ["TONAJ", R.ton.toLocaleString("az") + " kq"],
+    ["DÖVR", String(R.sets)]
+  ];
+  const bw = (W - 2*P - 40) / 3;
+  stats.forEach(([k, v], i) => {
+    const bx = P + i*(bw + 20), by = 270;
+    x.fillStyle = "#1e232b"; x.fillRect(bx, by, bw, 150);
+    x.fillStyle = "#96a0ad"; x.font = F(body, 24, 600); x.fillText(k, bx + 26, by + 48);
+    x.fillStyle = "#eef1f5"; x.font = F(disp, 50); x.fillText(fitText(x, v, bw - 40), bx + 26, by + 118);
+  });
+  let y = 500;
+  if(R.tonPct != null){
+    x.font = F(body, 28, 600); x.fillStyle = R.tonPct >= 0 ? "#3ecf8e" : "#e0484e";
+    x.fillText(`${R.tonPct > 0 ? "+" : ""}${R.tonPct}% tonaj keçən ${meta.name.split(" · ")[0]} məşqinə görə`, P, y - 24);
+    y += 30;
+  }
+  /* rekordlar */
+  if(R.prs.length){
+    x.fillStyle = "#f3b73f"; x.font = F(body, 28, 700);
+    x.fillText(`🏆  ${R.prs.length} REKORD`, P, y); y += 56;
+    R.prs.slice(0, 4).forEach(p => {
+      x.fillStyle = "#eef1f5"; x.font = F(body, 34, 600);
+      x.fillText(fitText(x, p.name, W - 2*P), P, y); y += 44;
+      x.fillStyle = "#f3b73f"; x.font = F(body, 30, 500);
+      x.fillText(fitText(x, prPlain(p, p.u), W - 2*P), P, y); y += 58;
+    });
+    y += 10;
+  }
+  /* hərəkətlər: ən güclü dövr */
+  x.fillStyle = "#96a0ad"; x.font = F(body, 26, 700);
+  x.fillText("HƏRƏKƏTLƏR", P, y); y += 22;
+  const rows = rec.ex.slice(0, Math.max(1, Math.floor((H - 110 - y) / 62)));
+  rows.forEach(e => {
+    y += 62;
+    const sets = realSets(e.key, normSets(e.key, e.sets, rec.conv));
+    const top = sets.length ? (liftStats(e.key, sets).top || sets.reduce((a, s) => s.reps > a.reps ? s : a, sets[0])) : null;
+    const val = top ? `${top.kg > 0 ? top.kg : "BÇ"} × ${top.reps}` : "";
+    x.fillStyle = "#1e232b"; x.fillRect(P, y - 44, W - 2*P, 2);
+    x.font = F(disp, 38); x.fillStyle = "#eef1f5";
+    const vw = (x.measureText(val) || {}).width || 0;
+    x.textAlign = "right"; x.fillText(val, W - P, y); x.textAlign = "left";
+    x.font = F(body, 32, 500);
+    x.fillText(fitText(x, (e.name || exName(e.key)) + `  ·  ${e.sets.length} dövr`, W - 2*P - vw - 30), P, y);
+  });
+  if(rec.ex.length > rows.length){
+    x.fillStyle = "#6b7480"; x.font = F(body, 26, 500);
+    x.fillText(`+${rec.ex.length - rows.length} hərəkət daha`, P, y + 50);
+  }
+  x.fillStyle = "#6b7480"; x.font = F(body, 24, 500);
+  x.fillText("FORGE — kütlə məşqi", P, H - 56);
+  return c;
+}
+function dataURLBlob(u){
+  const [head, b64] = u.split(",");
+  const bin = atob(b64), arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: (head.match(/:(.*?);/) || [])[1] || "image/png" });
+}
+function shareSession(id){
+  const rec = state.sessions.find(s => s.id === id);
+  if(!rec){ toast("Məşq tapılmadı"); return; }
+  let blob;
+  try{ blob = dataURLBlob(summaryCanvas(rec, sessionReport(rec)).toDataURL("image/png")); }
+  catch(e){ toast("Şəkil yaradıla bilmədi"); return; }
+  const name = `forge-${rec.d}-${rec.day}.png`;
+  let file = null;
+  try{ file = new File([blob], name, { type: "image/png" }); }catch(e){}
+  if(file && navigator.canShare && navigator.canShare({ files: [file] })){
+    navigator.share({ files: [file], title: `${dayMeta(rec.day).name} · ${fmtD(rec.d)}` })
+      .catch(e => { if(!e || e.name !== "AbortError") download(); });
+    return;
+  }
+  download();
+  function download(){
+    const url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast("Şəkil yükləndi");
+  }
 }

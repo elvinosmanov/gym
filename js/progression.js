@@ -104,6 +104,12 @@ function exSessions(key, limit, withFoundation){
   return out;                                                /* yenidən köhnəyə doğru */
 }
 const r05 = v => Math.round(v*2)/2;
+/* bir məşqin ehtiyat təkrarları (qeyd edilibsə): ən çətin dövr və orta */
+function rirOf(h){
+  const r = (h && h.sets || []).map(s => s.rir).filter(v => typeof v === "number");
+  if(!r.length) return null;
+  return { min: Math.min(...r), avg: r.reduce((a,v)=>a+v,0)/r.length, n: r.length };
+}
 /* ---- ADƏT: faktiki bitirdiyin təkrar ----
    Plan “8-12” yazsa da, adam üç məşqdir hər dəfə 10-da dayanırsa, 12 gözləmək
    mənasızdır: çəki heç vaxt artmır və hər məşqdə “çatmadın” mesajı görünür.
@@ -115,6 +121,8 @@ function habitReps(key, ex){
   const tops = H.slice(0,3).map(h => Math.max(...h.sets.map(s=>s.reps)));
   const X = tops[0];
   if(!tops.every(t => t===X)) return null;
+  /* 2+ ehtiyatla dayanırsansa, bu tavan deyil — sadəcə erkən dayanırsan */
+  if(H.slice(0,3).some(h => h.sets.some(s => s.reps === X && s.rir >= 2))) return null;
   const lo = (ex && ex.rMin) || 1, hi = (ex && ex.rMax) || 99;
   if(X < lo || X >= hi) return null;     /* diapazondan kənar, ya onsuz da tavandadır */
   return X;
@@ -178,12 +186,16 @@ function progressPlanCore(key){
     stalled = last3 < older * 1.005;
   }
   const fmt = v => (Math.round(v*10)/10);
+  const rir = rirOf(L);
+  const easy = !!(rir && rir.min >= 3);          /* ən ağır dövr belə 3+ ehtiyatla */
 
   /* bədən çəkisi ilə: çəki yox, təkrar artır */
   if(bw){
     const allTop = L.sets.every(s=>s.reps>=RMAX);
     if(allTop) return { action:"up", kg:inc, reps:ex.rMin, cls:"up",
       txt:`Bədən çəkisi ilə bütün dövrlərdə ${RMAX} təkrara çatdın — indi <b>disk əlavə et</b> (${inc} ${u}) və ${ex.rMin} təkrardan başla.` };
+    if(easy && R < RMAX) return { action:"reps", kg:0, reps:Math.min(RMAX, R+2), cls:"up",
+      txt:`Keçən dəfə <b>${R} təkrar</b> və ən çətin dövrdə belə ${rir.min >= 4 ? "4+" : rir.min} təkrar ehtiyat qalmışdı — bu gün hədəf <b>${Math.min(RMAX,R+2)}</b>.` };
     if(R >= RMAX) return { action:"reps", kg:0, reps:RMAX, cls:"",
       txt:`Bədən çəkisi ilə: ən güclü dövrün artıq <b>${R} təkrar</b>. Qalan dövrləri də ${RMAX}-ə çatdır — hamısı çatanda disk əlavə edirik.` };
     return { action:"reps", kg:0, reps:Math.min(RMAX, R+1), cls:"",
@@ -211,7 +223,20 @@ function progressPlanCore(key){
     return { action:"down", kg:r05(back), reps:ex.rMin, cls:"warn",
       txt:`Keçən dəfə <b>${T} ${u} × ${R}</b> — diapazonun altında qaldı, yəni çəki hələ tezdir. Bu gün <b>${r05(back)} ${u}</b> ilə ${ex.rMin}-${RMAX} təkrara qayıt, sonra yenidən qalx.` };
   }
-  /* 4) üç məşqdir yerində sayır -> yüngülləşdirmə */
+  /* 3b) ehtiyat çoxdur: ən ağır dövr belə 3+ təkrar ehtiyatla bitib — çəki yüngüldür.
+         Diapazonun tavanını gözləmək bir-iki məşq itirmək deməkdir. */
+  if(easy){
+    const tgt = Math.min(RMAX, Math.max(ex.rMin, R));
+    return { action:"up", kg:r05(T+inc), reps:tgt, cls:"up",
+      txt:`Keçən dəfə <b>${T} ${u} × ${R}</b>, ən çətin dövrdə belə <b>${rir.min >= 4 ? "4+" : rir.min} təkrar ehtiyat</b> qalmışdı — çəki yüngüldür. Bu gün <b>${r05(T+inc)} ${u}</b> (+${inc}), hədəf ${tgt} təkrar.` };
+  }
+  /* 4) üç məşqdir yerində sayır -> yüngülləşdirmə.
+        Amma dövrlər orta 2+ ehtiyatla bitibsə, bu durğunluq deyil, səy azlığıdır:
+        çəkini endirmək problemi dərinləşdirər. */
+  if(stalled && rir && rir.avg >= 2){
+    return { action:"push", kg:r05(T), reps:Math.min(RMAX, R+1), cls:"warn",
+      txt:`Üç məşqdir 1TM artmır, amma dövrləri orta <b>${fmt(rir.avg)} təkrar ehtiyatla</b> bitirmisən. Problem çəkidə deyil, səydədir: bu gün <b>eyni ${T} ${u}</b>, son dövrü <b>0-1 ehtiyatla</b> bitir (hədəf ${Math.min(RMAX,R+1)}+).` };
+  }
   if(stalled){
     const dl = Math.max(inc, Math.min(r05(T*0.9), T - inc));   /* ən azı bir addım (bir daş) aşağı */
     return { action:"deload", kg:dl, reps:RMAX, cls:"warn",
